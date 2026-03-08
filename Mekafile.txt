@@ -1,0 +1,173 @@
+PY := python3
+MANAGE := $(PY) manage.py
+
+pipsaas:
+	pip install --no-cache-dir --force-reinstall git+https://github.com/metanochava/django_saas.git@main
+libs:
+	pip install -r requirements
+
+reload:
+	systemctl restart gunicorn_dev_back; \
+	systemctl daemon-reload; \
+	systemctl restart gunicorn_dev_back
+
+status:
+	git status -sb
+
+gitback:
+	git reset --soft HEAD~1
+
+gitrmc:
+	read -p "Digite o caminho do ficheiro ou pasta: " m; \
+	git rm --cached "$$m"
+
+
+
+
+
+SHELL := /bin/bash
+.ONESHELL:
+.SHELLFLAGS := -eu -o pipefail -c
+
+PY := python3
+MANAGE := $(PY) manage.py
+PYPROJECT := pyproject.toml
+
+# =========================
+# Lê versão do pyproject.toml
+# =========================
+define GET_VERSION
+$(PY) -c "import tomli; print(tomli.load(open('$(PYPROJECT)','rb'))['project']['version'])"
+endef
+
+# =========================
+# Helpers
+# =========================
+.PHONY: clean version status
+
+clean:
+	find . -name "__pycache__" -type d -exec rm -rf {} +
+
+version:
+	@$(call GET_VERSION)
+
+status:
+	git status -sb
+
+
+
+
+# =========================
+# Django
+# =========================
+.PHONY: check migrations migrate superuser supersaas run
+
+check:
+	$(MANAGE) check
+
+migrations:
+	$(MANAGE) makemigrations
+
+migrate:
+	$(MANAGE) migrate
+
+superuser:
+	$(MANAGE) createsuperuser
+
+supersaas:
+	$(MANAGE) supersaas
+
+run:
+	$(MANAGE) runserver 0.0.0.0:7002
+
+staticfiles:
+	@$(MANAGE) collectstatic;
+
+# =========================
+# Git básico
+# =========================
+.PHONY: push pull
+
+pull:
+	git pull
+
+push:
+	git push origin main develop
+
+# =========================
+# Bump Version (sem tag)
+# =========================
+.PHONY: bump_patch bump_minor bump_major
+
+bump_patch:
+	bump2version patch --no-commit --no-tag
+	@echo "Nova versão: $(shell $(call GET_VERSION))"
+
+bump_minor:
+	bump2version minor --no-commit --no-tag
+	@echo "Nova versão: $(shell $(call GET_VERSION))"
+
+bump_major:
+	bump2version major --no-commit --no-tag
+	@echo "Nova versão: $(shell $(call GET_VERSION))"
+
+# =========================
+# Build + Upload PyPI
+# =========================
+.PHONY: build upload
+
+build:
+	$(PY) -m build
+
+upload:
+	twine upload dist/*
+
+# =========================
+# GitFlow
+# =========================
+.PHONY: flow_init feature_start feature_finish release_start release_finish hotfix_start hotfix_finish
+
+flow_init:
+	git flow init -d
+
+feature_start:
+	read -p "Nome da feature: " n; \
+	git checkout develop; \
+	git flow feature start "$$n"
+
+feature_finish:
+	read -p "Nome da feature: " n; \
+	git flow feature finish "$$n"; \
+	git push origin develop
+
+# =========================
+# RELEASE PROFISSIONAL
+# =========================
+release_start:
+	git checkout develop
+	git pull
+	read -p "Bump (patch/minor/major): " b; \
+	bump2version $$b --no-commit --no-tag; \
+	VERSION="$$( $(call GET_VERSION) )"; \
+	git add .; \
+	git commit -m "bump version $$VERSION"; \
+	git flow release start "$$VERSION"
+
+release_finish:
+	VERSION="$$( $(call GET_VERSION) )"; \
+	read -p "Mensagem do release v$$VERSION: " m; \
+	git flow release finish -m "release: v$$VERSION - $$m" "$$VERSION"; \
+	git push origin main develop --tags
+
+# =========================
+# HOTFIX
+# =========================
+hotfix_start:
+	read -p "Nome do hotfix: " n; \
+	git checkout main; \
+	git flow hotfix start "$$n"
+
+hotfix_finish:
+	read -p "Nome do hotfix: " n; \
+	git flow hotfix finish "$$n"; \
+	git push origin main develop --tags

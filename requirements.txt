@@ -1,0 +1,16 @@
+Django==5.2.10
+djangorestframework==3.16.1
+djangorestframework_simplejwt==5.5.1
+rest-framework-simplejwt==0.0.2
+drf-writable-nested==0.7.2
+Pillow
+pyotp
+qrcode[pil]==7.4
+python-barcode==0.15.1
+
+gunicorn
+django-cors-headers
+psycopg[binary]
+django-filter
+
+
