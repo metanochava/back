@@ -19,9 +19,9 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 
-from django_saas.core.utils.autoload_urls import build_saas_urls
-from django_saas.view import home
-from django_saas.view import deploy
+from django_resaas.core.utils.autoload_urls import build_saas_urls
+from django_resaas.view import home
+from django_resaas.view import deploy
 
 router, extra_patterns = build_saas_urls()
 
@@ -29,7 +29,7 @@ router, extra_patterns = build_saas_urls()
 urlpatterns = [
     path('', home, name='home'),
     path('api/', include(router.urls)),
-    path('api/', include('django_saas.urls')),
+    path('api/', include('django_resaas.urls')),
     path('admin/', admin.site.urls),
 
 ]

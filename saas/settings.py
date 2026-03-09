@@ -2,6 +2,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from corsheaders.defaults import default_headers
+from django_resaas.core.utils import get_cors_origins
 
 
 from dotenv import load_dotenv
@@ -17,8 +18,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 API = os.environ.get("START_API_URL")
 DEPLOY_TOKEN=os.environ.get("DEPLOY_TOKEN")
 SECRET_KEY = os.environ.get("SECRET_KEY")
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-AUTH_USER_MODEL = 'django_saas.User'
+AUTH_USER_MODEL = 'django_resaas.User'
 DEBUG = int(os.environ.get("DEBUG", default=0))
 TIME_ZONE = os.environ.get("TIME_ZONE")
 LANGUAGE_CODE = 'EN-US'
@@ -30,7 +32,7 @@ LANGUAGE_CODE = 'EN-US'
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
 CORS_ORIGIN_ALLOW_ALL = False
 CORS_ALLOW_HEADERS = list(default_headers) + os.environ.get("CORS_ALLOW_HEADERS", "").split(",")
-CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+CORS_ALLOWED_ORIGINS = get_cors_origins()
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
 
@@ -40,7 +42,7 @@ CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
 # --------------------------
 
 MY_APPS = [
-    'django_saas',
+    'django_resaas',
 ]
 
 
@@ -78,9 +80,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
 
-    'django_saas.core.middleware.file_access.FileAccessMiddleware',
-    # 'django_saas.core.middleware.frontend.FrontEndMiddleware',
-    'django_saas.core.middleware.tenant.TenantContextMiddleware',
+    'django_resaas.core.middleware.file_access.FileAccessMiddleware',
+    # 'django_resaas.core.middleware.frontend.FrontEndMiddleware',
+    'django_resaas.core.middleware.tenant.TenantContextMiddleware',
 
 ]
 

@@ -10,7 +10,6 @@
 # Don't sync user-specific files
 .project/complete_drafts.txt
 .project/localProjectSettings.json
-.project/localProjectSwap.json
 copilot-messages.log
 
 # Archive formats
@@ -47,3 +46,9 @@ copilot-messages.log
 # System files
 .DS_Store
 .project/attachments/files/**
+
+/files
+staticfiles
+.staticfiles
+gunicorn.ctl
+Makefile
