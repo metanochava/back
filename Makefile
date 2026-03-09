@@ -2,14 +2,16 @@ PY := python3
 MANAGE := $(PY) manage.py
 
 pipsaas:
-	pip install --no-cache-dir --force-reinstall git+https://github.com/metanochava/django_saas.git@main
+	pip install --no-cache-dir --force-reinstall git+https://github.com/metanochava/django_resaas.git@main
+pipsaas:
+	pip install -U django_resaas
 libs:
 	pip install -r requirements
 
 reload:
-	systemctl restart gunicorn_dev_back; \
+	systemctl restart gunicorn_pro_back; \
 	systemctl daemon-reload; \
-	systemctl restart gunicorn_dev_back
+	systemctl restart gunicorn_pro_back
 
 status:
 	git status -sb
@@ -77,8 +79,10 @@ superuser:
 supersaas:
 	$(MANAGE) supersaas
 
-run:
-	$(MANAGE) runserver 0.0.0.0:7002
+rundev:
+	$(MANAGE) runserver 0.0.0.0:7001
+runpro:
+	$(MANAGE) runserver 0.0.0.0:7000
 
 staticfiles:
 	@$(MANAGE) collectstatic;
@@ -139,6 +143,7 @@ feature_finish:
 	read -p "Nome da feature: " n; \
 	git flow feature finish "$$n"; \
 	git push origin develop
+
 
 # =========================
 # RELEASE PROFISSIONAL

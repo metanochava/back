@@ -2,12 +2,12 @@
 set -e
 
 # ====== CONFIG ======
-BASE="/var/www"
+BASE="/var/www/pro"
 RELEASES="$BASE/releases"
 CURRENT="$BASE/back"              # symlink
 SHARED="$BASE/back_shared"
 REPO_URL="https://github.com/metanochava/django_rest_auth.git"
-SERVICE="gunicorn_dev_back"
+SERVICE="gunicorn_pro_back"
 
 LOCK="/tmp/deploy.lock"
 LOG="/tmp/deploy.log"

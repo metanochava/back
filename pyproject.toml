@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Mytech_saas"
-version = "1.0.1"
+version = "1.0.2"
 description = "Mytech SAAS Framework"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -37,8 +37,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/metanochava/django_saas"
-Repository = "https://github.com/metanochava/django_saas"
+Homepage = "https://github.com/metanochava/django_resaas"
+Repository = "https://github.com/metanochava/django_resaas"
 
 # 🔥 MUITO IMPORTANTE
 [tool.setuptools]
