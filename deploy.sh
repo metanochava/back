@@ -47,8 +47,8 @@ fi
 git checkout --quiet "$TAG"
 
 # ====== VENV (SEM activate) ======
-VENV_PY="$SHARED/venv/bin/python"
-VENV_PIP="$SHARED/venv/bin/pip"
+VENV_PY="$SHARED/venv/bin/python3"
+VENV_PIP="$SHARED/venv/bin/pip3"
 
 # cria venv se não existir
 if [ ! -f "$VENV_PY" ]; then
