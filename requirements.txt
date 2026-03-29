@@ -5,7 +5,7 @@ rest-framework-simplejwt==0.0.2
 drf-writable-nested==0.7.2
 Pillow
 pyotp
-qrcode[pil]==7.4
+qrcode[pil]==7.4.2
 python-barcode==0.15.1
 
 gunicorn
