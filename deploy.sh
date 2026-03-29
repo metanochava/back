@@ -6,7 +6,7 @@ BASE="/var/www/pro"
 RELEASES="$BASE/releases"
 CURRENT="$BASE/back"              # symlink
 SHARED="$BASE/back_shared"
-REPO_URL="https://github.com/metanochava/django_rest_auth.git"
+REPO_URL="https://github.com/metanochava/back.git"
 SERVICE="gunicorn_pro_back"
 
 LOCK="/tmp/deploy.lock"

@@ -1,7 +1,7 @@
 PY := python3
 MANAGE := $(PY) manage.py
 
-pipsaas:
+gitsaas:
 	pip install --no-cache-dir --force-reinstall git+https://github.com/metanochava/django_resaas.git@main
 pipsaas:
 	pip install -U django_resaas
