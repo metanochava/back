@@ -5,6 +5,7 @@ from corsheaders.defaults import default_headers
 from django_resaas.core.utils import get_cors_origins
 
 
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -29,20 +30,15 @@ LANGUAGE_CODE = 'EN-US'
 # URLs e Hosts
 # --------------------------
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
-CORS_ORIGIN_ALLOW_ALL = False
-CORS_ALLOW_HEADERS = list(default_headers) + os.environ.get("CORS_ALLOW_HEADERS", "").split(",")
-CORS_ALLOWED_ORIGINS = get_cors_origins()
-CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
-CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
-
-
 # --------------------------
 # Aplicações
 # --------------------------
 
 MY_APPS = [
     'django_resaas',
+    'rh',
+    'clinica',
+    'stock',
 ]
 
 
@@ -65,6 +61,15 @@ INSTALLED_APPS = MY_APPS + [
     'rest_framework_simplejwt',
     'rest_framework.authtoken',  # só para validação de permissão
 ]
+
+
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split(",")
+CORS_ORIGIN_ALLOW_ALL = False
+# CORS_ALLOWED_ORIGINS = get_cors_origins()
+CORS_ALLOW_HEADERS = list(default_headers) + os.environ.get("CORS_ALLOW_HEADERS", "").split(",")
+CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
 
 # --------------------------
 # Middleware
