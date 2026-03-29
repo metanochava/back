@@ -4,7 +4,7 @@ set -e
 # ====== CONFIG ======
 BASE="/var/www/pro"
 RELEASES="$BASE/releases"
-CURRENT="$BASE/back"              # symlink
+CURRENT="$BASE/back"
 SHARED="$BASE/back_shared"
 REPO_URL="https://github.com/metanochava/back.git"
 SERVICE="gunicorn_pro_back"
@@ -12,7 +12,6 @@ SERVICE="gunicorn_pro_back"
 LOCK="/tmp/deploy.lock"
 LOG="/tmp/deploy.log"
 
-# TAG vem do argumento
 TAG="$1"
 
 if [ -z "$TAG" ]; then
@@ -34,32 +33,55 @@ NEW_RELEASE="$RELEASES/${TAG}-${TS}"
 mkdir -p "$RELEASES" "$SHARED"
 echo "🚀 Deploy TAG=$TAG -> $NEW_RELEASE" | tee -a "$LOG"
 
-# ====== CLONE + CHECKOUT TAG ======
+# ====== CLONE ======
 git clone --quiet "$REPO_URL" "$NEW_RELEASE"
 cd "$NEW_RELEASE"
+
+# ====== VALIDAR TAG ======
+git fetch --tags
+if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+  echo "❌ Tag $TAG não existe no repositório" | tee -a "$LOG"
+  exit 1
+fi
+
 git checkout --quiet "$TAG"
 
-# ====== VENV (shared) ======
-# Assumindo venv em $SHARED/venv
-source "$SHARED/venv/bin/activate"
+# ====== VENV (SEM activate) ======
+VENV_PY="$SHARED/venv/bin/python"
+VENV_PIP="$SHARED/venv/bin/pip"
+
+# cria venv se não existir
+if [ ! -f "$VENV_PY" ]; then
+  echo "⚙️ Criando virtualenv..." | tee -a "$LOG"
+  python3 -m venv "$SHARED/venv"
+fi
 
 # ====== ENV ======
-# se usas .env
 if [ -f "$SHARED/.env" ]; then
   set -a
   source "$SHARED/.env"
   set +a
 fi
 
-# ====== INSTALL + MIGRATE + STATIC ======
-pip install -r requirements.txt >> "$LOG" 2>&1
-python manage.py migrate >> "$LOG" 2>&1
-python manage.py collectstatic --noinput >> "$LOG" 2>&1
+# ====== FIND manage.py ======
+MANAGE_PATH=$(find "$NEW_RELEASE" -name manage.py | head -n 1)
 
-# ====== MEDIA (shared) ======
-# Se o projeto usa MEDIA_ROOT /var/www/back/mediafiles, ajusta para apontar pro shared:
-# Exemplo: ln -sfn "$SHARED/mediafiles" "$NEW_RELEASE/mediafiles"
-# (depende do teu settings.py)
+if [ -z "$MANAGE_PATH" ]; then
+  echo "❌ manage.py não encontrado" | tee -a "$LOG"
+  exit 1
+fi
+
+APP_DIR=$(dirname "$MANAGE_PATH")
+cd "$APP_DIR"
+
+# ====== INSTALL ======
+$VENV_PIP install -r "$NEW_RELEASE/requirements.txt" >> "$LOG" 2>&1
+
+# ====== DJANGO ======
+$VENV_PY manage.py migrate >> "$LOG" 2>&1
+$VENV_PY manage.py collectstatic --noinput >> "$LOG" 2>&1
+
+# ====== MEDIA ======
 mkdir -p "$SHARED/mediafiles"
 
 # ====== SWITCH CURRENT ======
