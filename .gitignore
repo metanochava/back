@@ -57,3 +57,4 @@ Makefile
 !*/migrations/__init__.py
 */migrations/*.pyc
 current
+previous
