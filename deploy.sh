@@ -4,7 +4,7 @@ set -e
 # ====== CONFIG ======
 BASE="/var/www/pro"
 RELEASES="$BASE/releases"
-CURRENT="$BASE/back"
+CURRENT="$BASE/back/current"
 SHARED="$BASE/back_shared"
 REPO_URL="https://github.com/metanochava/back.git"
 SERVICE="gunicorn_pro_back"
