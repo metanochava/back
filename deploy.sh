@@ -46,15 +46,21 @@ fi
 
 git checkout --quiet "$TAG"
 
-# ====== VENV (SEM activate) ======
-VENV_PY="$SHARED/venv/bin/python3"
-VENV_PIP="$SHARED/venv/bin/pip3"
+# ====== VENV (AUTO-REPAIR) ======
+VENV_DIR="$SHARED/venv"
+VENV_PY="$VENV_DIR/bin/python"
 
-# cria venv se não existir
-if [ ! -f "$VENV_PY" ]; then
-  echo "⚙️ Criando virtualenv..." | tee -a "$LOG"
-  python3 -m venv "$SHARED/venv"
+echo "🐍 Verificando virtualenv..." | tee -a "$LOG"
+
+# recria se estiver quebrado ou inexistente
+if [ ! -f "$VENV_PY" ] || ! "$VENV_PY" --version >/dev/null 2>&1; then
+  echo "⚠️ Venv inválido. Recriando..." | tee -a "$LOG"
+  rm -rf "$VENV_DIR"
+  python3 -m venv "$VENV_DIR"
 fi
+
+# usa python -m pip (NUNCA pip direto)
+PIP_CMD="$VENV_PY -m pip"
 
 # ====== ENV ======
 if [ -f "$SHARED/.env" ]; then
@@ -75,10 +81,18 @@ APP_DIR=$(dirname "$MANAGE_PATH")
 cd "$APP_DIR"
 
 # ====== INSTALL ======
-$VENV_PIP install -r "$NEW_RELEASE/requirements.txt" >> "$LOG" 2>&1
+echo "📦 Instalando dependências..." | tee -a "$LOG"
+$PIP_CMD install --upgrade pip >> "$LOG" 2>&1
+$PIP_CMD install -r "$NEW_RELEASE/requirements.txt" >> "$LOG" 2>&1
+$PIP_CMD install django_resaas >> "$LOG" 2>&1
 
 # ====== DJANGO ======
+echo "⚙️ Criando migrations..." | tee -a "$LOG"
+$VENV_PY manage.py makemigrations >> "$LOG" 2>&1
+echo "⚙️ Rodando migrations..." | tee -a "$LOG"
 $VENV_PY manage.py migrate >> "$LOG" 2>&1
+
+echo "📁 Collectstatic..." | tee -a "$LOG"
 $VENV_PY manage.py collectstatic --noinput >> "$LOG" 2>&1
 
 # ====== MEDIA ======
