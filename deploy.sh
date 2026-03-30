@@ -101,7 +101,7 @@ mkdir -p "$SHARED/mediafiles"
 ln -sfn "$NEW_RELEASE" "$CURRENT"
 
 # ====== RESTART ======
-systemctl restart "$SERVICE"
+systemctl restart "$SERVICE" 2>&1 | tee -a "$LOG"
 
 echo "✅ Deploy concluído: $TAG" | tee -a "$LOG"
 
