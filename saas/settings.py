@@ -68,6 +68,9 @@ CORS_ORIGIN_ALLOW_ALL = False
 # CORS_ALLOWED_ORIGINS = get_cors_origins()
 CORS_ALLOW_HEADERS = list(default_headers) + os.environ.get("CORS_ALLOW_HEADERS", "").split(",")
 CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.mytech\.co\.mz$",
+]
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
 
