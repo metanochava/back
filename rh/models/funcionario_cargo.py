@@ -5,13 +5,13 @@ from django_resaas.core.utils import upload_path
 
 class FuncionarioCargo(BaseModel):
     funcionario = models.ForeignKey(
-        'Funcionario',
+        'rh.Funcionario',
         on_delete=models.CASCADE,
         related_name='funcionario_cargos'
     )
 
     cargo = models.ForeignKey(
-        'Cargo',
+        'rh.Cargo',
         on_delete=models.CASCADE,
         related_name='cargo_funcionarios'
     )

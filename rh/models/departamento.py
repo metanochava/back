@@ -19,7 +19,7 @@ class Departamento(BaseModel):
 
     # Gestor do departamento
     gestor = models.ForeignKey(
-        'Funcionario',
+        'rh.Funcionario',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

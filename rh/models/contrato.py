@@ -4,7 +4,7 @@ from django_resaas.core.utils import upload_path
 
 class Contrato(BaseModel):
     funcionario = models.ForeignKey(
-        'Funcionario',
+        'rh.Funcionario',
         on_delete=models.CASCADE,
         related_name='contratos'
     )
