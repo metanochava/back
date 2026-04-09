@@ -58,4 +58,3 @@ Makefile
 */migrations/*.pyc
 current
 previous
-

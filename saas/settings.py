@@ -210,12 +210,12 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/" + os.environ.get("MEDIA_URL", "media") + "/"
 MEDIA_ROOT = BASE_DIR / "mediafiles"
 
+
 if  os.environ.get("MEDIASTATIC_PATH"):
     MEDIA_ROOT = os.environ.get("MEDIASTATIC_PATH") +  "/mediafiles"
     STATIC_ROOT = os.environ.get("MEDIASTATIC_PATH") +  "/staticfiles"
-else:
-    MEDIA_ROOT = BASE_DIR / "mediafiles"
-    STATIC_ROOT = BASE_DIR / "staticfiles"
+
+print(os.environ.get("MEDIASTATIC_PATH"), "meano", BASE_DIR, MEDIA_ROOT)
 
 DEPLOY_FILE_PATH = BASE_DIR / "deploy.sh"
 
