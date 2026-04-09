@@ -88,7 +88,7 @@ cd "$APP_DIR"
 echo "📦 Instalando dependências..."
 $PIP install --upgrade pip 2>&1 | tee -a "$LOG"
 $PIP install -r "$NEW_RELEASE/requirements.txt" 2>&1 | tee -a "$LOG"
-$PIP install django_resaas 2>&1 | tee -a "$LOG"
+$PIP install -U django_resaas 2>&1 | tee -a "$LOG"
 
 # garantir gunicorn
 $PIP install gunicorn 2>&1 | tee -a "$LOG"
