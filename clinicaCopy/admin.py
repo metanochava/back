@@ -204,3 +204,9 @@ class HistoricoClinicoInternamentoAdmin(BaseAdmin):
 
 
 
+from clinica.models.paciente import Paciente
+@admin.register(Paciente)
+class PacienteAdmin(BaseAdmin):
+    def get_list_display(self, request): return all_fields(self.model)
+    list_display = ("id",)
+

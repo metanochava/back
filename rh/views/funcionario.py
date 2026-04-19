@@ -1,10 +1,12 @@
-# rh/api/views/funcionario.py
 
-from django_resaas.core.base.views import BaseAPIView, registerView
+from django_resaas.core.base.views import BaseAPIView
+from django_resaas.core.base.views import registerView
 from rh.models.funcionario import Funcionario
 from rh.serializers.funcionario import FuncionarioSerializer
 
-@registerView(module="rh")
+
+@registerView('funcionarios')
 class FuncionarioAPIView(BaseAPIView):
-    queryset = Funcionario.objects.all()
+    queryset = Funcionario.objects.all()   
     serializer_class = FuncionarioSerializer
+    
