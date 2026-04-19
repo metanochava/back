@@ -22,17 +22,24 @@ class DepartamentoAdmin(BaseAdmin):
 
 
 
-from rh.models.contrato import Contrato
-@admin.register(Contrato)
-class ContratoAdmin(BaseAdmin):
-    def get_list_display(self, request): return all_fields(self.model)
-    list_display_links = ('id',)
-
-
-
-
 from rh.models.cargo import Cargo
 @admin.register(Cargo)
 class CargoAdmin(BaseAdmin):
     def get_list_display(self, request): return all_fields(self.model)
     list_display_links = ('id',)
+    
+
+from rh.models.funcionario_cargo import FuncionarioCargo
+@admin.register(FuncionarioCargo)
+class FuncionarioCargoAdmin(BaseAdmin):
+    def get_list_display(self, request): return all_fields(self.model)
+    list_display = ("id",)
+
+from rh.models.contrato import Contrato
+@admin.register(Contrato)
+class ContratoAdmin(BaseAdmin):
+    def get_list_display(self, request): return all_fields(self.model)
+    list_display = ("id",)
+
+
+
