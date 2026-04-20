@@ -8,15 +8,15 @@ from rh.serializers.cargo import CargoSerializer
 
 class FuncionarioCargoSerializer(BaseSerializer):
         
-    funcionario_id = serializers.PrimaryKeyRelatedField(
+    funcionario = serializers.PrimaryKeyRelatedField(
         source="funcionario", queryset=Funcionario.objects.all(), write_only=True
     )
-    funcionario = FuncionarioSerializer(read_only=True)
+    funcionario_data = FuncionarioSerializer(read_only=True)
     
-    cargo_id = serializers.PrimaryKeyRelatedField(
+    cargo = serializers.PrimaryKeyRelatedField(
         source="cargo", queryset=Cargo.objects.all(), write_only=True
     )
-    cargo = CargoSerializer(read_only=True)
+    cargo_data = CargoSerializer(read_only=True)
 
     class Meta:
         model = FuncionarioCargo
