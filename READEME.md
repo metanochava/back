@@ -3,8 +3,8 @@
 sudo apt update
 sudo apt install -y python3-venv python3-pip nginx
 1.2 Criar serviço systemd do Gunicorn
-
-Cria nano /etc/systemd/system/gunicorn_dev_back.service:
+nano /etc/systemd/system/gunicorn_pro_back.servic
+Cria e:
                                                                 
 [Unit]
 Description=Gunicorn for Django (pro back)
