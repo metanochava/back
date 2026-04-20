@@ -6,10 +6,10 @@ from django_resaas.models.pessoa import Pessoa
 
 class PacienteSerializer(BaseSerializer):
         
-    pessoa_id = serializers.PrimaryKeyRelatedField(
+    pessoa = serializers.PrimaryKeyRelatedField(
         source="pessoa", queryset=Pessoa.objects.all(), write_only=True
     )
-    pessoa = PessoaSerializer(read_only=True)
+    pessoa_data = PessoaSerializer(read_only=True)
 
     class Meta:
         model = Paciente

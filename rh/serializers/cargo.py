@@ -6,10 +6,10 @@ from rh.serializers.departamento import DepartamentoSerializer
 
 class CargoSerializer(BaseSerializer):
         
-    departamento_id = serializers.PrimaryKeyRelatedField(
+    departamento = serializers.PrimaryKeyRelatedField(
         source="departamento", queryset=Departamento.objects.all(), write_only=True
     )
-    departamento = DepartamentoSerializer(read_only=True)
+    departamento_data = DepartamentoSerializer(read_only=True)
 
     class Meta:
         model = Cargo

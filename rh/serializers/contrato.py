@@ -6,10 +6,10 @@ from rh.models.funcionario import Funcionario
 
 class ContratoSerializer(BaseSerializer):
         
-    funcionario_id = serializers.PrimaryKeyRelatedField(
+    funcionario = serializers.PrimaryKeyRelatedField(
         source="funcionario", queryset=Funcionario.objects.all(), write_only=True
     )
-    funcionario = FuncionarioSerializer(read_only=True)
+    funcionario_data = FuncionarioSerializer(read_only=True)
 
     class Meta:
         model = Contrato
