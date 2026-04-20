@@ -2,14 +2,13 @@
 
 echo "🚀 Deploy simples..."
 
-
 cd /var/www/pro/back || exit
 
 echo "📥 Atualizando código..."
 git pull origin main
 
 echo "🐍 Ativando venv..."
-source ./venv/bin/activate
+source /var/www/pro/back/venv/bin/activate
 
 echo "📦 Instalando django_resaas..."
 pip install -U django_resaas
