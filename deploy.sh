@@ -36,6 +36,8 @@ echo "📁 Collectstatic..."
 python3 manage.py collectstatic --noinput
 
 echo "🔄 Restart serviço..."
+sudo systemctl daemon-reload
 sudo systemctl restart gunicorn_pro_back
+sudo systemctl status gunicorn_pro_back -l
 
 echo "✅ Deploy concluído!"
