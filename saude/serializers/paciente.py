@@ -7,7 +7,7 @@ from django_resaas.models.pessoa import Pessoa
 class PacienteSerializer(BaseSerializer):
         
     pessoa = serializers.PrimaryKeyRelatedField(
-        source="pessoa", queryset=Pessoa.objects.all(), write_only=True
+        queryset=Pessoa.objects.all(), write_only=True
     )
     pessoa_data = PessoaSerializer(read_only=True)
 

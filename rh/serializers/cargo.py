@@ -7,7 +7,7 @@ from rh.serializers.departamento import DepartamentoSerializer
 class CargoSerializer(BaseSerializer):
         
     departamento = serializers.PrimaryKeyRelatedField(
-        source="departamento", queryset=Departamento.objects.all(), write_only=True
+        queryset=Departamento.objects.all(), write_only=True
     )
     departamento_data = DepartamentoSerializer(read_only=True)
 

@@ -7,7 +7,7 @@ from django_resaas.data.user.serializers.user import UserSerializer
 class DepartamentoSerializer(BaseSerializer):
         
     gestor = serializers.PrimaryKeyRelatedField(
-        source="gestor", queryset=User.objects.all(), write_only=True
+        queryset=User.objects.all(), write_only=True
     )
     gestor_data = UserSerializer(read_only=True)
 

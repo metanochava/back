@@ -9,12 +9,12 @@ from rh.serializers.cargo import CargoSerializer
 class FuncionarioCargoSerializer(BaseSerializer):
         
     funcionario = serializers.PrimaryKeyRelatedField(
-        source="funcionario", queryset=Funcionario.objects.all(), write_only=True
+         queryset=Funcionario.objects.all(), write_only=True
     )
     funcionario_data = FuncionarioSerializer(read_only=True)
     
     cargo = serializers.PrimaryKeyRelatedField(
-        source="cargo", queryset=Cargo.objects.all(), write_only=True
+        queryset=Cargo.objects.all(), write_only=True
     )
     cargo_data = CargoSerializer(read_only=True)
 
