@@ -20,21 +20,21 @@ pip install -r requirements.txt
 echo "🧪 Verificando se há mudanças nos models..."
 
 # 🔥 NÃO cria direto — só verifica primeiro
-python manage.py makemigrations --check --dry-run
+python3 manage.py makemigrations --check --dry-run
 HAS_CHANGES=$?
 
 if [ $HAS_CHANGES -ne 0 ]; then
   echo "⚠️ Models mudaram → criando migrations..."
-  python manage.py makemigrations
+  python3 manage.py makemigrations
 else
   echo "✔ Sem mudanças nos models"
 fi
 
 echo "⚙️ Rodando migrations..."
-python manage.py migrate --noinput
+python3 manage.py migrate --noinput
 
 echo "📁 Collectstatic..."
-python manage.py collectstatic --noinput
+python3 manage.py collectstatic --noinput
 
 echo "🔄 Restart serviço..."
 sudo systemctl restart gunicorn_pro_back
