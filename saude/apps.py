@@ -4,9 +4,41 @@ from django.apps import AppConfig
 from django.db.models.signals import post_migrate
 
 
+# ==========================================================
+# CREATE SAUDE GROUPS
+# ==========================================================
 def create_saude_groups(sender, **kwargs):
+    """
+    Cria grupos do módulo Saúde após migrate.
+
+    🔥 FIX:
+    - Só executa no app correto
+    - Só executa quando EntityType existe
+    - Evita erro entity_type_id NULL
+    """
+
+    # ------------------------------------------------------
+    # 🔹 EXECUTA APENAS NO APP SAUDE
+    # ------------------------------------------------------
+    if kwargs.get("app_config").name != "saude":
+        return
+
+    # ------------------------------------------------------
+    # 🔹 GARANTE CONTEXTO
+    # ------------------------------------------------------
+    from django_resaas.models.entity_type import EntityType
+
+    if not EntityType.objects.exists():
+        return
+
+    # ------------------------------------------------------
+    # 🔹 IMPORT LOCAL
+    # ------------------------------------------------------
     from django_resaas.core.utils.group_creator import group_creator
 
+    # ------------------------------------------------------
+    # 🔹 CRIAÇÃO DE GRUPOS
+    # ------------------------------------------------------
     group_creator([
         # 👨‍⚕️ Clínica
         "Médico Geral",
@@ -49,15 +81,26 @@ def create_saude_groups(sender, **kwargs):
     ])
 
 
+# ==========================================================
+# APP CONFIG
+# ==========================================================
 class SaudeConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'saude'
 
     def ready(self):
-        # ✅ CORRETO
+        """
+        Inicialização do app Saúde.
+
+        ✔ liga signal corretamente
+        ✔ evita execução prematura
+        """
+
+        # 🔥 SIGNAL CORRETO
         post_migrate.connect(create_saude_groups, sender=self)
 
-        # 🔥 carregar views (ok)
+        # 🔹 AUTO LOAD VIEWS
         import saude.views
+
         for _, module_name, _ in pkgutil.iter_modules(saude.views.__path__):
             importlib.import_module(f"saude.views.{module_name}")
