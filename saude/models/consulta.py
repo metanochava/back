@@ -18,4 +18,4 @@ class Consulta(BaseModel):
         )
 
     def __str__(self):
-        return str(self.paciente.pessoa.nome) + str(self.paciente.pessoa.apelido)
+        return str(self.paciente.person.nome) + str(self.paciente.person.apelido)

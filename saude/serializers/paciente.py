@@ -1,15 +1,15 @@
 from django_resaas.core.base.serializers import BaseSerializer
 from saude.models.paciente import Paciente
 from rest_framework import serializers
-from django_resaas.data.pessoa.serializers.pessoa import PessoaSerializer
-from django_resaas.models.pessoa import Pessoa
+from django_resaas.data.person.serializers.person import PersonSerializer
+from django_resaas.models.person import Person
 
 class PacienteSerializer(BaseSerializer):
         
-    pessoa = serializers.PrimaryKeyRelatedField(
-        queryset=Pessoa.objects.all(), write_only=True
+    person = serializers.PrimaryKeyRelatedField(
+        queryset=Person.objects.all(), write_only=True
     )
-    pessoa_data = PessoaSerializer(read_only=True)
+    person_data = PersonSerializer(read_only=True)
 
     class Meta:
         model = Paciente

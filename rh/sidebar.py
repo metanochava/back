@@ -1,9 +1,9 @@
 MENU = "Rh"
-ICON = "menu"
+ICON = "badge"  # 🔥 RH / colaboradores
 
 SUBMENUS = [
     {
-        "icon": "dashboard",
+        "icon": "space_dashboard",  # moderno
         "menu": "Dashboard",
         "role": "view_rh_dashboard",
         "rota": "view_rh_dashboard",
@@ -12,7 +12,7 @@ SUBMENUS = [
         "add_role": "add_departamento",
         "add_rota": "add_departamento",
         "crud": {"model": "Departamento", "module": "rh"},
-        "icon": "home",
+        "icon": "apartment",  # 🔥 estrutura organizacional
         "menu": "Departamento",
         "role": "list_departamento",
         "rota": "list_departamento",
@@ -21,7 +21,7 @@ SUBMENUS = [
         "add_role": "add_cargo",
         "add_rota": "add_cargo",
         "crud": {"model": "Cargo", "module": "rh"},
-        "icon": "home",
+        "icon": "work",  # 🔥 cargo / função
         "menu": "Cargo",
         "role": "list_cargo",
         "rota": "list_cargo",
@@ -30,7 +30,7 @@ SUBMENUS = [
         "add_role": "add_funcionario",
         "add_rota": "add_funcionario",
         "crud": {"model": "Funcionario", "module": "rh"},
-        "icon": "home",
+        "icon": "badge",  # 🔥 funcionário
         "menu": "Funcionario",
         "role": "list_funcionario",
         "rota": "list_funcionario",
@@ -39,7 +39,7 @@ SUBMENUS = [
         "add_role": "add_contrato",
         "add_rota": "add_contrato",
         "crud": {"model": "Contrato", "module": "rh"},
-        "icon": "home",
+        "icon": "description",  # 🔥 contrato/documento
         "menu": "Contrato",
         "role": "list_contrato",
         "rota": "list_contrato",
@@ -47,7 +47,7 @@ SUBMENUS = [
     {
         "add_role": "add_funcionariocargo",
         "add_rota": "add_funcionariocargo",
-        "icon": "list",
+        "icon": "account_tree",  # 🔥 relação estrutura
         "menu": "Funcionariocargo",
         "role": "list_funcionariocargo",
         "rota": "list_funcionariocargo",
@@ -55,7 +55,7 @@ SUBMENUS = [
     {
         "add_role": "add_funcionariocargo",
         "add_rota": "add_funcionariocargo",
-        "icon": "list",
+        "icon": "link",  # 🔥 ligação entre entitys
         "menu": "FuncionarioCargo",
         "role": "list_funcionariocargo",
         "rota": "list_funcionariocargo",
