@@ -38,7 +38,6 @@ MY_APPS = [
     'django_resaas',
     'rh',
     'saude',
-    
 ]
 
 

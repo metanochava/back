@@ -5,15 +5,9 @@ from django.contrib import admin
 admin.site.site_title = 'Rh'
 admin.site.index_title = 'Rh'
 
-
-
 from django.contrib import admin
-from django.contrib.auth.models import Group
-
-if admin.site.is_registered(Group):
-    admin.site.unregister(Group)
-
 from rh.models.funcionario import Funcionario
+
 @admin.register(Funcionario)
 class FuncionarioAdmin(BaseAdmin):
     def get_list_display(self, request): return all_fields(self.model)
