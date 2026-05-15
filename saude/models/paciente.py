@@ -9,3 +9,14 @@ class Paciente(BaseModel):
     religiao = models.CharField()
     person_a_contactar = models.CharField()
     numero_a_contactar = models.CharField()
+
+    class RESAAS:
+        # label_field = "nid person.name"
+        searchable_fields = ["nid", "person.name"]
+        crud = True
+        routes={
+            'list': "add_paciente",
+            'view': "view_paciente",
+            'add': "add_paciente",
+            'change': "change_paciente"
+        }
