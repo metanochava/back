@@ -73,11 +73,17 @@ migrations:
 migrate:
 	$(MANAGE) migrate
 
-superuser:
+createsuperuser:
 	$(MANAGE) createsuperuser
 
-supersaas:
-	$(MANAGE) supersaas
+createuser:
+	$(MANAGE) createuser
+
+create_root:
+	$(MANAGE) create_root
+
+create_entity:
+	$(MANAGE) create_entity
 
 rundev:
 	$(MANAGE) runserver 0.0.0.0:7001
