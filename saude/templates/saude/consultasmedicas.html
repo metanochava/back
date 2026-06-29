@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+
+<style>
+  @page {
+    size: A4 portrait;
+    margin-top: 120px;
+    margin-bottom: 90px;
+    margin-left: 45px;
+    margin-right: 35px;
+
+    @bottom-right {
+      content: counter(page) " - " counter(pages);
+      font-size: 14px;
+      color: #2563eb;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      margin-right: 5px;
+      margin-bottom: 3px;
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 15px;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    line-height: 1.4;
+  }
+
+  .header {
+    position: fixed;
+    top: -95px;
+    left: 0;
+    right: 0;
+    height: 90px;
+    border-bottom: 1px solid #ddd;
+    background: white;
+  }
+
+  .header-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .header-table td {
+    vertical-align: middle;
+  }
+
+  .logo {
+    width: 95px;
+  }
+
+  .logo img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+  }
+
+  .title {
+    text-align: center;
+  }
+
+  .title h1 {
+    margin: 0;
+    color: #2563eb;
+    font-size: 22px;
+  }
+
+  .title .subtitle {
+    color: #777;
+    font-size: 16px;
+    margin-top: 4px;
+  }
+
+  .qr {
+    width: 95px;
+    text-align: right;
+  }
+
+  .qr img {
+    width: 85px;
+    height: 85px;
+    object-fit: contain;
+  }
+
+  .barcode-header {
+    position: absolute;
+    top: 75%;
+    left: -22px;
+    transform: rotate(-90deg);
+    transform-origin: left center;
+    z-index: 20;
+  }
+
+  .barcode-header img {
+    width: 300px;
+    height: 55px;
+    object-fit: contain;
+  }
+
+  .content {
+    width: 100%;
+  }
+
+  .box {
+    border: 1px solid #fff;
+    border-radius: 2px;
+    padding: 8px;
+    margin-bottom: 12px;
+    page-break-inside: avoid;
+  }
+
+  .relatorio-text {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 16px;
+    text-align: justify;
+    line-height: 1.6;
+  }
+
+  .dados {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+
+  .dados td {
+    padding: 4px 0;
+    vertical-align: top;
+  }
+
+  .label {
+    width: 34%;
+  }
+
+  .assinatura {
+    margin-top: 35px;
+    text-align: right;
+    font-size: 15px;
+  }
+
+  .linha-assinatura {
+    display: inline-block;
+    margin-top: 35px;
+    border-top: 1px solid #333;
+    width: 220px;
+    text-align: center;
+    padding-top: 4px;
+  }
+
+  .footer {
+    position: fixed;
+    bottom: -55px;
+    left: 0;
+    right: 0;
+    min-height: 45px;
+    border-top: 1px solid #ddd;
+    font-size: 13px;
+    color: #777;
+    background: white;
+    padding-top: 6px;
+  }
+
+  .footer-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .footer-table td {
+    width: 50%;
+    vertical-align: middle;
+  }
+
+  .footer-left {
+    text-align: left;
+  }
+
+  .footer-right {
+    text-align: right;
+  }
+
+  .footer-center {
+    text-align: center;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="header">
+
+  <table class="header-table">
+    <tr>
+      <td class="logo">
+        {% if logo_b64 %}
+          <img src="data:image/png;base64,{{ logo_b64 }}">
+        {% endif %}
+      </td>
+
+      <td class="title">
+        <h1> Consulta Médica</h1>
+        <div class="subtitle">
+          {{ entity.name }}
+        </div>
+      </td>
+
+      <td class="qr">
+        {% if qr_b64 %}
+          <img src="data:image/png;base64,{{ qr_b64 }}">
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+
+</div>
+
+<div class="content">
+
+  <div class="box">
+    <table class="dados">
+      <tr>
+        <td class="label">
+          Nome: {{ consulta.paciente.person.full_name }}
+        </td>
+      </tr>
+
+      <tr>
+        <td class="label">
+          NID: {{ consulta.paciente.nid }}
+        </td>
+
+        <td class="label">
+          Profissão: {{ consulta.paciente.profissao }}
+        </td>
+
+        <td class="label">
+          Contacto: {{ consulta.paciente.numero_a_contactar }}
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="box">
+    
+  </div>
+
+</div>
+
+<div class="footer">
+
+  <div class="barcode-header">
+    {% if barcode_b64 %}
+      <img src="data:image/png;base64,{{ barcode_b64 }}">
+    {% endif %}
+  </div>
+
+  <table class="footer-table">
+    <tr>
+      <td class="footer-left">
+        {{ entity.name }}
+      </td>
+
+      <td class="footer-right">
+        Consulta Médica
+      </td>
+    </tr>
+
+    <tr>
+      <td colspan="2" class="footer-center" style="width:100%; font-size:12px;">
+        {{ entity.rodape|safe }}
+      </td>
+    </tr>
+  </table>
+
+</div>
+
+</body>
+</html>

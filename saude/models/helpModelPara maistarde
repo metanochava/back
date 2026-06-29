@@ -1,0 +1,625 @@
+import uuid
+
+from django.db import models
+import sys
+
+from mytech_rest_auth.models import User
+from rh.models import *
+from rh.models import Medico
+
+
+sys.path.append('..')
+from core.models import *
+from rh.models import *
+
+class Paciente(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nid = models.IntegerField( null=True)
+    profissao = models.CharField(max_length=200, null=True)
+    religiao = models.CharField(max_length=200, null=True)
+    pessoa_a_contactar = models.CharField(max_length=200, null=True)
+    numero_a_contactar = models.CharField(max_length=200, null=True)
+    pessoa = models.ForeignKey(Pessoa, on_delete=models.CASCADE)
+    # entpagante = models.CharField(max_length=200, null=True)
+    entpagante =  models.ForeignKey(EntPagante, on_delete=models.CASCADE, null=True, blank=True)
+
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
+
+    STATUS = (
+        ('Activo', 'Activo'),
+        ('Desativado', 'Desativado')
+    )
+    estado = models.CharField(max_length=100, null=True, choices=STATUS, default=STATUS[0])
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "fa fa-people"),
+            ("list_paciente", "Can List Paciente"),
+        )
+
+    def __str__(self):
+        return str(self.nid)
+
+
+
+
+class FileDocumentoPaciente(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='paciente_documentos', null=True)
+    nome = models.CharField(max_length=500, null=True) # tirarr depois
+    STATUS = (
+        ('Front BI', 'Front BI'),
+        ('Back BI', 'Back BI'),
+        ('Front Passaport', 'Front Passaport'),
+        ('Back Passport', 'Back Passaport '),
+        ('Outros', 'Outros')
+    )
+    tipo = models.CharField(max_length=100, null=True, choices=STATUS, default=STATUS[0])
+    class Meta:
+        permissions = (
+            ("icon", "fa fa-file"),
+            ("list_filedocumentopacienete", "Can List Documento Paciente"),
+        )
+    def __str__(self):
+        return str(self.id)
+
+class FileResultadoRootPaciente(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE , null=True,  blank=True)
+    file = models.FileField(upload_to='paciente_resultados_root', null=True,  blank=True)
+    nome = models.CharField(max_length=500, null=True) 
+    pertence = models.CharField(max_length=100, null=True,  blank=True) 
+    objecto = models.CharField(max_length=100, null=True,  blank=True) 
+    STATUS = (
+        ('Folder', 'Folfer'),
+        ('File', 'File')
+    )
+    tipo = models.CharField(max_length=100, null=True, choices=STATUS, default=STATUS[0])
+    class Meta:
+        permissions = (
+            ("list_resultadorootfilepaciente", "Can list Resultados file paciente"),
+        )
+    def __str__(self):
+        return str(self.id)
+
+
+class AlergiaCorrente(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nome = models.CharField(max_length=200, null=True)
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "fa fa-person"),
+            ("list_alergiacorrente", "Can List Alergia Corrente"),
+        )
+
+    def __str__(self):
+        return self.nome
+
+
+class DoencasCorrente(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nome = models.CharField(max_length=200, null=True)
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "fa fa-person"),
+            ("list_doencascorrente", "Can List Doenca Corrente"),
+        )
+
+    def __str__(self):
+        return self.nome
+
+
+class MedicacaoCorrente(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nome = models.CharField(max_length=200, null=True)
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_medicacaocorrente", "Can List Medicacao Corrente"),
+        )
+
+    def __str__(self):
+        return self.nome
+
+
+class DadosVitais(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    username = models.TextField(null=True)
+    peso = models.TextField(null=True)
+    altura = models.TextField(null=True)
+    fc = models.TextField(null=True)
+    fr = models.TextField(null=True)
+    pulso = models.TextField(null=True)
+    sato2 = models.TextField(null=True)
+    t = models.TextField(null=True)
+    ta1 = models.TextField(null=True)
+    ta2 = models.TextField(null=True)
+    glicofite = models.TextField(null=True)
+    is_internment = models.BooleanField(default=False)
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
+    data = models.DateField(null=True, auto_now_add=True)
+    hora = models.TimeField(null=True, auto_now_add=True)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("list_dadosvitais", "Can List Dados Vitais"),
+        )
+
+    def __str__(self):
+        return str(self.paciente.pessoa.nome) + str(self.paciente.pessoa.apelido) + " | " + str(self.entidade.nome)
+
+
+class Consulta(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    medico = models.ForeignKey(Medico, on_delete=models.CASCADE)
+    dc = models.TextField(null=True)
+    conduta_a_estabelecer = models.TextField(null=True)
+    diagnostico = models.TextField(null=True)
+    dados_vitais = models.ForeignKey(DadosVitais, null=True, blank=True, on_delete=models.CASCADE)
+    paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
+    data = models.DateField(null=True, auto_now_add=True)
+    created_at = models.DateTimeField(null=True, auto_now_add=True)
+    updated_at = models.DateTimeField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    # este nao tem variavel que da para returnar.
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_consulta", "Can List Consulta"),
+        )
+
+    def __str__(self):
+        return str(self.paciente.pessoa.nome) + str(self.paciente.pessoa.apelido) + " | " + str(self.entidade.nome)
+
+
+
+class LocalInternamento(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # internamento = models.ForeignKey(Internamento, on_delete=models.CASCADE)
+    local = models.TextField(null=True)
+    data = models.DateField(null=True, blank=True)
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_local", "Can List Local"),
+        )
+    def __str__(self):
+        return str(self.local) + str(self.data)
+
+
+class InternamentoMedico(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    medico = models.ForeignKey(Medico, on_delete=models.CASCADE)
+    # internamento = models.ForeignKey(Internamento, on_delete=models.CASCADE)
+    tipos = (
+        ('-', '-'),
+        ('Assistente Principal', 'Assistente Principal'),
+        ('Outros Assistentes', 'Outros Assistentes'),
+    )
+    tipo = models.CharField(max_length=100, null=True, choices=tipos, default=tipos[0])
+
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    # este nao tem variavel que da para returnar.
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_internamentomedico", "Can List Internamento Medico"),
+        )
+
+    def __str__(self):
+        return str(self.medico.pessoa.nome) + ' ' + str(self.medico.pessoa.nome_meio)+ ' ' + str(self.medico.pessoa.apelido)
+
+class HistoricoClinicoInternamento(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    medico = models.ForeignKey(Medico, on_delete=models.CASCADE)
+    historico = models.TextField(null=True)
+    entidade = models.ForeignKey(Entidade, null=True, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, null=True, on_delete=models.CASCADE)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    # este nao tem variavel que da para returnar.
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_historicoclinico", "Can List Historico Clinico"),
+        )
+
+    def __str__(self):
+        return  str(self.historico)
+
+
+class DiarioClinicoInternamento(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    medico = models.ForeignKey(Medico, on_delete=models.CASCADE)
+    diarioclinico = models.TextField(null=True)
+    procedimento = models.TextField(null=True)
+
+    entidade = models.ForeignKey(Entidade, null=True, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, null=True, on_delete=models.CASCADE)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    # este nao tem variavel que da para returnar.
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_diarioclinico", "Can List Diario Clinico"),
+        )
+        
+    def __str__(self):
+        return  str(self.diarioclinico)
+
+
+
+
+class Internamento(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    medico = models.ForeignKey(Medico, on_delete=models.CASCADE)
+    locais = models.ManyToManyField(LocalInternamento)
+    medicos = models.ManyToManyField(InternamentoMedico)
+    diario_clinico = models.ManyToManyField(DiarioClinicoInternamento)
+    historico_clinico = models.ManyToManyField(HistoricoClinicoInternamento)
+    paciente = models.ForeignKey(Paciente, null=True, on_delete=models.CASCADE)
+    responsavel_acompanhante = models.TextField(null=True)
+    proveniencia_local = models.TextField(null=True)
+    data = models.DateField(null=True, blank=True)
+    hora = models.TimeField(null=True, blank=True)
+    motivo_diagnosticoProvisorio = models.TextField(null=True, blank=True)
+    exames = models.TextField(null=True, blank=True)
+    #  Local ja
+    # exames no pedido de exames da consulta  falta fazer 
+    #  Medicos ja
+
+    plano_terapeutico_inicial = models.TextField(null=True, blank=True)
+    indicacoes_enfermagem = models.TextField(null=True, blank=True)
+    cardex_feito = models.BooleanField(null=True, blank=True)
+    observacoes = models.TextField(null=True, blank=True)
+    notadealta = models.TextField(null=True, blank=True, default='')
+
+
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(null=True, auto_now_add=True)
+    updated_at = models.DateTimeField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_internamento", "Can List Internamento"),
+        )
+
+    def __str__(self):
+        return str(self.paciente.pessoa.nome) + str(self.paciente.pessoa.apelido) + " | " + str(self.entidade.nome)
+
+
+
+
+class TipoExameMedico(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nome = models.CharField(max_length=200, null=True, blank=True)
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_tipoexamemedico", "Can List Tipo Exame Medico"),
+        )
+
+    def __str__(self):
+        return str(self.nome)
+
+
+class ClasseExameMedico(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nome = models.CharField(max_length=200, null=True)
+    tipo_exame_medico = models.ForeignKey(TipoExameMedico, null=True, on_delete=models.CASCADE)
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_classeexamemedico", "Can List Classe Exame Medico"),
+        )
+
+    def __str__(self):
+        return str(self.nome)
+
+
+class ExameMedico(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    codigo = models.CharField(max_length=200, null=True)
+    nome = models.CharField(max_length=200, null=True)
+    classe_exame_medico = models.ForeignKey(ClasseExameMedico, null=True, on_delete=models.CASCADE)
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_examemedico", "Can List Exame Medico"),
+        )
+
+    def __str__(self):
+        return str(self.nome)
+    
+class GrupoExameMedico(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    codigo = models.CharField(max_length=200, null=True)
+    nome = models.CharField(max_length=200, null=True)
+    exames_medicos = models.ManyToManyField(ExameMedico)
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_grupoexamemedico", "Can List Grupo Exame Medico"),
+        )
+
+    def __str__(self):
+        return str(self.nome)
+
+class ParamentroResultadoExameMedico(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    nome = models.CharField(max_length=200, null=True)
+    unidade = models.CharField(max_length=200, null=True)
+    minimo = models.CharField(max_length=200, null=True)
+    medio = models.CharField(max_length=200, null=True)
+    maximo = models.CharField(max_length=200, null=True)
+    exame_medico = models.ForeignKey(ExameMedico, null=True, on_delete=models.CASCADE)
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_parametroresultadoexamemedico", "Can List Parametro Resultado Exame Medico"),
+        )
+
+    def __str__(self):
+        return str(self.nome)
+
+
+
+
+
+
+class ItemReceitaMedica(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    exame_medico = models.ForeignKey(ExameMedico, on_delete=models.CASCADE)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_itempedidoexamemedico", "Can List Item Pedido Exame Medico"),
+        )
+
+    def __str__(self):
+        return str(self.exame_medico.nome)
+
+def pedido_exame_path(instance, file_name):
+    return f'images/users/{instance.user.id}/pessoa/{file_name}'
+    
+class ReceitaMedica(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    consulta = models.ForeignKey(Consulta, on_delete=models.CASCADE)
+   file= models.FileField(upload_to=pedido_exame_path, null=True, blank=True)
+    data = models.DateField(null=True, auto_now_add=True)
+    hora = models.TimeField(null=True, auto_now=True)
+    exames = models.ManyToManyField(ExameMedico)
+    informacao_clinica = models.CharField(max_length=500, null=True, blank=True)
+    outros_exames = models.TextField(null=True, blank=True)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_pedidoexamemedico", "Can List Pedido Exame Medico"),
+        )
+
+    def __str__(self):
+        return str(self.consulta) + " " + str(self.consulta.created_at)
+
+
+
+class ResultadoExameMedico(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    valor = models.CharField(max_length=200, null=True)
+    parametro = models.ForeignKey(ParamentroResultadoExameMedico, null=True, on_delete=models.CASCADE)
+    exame = models.ForeignKey(ExameMedico, null=True, on_delete=models.CASCADE)
+    pedido_exame_medico = models.ForeignKey(ReceitaMedica, null=True, on_delete=models.CASCADE)
+
+    class Meta:
+        permissions = (("icon", "menu"),
+            ("list_resultadoexamemedico", "Can List Resultado Exame Medico"),
+        )
+
+    def __str__(self):
+        return str(self.valor)
+
+class FileResultadoMedidoExameMedico(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    pedidoExameMedico = models.ForeignKey(ReceitaMedica, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='resultados_exames', null=True)
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_resultadoexamemedico", "Can List Resultado Exame Medico"),
+        )
+    def __str__(self):
+        return str(self.pedidoExameMedico.data)
+
+class Medicamento(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    codigo = models.CharField(max_length=100, null=True)
+    descricao = models.CharField(max_length=200, null=True)
+    quantidade = models.CharField(max_length=200, null=True)
+    dosagem = models.CharField(max_length=200, null=True)
+
+    quantidade_stock = models.CharField(max_length=200, null=True)
+    quantidade_stock_min = models.CharField(max_length=200, null=True)
+
+    entidade = models.ForeignKey(Entidade, on_delete = models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete = models.CASCADE)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_medicamento", "Can List Medicamento"),
+        )
+
+    def __str__(self):
+        return str(self.descricao)
+
+class PrescricaoMedicacaoHora(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    enfermeiro = models.ForeignKey(Enfermeiro,null=True, on_delete=models.CASCADE)
+    hora = models.TimeField(max_length=200, null=True, blank=True)
+    hora_registo = models.TimeField(max_length=200, null=True, blank=True)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_prescricaomedicacaohora", "Can List Prescricao Medicar Hora"),
+        )
+
+    def __str__(self):
+        return str(self.hora)
+     
+
+class Prescricao(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    medicamento = models.ForeignKey(Medicamento, on_delete=models.CASCADE)
+    medico = models.ForeignKey(Medico,null=True, on_delete=models.CASCADE)
+    horas = models.CharField(max_length=200, null=True, blank=True)
+    via = models.CharField(max_length=100, null=True, blank=True)
+    medicacoes = models.ManyToManyField(PrescricaoMedicacaoHora, blank=True)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_prescricao", "Can List Prescricao"),
+        )
+
+    def __str__(self):
+        return str(self.medicamento)
+    
+
+
+class Cardex(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    medico = models.ForeignKey(Medico, null=True, on_delete=models.CASCADE)
+    data = models.DateField(null=False)
+    internamento = models.ForeignKey(Internamento, on_delete=models.CASCADE)
+    prescricao = models.ManyToManyField(Prescricao, blank=True)
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
+    outras_indicacoes = models.TextField(null=True, blank=True)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_cardex", "Can List Cardex"),
+        )
+
+    def __str__(self):
+        return str(self.data)
+    
+
+class IndicacaoMedica(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    medico = models.ForeignKey(Medico, null=True, on_delete=models.CASCADE)
+    cardex = models.ForeignKey(Cardex, on_delete=models.CASCADE)
+    iespecifica = models.CharField(max_length=300, null=False, blank=False)
+    indicacao = models.CharField(max_length=300, null=False, blank=False)
+    entidade = models.ForeignKey(Entidade, on_delete=models.CASCADE)
+    sucursal = models.ForeignKey(Sucursal, on_delete=models.CASCADE)
+    created_at = models.DateField(null=True, auto_now_add=True)
+    updated_at = models.DateField(null=True, auto_now=True)
+    deleted_at = models.DateField(null=True, blank=True)
+
+    class Meta:
+        permissions = (
+            ("icon", "menu"),
+            ("list_indicacao_medica", "Can List Indicacao Medica"),
+        )
+
+    def __str__(self):
+        return str(self.indicacao)
+    
+
+
+
+
+

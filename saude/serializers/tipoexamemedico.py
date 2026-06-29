@@ -1,10 +1,10 @@
 from django_resaas.core.base.serializers import BaseSerializer
-from saude.models.tipoexamemedico import Tipoexamemedico
+from saude.models.tipoexamemedico import TipoExameMedico
 from rest_framework import serializers
 
-class TipoexamemedicoSerializer(BaseSerializer):
+class TipoExameMedicoSerializer(BaseSerializer):
     
     class Meta:
-        model = Tipoexamemedico
+        model = TipoExameMedico
         fields = "__all__"
     

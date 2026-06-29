@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+
+<style>
+
+  @page {
+    size: A7;
+    margin-top: 130px;
+    margin-bottom: 80px;
+    margin-left: 40px;
+    margin-right: 40px;
+  }
+
+  .page:before {
+    content: counter(page);
+  }
+
+  .topage:before {
+    content: counter(pages);
+  }
+
+  *{
+    box-sizing: border-box;
+  }
+
+  body{
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #333;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* =========================================
+      PAGINATION
+  ========================================== */
+
+  table{
+    page-break-inside: auto;
+  }
+
+  tr{
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead{
+    display: table-header-group;
+  }
+
+  tfoot{
+    display: table-footer-group;
+  }
+
+  .box{
+    page-break-inside: avoid;
+  }
+
+  .content{
+    width: 100%;
+    padding: 3px;
+  }
+
+  /* =========================================
+      HEADER FIXO
+  ========================================== */
+
+  .header{
+
+    position: fixed;
+
+    top: -100px;
+    left: 0;
+    right: 0;
+
+    height: 100px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e5e5e5;
+
+    background: white;
+  }
+
+  .header-table{
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .header-table td{
+    vertical-align: middle;
+  }
+
+  /* =========================================
+      BARCODE HEADER
+  ========================================== */
+
+  .barcode-header{
+
+    position: absolute;
+
+    top: 40%;
+
+    left: -40px;
+
+    transform: rotate(90deg);
+
+    transform-origin: left center;
+
+    z-index: 20;
+  }
+
+  .barcode-header img{
+
+    width: 390px;
+
+    height:95px;
+
+    object-fit: contain;
+  }
+
+  /* =========================================
+      LOGO
+  ========================================== */
+
+  .logo{
+    margin-top:-3px;
+    width: 120px;
+    padding-left: 0px;
+  }
+
+  .logo img{
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+  }
+
+  /* =========================================
+      TITLE
+  ========================================== */
+
+  .title{
+    text-align: center;
+  }
+
+  .title h1{
+    margin: 0;
+    color: #2563eb;
+    font-size: 24px;
+  }
+
+  .title .subtitle{
+    margin-top: 5px;
+    color: #777;
+    font-size: 12px;
+  }
+
+  /* =========================================
+      QR
+  ========================================== */
+
+  .qr{
+    width: 120px;
+    text-align: right;
+    padding-right: 5px;
+  }
+
+  .qr img{
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+  }
+
+  /* =========================================
+      BOX
+  ========================================== */
+
+  .box{
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    padding: 12px;
+    margin-bottom: 10px;
+    margin-top: 5px;
+  }
+
+  /* =========================================
+      TABLE
+  ========================================== */
+
+  table.items{
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .items th{
+    background: #2563eb;
+    color: white;
+    padding: 10px;
+    text-align: left;
+  }
+
+  .items td{
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .text-right{
+    text-align: right;
+  }
+
+  /* =========================================
+      FOOTER FIXO
+  ========================================== */
+
+  /* =========================================
+    FOOTER FIXO
+========================================== */
+
+.footer{
+
+  position: fixed;
+
+  bottom: -60px;
+  left: 0;
+  right: 0;
+
+  height: 50px;
+
+  border-top: 1px solid #ddd;
+
+  font-size: 11px;
+
+  color: #777;
+
+  background: white;
+
+  padding-top: 10px;
+}
+
+.footer-table{
+
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+.footer-table td{
+
+  width: 33.33%;
+
+  vertical-align: middle;
+}
+
+.footer-left{
+
+  text-align: left;
+}
+
+.footer-center{
+
+  text-align: center;
+}
+
+.footer-right{
+
+  text-align: right;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- =========================================
+    HEADER
+========================================== -->
+
+<div class="header">
+
+  <table class="header-table">
+
+    <tr>
+
+      <!-- LOGO -->
+      <td class="logo">
+
+        {% if logo_b64 %}
+          <img src="data:image/png;base64,{{ logo_b64 }}">
+        {% endif %}
+
+      </td>
+
+      <!-- TITLE -->
+      <td class="title">
+
+        <h1>{{ title }}</h1>
+
+        <div class="subtitle">
+          {{ subtitle }}
+        </div>
+
+      </td>
+
+      <!-- QR -->
+      <td class="qr">
+
+        {% if qr_b64 %}
+          <img src="data:image/png;base64,{{ qr_b64 }}">
+        {% endif %}
+
+      </td>
+
+    </tr>
+
+  </table>
+
+  <!-- BARCODE -->
+  <div class="barcode-header">
+
+    {% if barcode_b64 %}
+      <img src="data:image/png;base64,{{ barcode_b64 }}">
+    {% endif %}
+
+  </div>
+
+</div>
+
+<!-- =========================================
+    CONTENT
+========================================== -->
+
+<div class="content">
+
+  <!-- BOX -->
+  <div class="box">
+
+    {{ content }}
+
+  </div>
+
+  <!-- TABLE -->
+  <table class="items">
+
+    <thead>
+
+      <tr>
+        <th>Coluna 1</th>
+        <th>Coluna 2</th>
+        <th>Coluna 3</th>
+        <th class="text-right">Total</th>
+      </tr>
+
+    </thead>
+
+    <tbody>
+
+      {% for item in items %}
+
+      <tr>
+
+        <td>{{ item.col1 }}</td>
+
+        <td>{{ item.col2 }}</td>
+
+        <td>{{ item.col3 }}</td>
+
+        <td class="text-right">
+          {{ item.total }}
+        </td>
+
+      </tr>
+
+      {% endfor %}
+
+    </tbody>
+
+  </table>
+
+</div>
+
+<!-- =========================================
+    FOOTER
+========================================== -->
+
+<!-- =========================================
+    FOOTER
+========================================== -->
+
+<div class="footer">
+
+  <table class="footer-table">
+
+    <tr>
+
+      <!-- LEFT -->
+      <td class="footer-left">
+
+        {{ footer_left }} l
+
+      </td>
+
+      <!-- CENTER -->
+      <td class="footer-center">
+
+        {{ footer_center }} c
+
+      </td>
+
+      <!-- RIGHT -->
+      <td class="footer-right">
+
+      Página <span class="page"></span> de <span class="topage"></span>
+
+      </td>
+
+    </tr>
+
+  </table>
+
+</div>
+
+</body>
+
+</html>

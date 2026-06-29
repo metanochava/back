@@ -9,4 +9,7 @@ from saude.serializers.medicamento import MedicamentoSerializer
 class MedicamentoAPIView(BaseAPIView):
     queryset = Medicamento.objects.all()   
     serializer_class = MedicamentoSerializer
+
+    # def perform_create(self, serializer):
+    #     serializer.save()
     

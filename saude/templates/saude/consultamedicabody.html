@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+
+<style>
+
+  * {
+    box-sizing: border-box;
+  }
+
+  .content {
+    width: 100%;
+  }
+
+  .box {
+    border: 1px solid #fff;
+    border-radius: 2px;
+    padding: 2px;
+    margin-bottom: 1px;
+    page-break-inside: avoid;
+  }
+
+</style>
+</head>
+
+<body>
+
+<div class="content">
+
+  {{ request.lang_id }}
+  
+    <div class="box">
+
+        <div style="font-size:14px; margin-bottom:10px;">
+
+            <b>{{ consulta.created_at|date:"d/m/Y H:i" }}</b>
+
+            por
+
+            <b>{{ consulta.employee.person.full_name }}</b>
+
+        </div>
+
+    </div>
+
+    {% if consulta.dados_vitais %}
+    <div class="box">
+
+        <div class="box-title">
+            Sinais Vitais
+        </div>
+
+        <table class="dados">
+
+            <tr>
+                <td><strong>Peso:</strong> {{ consulta.dados_vitais.peso }} Kg</td>
+                <td><strong>Altura:</strong> {{ consulta.dados_vitais.altura }} m</td>
+                <td><strong>IMC:</strong> {{ consulta.dados_vitais.imc }}</td>
+            </tr>
+
+            <tr>
+                <td><strong>FC:</strong> {{ consulta.dados_vitais.fc }}</td>
+                <td><strong>FR:</strong> {{ consulta.dados_vitais.fr }}</td>
+                <td><strong>SpO₂:</strong> {{ consulta.dados_vitais.sato2 }}</td>
+            </tr>
+
+            <tr>
+                <td><strong>Pulso:</strong> {{ consulta.dados_vitais.pulso }}</td>
+                <td><strong>Temperatura:</strong> {{ consulta.dados_vitais.temperatura }}</td>
+                <td><strong>Glicemia:</strong> {{ consulta.dados_vitais.glicemia }}</td>
+            </tr>
+
+            <tr>
+                <td colspan="3">
+                    <strong>TA:</strong>
+                    {{ consulta.dados_vitais.ta_sistolica }}/{{ consulta.dados_vitais.ta_diastolica }}
+                </td>
+            </tr>
+
+        </table>
+
+    </div>
+    {% endif %}
+
+    <div class="box">
+
+        <div class="box-title">
+            Diário Clínico
+        </div>
+
+        <table style="width:100%; border-collapse:collapse;">
+
+            <tr>
+                <td style="
+                    border:1px solid #075da3;
+                    padding:4px;
+                    background:#f8fbff;
+                ">
+                    <b style="color:#075da3;">
+                        {{ consulta.dc|safe|linebreaks }}
+                    </b>
+                </td>
+            </tr>
+
+        </table>
+
+    </div>
+
+    <div class="box">
+
+        <table style="width:100%; border-collapse:collapse;">
+
+            <tr>
+
+                <td style="
+                    width:50%;
+                    border:1px solid #cdcdcd;
+                    padding:4px;
+                    vertical-align:top;
+                ">
+
+                    <div class="box-title">
+                        Diagnóstico
+                    </div>
+
+                    {{ consulta.diagnostico|safe|linebreaks }}
+
+                </td>
+
+                <td style="
+                    width:50%;
+                    border:1px solid #cdcdcd;
+                    padding:4px;
+                    vertical-align:top;
+                ">
+
+                    <div class="box-title">
+                        Conduta a Estabelecer
+                    </div>
+
+                    {{ consulta.conduta_a_estabelecer|safe|linebreaks }}
+
+                </td>
+
+            </tr>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+</body>
+</html>

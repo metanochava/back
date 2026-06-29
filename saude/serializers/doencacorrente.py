@@ -1,10 +1,10 @@
 from django_resaas.core.base.serializers import BaseSerializer
-from saude.models.doencacorrente import Doencacorrente
+from saude.models.doencacorrente import DoencaCorrente
 from rest_framework import serializers
 
-class DoencacorrenteSerializer(BaseSerializer):
+class DoencaCorrenteSerializer(BaseSerializer):
     
     class Meta:
-        model = Doencacorrente
+        model = DoencaCorrente
         fields = "__all__"
     

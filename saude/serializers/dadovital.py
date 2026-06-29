@@ -1,10 +1,10 @@
 from django_resaas.core.base.serializers import BaseSerializer
-from saude.models.dadovital import Dadovital
+from saude.models.dadovital import DadoVital
 from rest_framework import serializers
 
-class DadovitalSerializer(BaseSerializer):
+class DadoVitalSerializer(BaseSerializer):
     
     class Meta:
-        model = Dadovital
+        model = DadoVital
         fields = "__all__"
     
