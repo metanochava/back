@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+
+<style>
+  @page {
+    size: A6 portrait;
+    margin-top: 92px;
+    margin-bottom: 78px;
+    margin-left: 28px;
+    margin-right: 18px;
+
+    @bottom-right {
+      content: " " counter(page) " - " counter(pages);
+      font-size: 10px;
+      color: #2563eb;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      margin-right: 5px;
+      margin-bottom: 3px;
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 8px;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    line-height: 1.35;
+  }
+
+  table { page-break-inside: auto; }
+  tr { page-break-inside: avoid; page-break-after: auto; }
+  thead { display: table-header-group; }
+
+  .header {
+    position: fixed;
+    top: -74px;
+    left: 0;
+    right: 0;
+    height: 67px;
+    border-bottom: 1px solid #ddd;
+    background: white;
+  }
+
+  .header-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .header-table td { vertical-align: middle; }
+
+  .logo { width: 60px; }
+
+  .logo img {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+  }
+
+  .title { text-align: center; }
+
+  .title h1 {
+    margin: 0;
+    color: #2563eb;
+    font-size: 13px;
+    text-transform: uppercase;
+  }
+
+  .title .subtitle {
+    color: #777;
+    font-size: 8px;
+    margin-top: 2px;
+  }
+
+  .qr {
+    width: 55px;
+    text-align: right;
+  }
+
+  .qr img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+  }
+
+  .barcode-header {
+    position: absolute;
+    top: 80%;
+    left: -17px;
+    transform: rotate(-90deg);
+    transform-origin: left center;
+    z-index: 20;
+  }
+
+  .barcode-header img {
+    width: 190px;
+    height: 38px;
+    object-fit: contain;
+  }
+
+  .content { width: 100%; }
+
+  .box {
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    padding: 6px;
+    margin-bottom: 7px;
+    page-break-inside: avoid;
+  }
+
+  .box-title {
+    font-weight: bold;
+    color: #2563eb;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    font-size: 9px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 2px;
+  }
+
+  .line { margin-bottom: 2px; }
+
+  .patient-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .patient-table td {
+    padding: 2px 1px;
+    vertical-align: top;
+  }
+
+  .patient-table .label {
+    color: #2563eb;
+    font-weight: bold;
+    width: 54px;
+  }
+
+  .clinical-text {
+    font-size: 8px;
+    min-height: 24px;
+  }
+
+  .tipo-title {
+    background: #2563eb;
+    color: white;
+    padding: 4px 5px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 8px;
+    margin-top: 4px;
+  }
+
+  .classe-title {
+    color: #2563eb;
+    font-weight: bold;
+    font-size: 8px;
+    margin-top: 5px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  table.items {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8px;
+    margin-top: 3px;
+  }
+
+  .items th {
+    background: #eef4ff;
+    color: #1d4ed8;
+    padding: 4px;
+    text-align: left;
+    border-bottom: 1px solid #c7d2fe;
+  }
+
+  .items td {
+    padding: 4px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+  }
+
+  .priority {
+    font-size: 7px;
+    font-weight: bold;
+    color: #b45309;
+  }
+
+  .obs {
+    color: #555;
+    font-size: 7px;
+    margin-top: 2px;
+  }
+
+  .signature {
+    margin-top: 10px;
+    text-align: right;
+    page-break-inside: avoid;
+  }
+
+  .signature-line {
+    display: inline-block;
+    width: 135px;
+    border-top: 1px solid #333;
+    padding-top: 3px;
+    text-align: center;
+    font-size: 8px;
+  }
+
+  .footer {
+    position: fixed;
+    bottom: -38px;
+    left: 0;
+    right: 0;
+    min-height: 28px;
+    border-top: 1px solid #ddd;
+    font-size: 8px;
+    color: #777;
+    background: white;
+    padding-top: 4px;
+  }
+
+  .footer-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .footer-table td {
+    width: 50%;
+    vertical-align: middle;
+  }
+
+  .footer-left { text-align: left; }
+  .footer-center { text-align: center; }
+  .footer-right { text-align: right; }
+
+
+
+
+
+
+
+
+  .tipo-title{
+
+    margin-top:8px;
+    padding:4px 8px;
+
+    background:#2563eb;
+    color:#fff;
+
+    font-size:9px;
+    font-weight:bold;
+    text-transform:uppercase;
+
+    border-radius:3px;
+
+}
+
+.classe-title{
+
+    margin-top:8px;
+    margin-bottom:4px;
+
+    color:#2563eb;
+
+    font-size:8px;
+    font-weight:bold;
+
+    border-bottom:1px solid #dbeafe;
+
+    padding-bottom:2px;
+
+}
+
+.exam-item{
+
+    margin-left:8px;
+
+    margin-bottom:5px;
+
+    padding:4px 0;
+
+    border-bottom:1px dotted #d9d9d9;
+
+}
+
+.exam-header{
+
+    width:100%;
+
+}
+
+.exam-name{
+
+    font-size:8px;
+
+    font-weight:bold;
+
+}
+
+.exam-code{
+
+    color:#2563eb;
+
+    font-weight:bold;
+
+}
+
+.exam-priority{
+
+    display:inline-block;
+
+    margin-top:2px;
+
+    padding:1px 5px;
+
+    border:1px solid #d97706;
+
+    border-radius:3px;
+
+    color:#d97706;
+
+    font-size:7px;
+
+    font-weight:bold;
+
+}
+
+.exam-detail{
+
+    margin-top:3px;
+
+    margin-left:10px;
+
+    font-size:7px;
+
+    color:#555;
+
+    line-height:1.3;
+
+}
+
+.empty{
+
+    text-align:center;
+
+    color:#888;
+
+    padding:12px;
+
+    font-style:italic;
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <table class="header-table">
+    <tr>
+      <td class="logo">
+        {% if logo_b64 %}
+          <img src="data:image/png;base64,{{ logo_b64 }}">
+        {% endif %}
+      </td>
+
+      <td class="title">
+        <h1>Resultado Pedido de Exames</h1>
+        <div class="subtitle">{{ entity.name }}</div>
+      </td>
+
+      <td class="qr">
+        {% if qr_b64 %}
+          <img src="data:image/png;base64,{{ qr_b64 }}">
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div class="content">
+
+  <div class="box">
+    <div class="box-title">Dados do Paciente</div>
+
+    <table class="patient-table">
+      <tr>
+        <td class="label">Nome:</td>
+        <td colspan="3">{{ paciente.person.full_name }}</td>
+      </tr>
+
+      <tr>
+        <td class="label">NID:</td>
+        <td>{{ paciente.nid }}</td>
+
+        <td class="label">Contacto:</td>
+        <td>{{ paciente.numero_a_contactar }}</td>
+      </tr>
+
+      <tr>
+        <td class="label">Profissão:</td>
+        <td>{{ paciente.profissao }}</td>
+
+        <td class="label">Data:</td>
+        <td>
+
+          {% if pedido.data %}
+            {{ pedido.data }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="box">
+    <div class="box-title">Informação Clínica</div>
+
+    <div class="clinical-text">
+
+      {% if pedido.informacao_clinica %}
+        {{ pedido.informacao_clinica|safe }}
+      {% else %}
+        Sem informação clínica registada.
+      {% endif %}
+    </div>
+
+
+      <div class="box-title">
+          Exames Solicitados
+      </div>
+
+ 
+      {% for item in items %}
+
+        <div class="exam-item">
+
+            <div class="exam-header">
+
+                <div class="exam-name">
+
+                    {% if item.exame.codigo %}
+                        <span class="exam-code">
+                            {{ item.exame.codigo }}
+                        </span>
+                    {% endif %}
+
+                    {{ item.exame.nome }}
+
+                </div>
+
+                {% if item.prioridade %}
+                    <div class="exam-priority">
+                        {{ item.get_prioridade_display|default:item.prioridade }}
+                    </div>
+                {% endif %}
+
+            </div>
+
+            {% if item.instrucoes %}
+                <div class="exam-detail">
+                    <strong>Instruções:</strong>
+                    {{ item.instrucoes|safe }}
+                </div>
+            {% endif %}
+
+            {% if item.observacao %}
+                <div class="exam-detail">
+                    <strong>Observação:</strong>
+                    {{ item.observacao|safe }}
+                </div>
+            {% endif %}
+
+        </div>
+      {% empty %}
+
+          <div class="empty">
+              Nenhum exame solicitado.
+          </div>
+
+      {% endfor %}
+
+  </div>
+
+
+  {% if pedido.outros_exames %}
+  <div class="box">
+    <div class="box-title">Outros Exames</div>
+
+    
+      {{ pedido.outros_exames|safe }}
+
+  </div>
+  {% endif %}
+
+  {% if  pedido.observacao %}
+  <div class="box">
+    <div class="box-title">Observações Gerais</div>
+
+      {{ pedido.observacao|safe }}
+
+  </div>
+  {% endif %}
+
+  <div class="signature">
+    <div class="signature-line">
+
+      {% if pedido.consulta.employee.person.full_name %}
+        {{ pedido.consulta.employee.person.full_name }}
+      {% else %}
+        Médico Solicitante
+      {% endif %}
+      <br>
+      Médico
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="barcode-header">
+    {% if barcode_b64 %}
+      <img src="data:image/png;base64,{{ barcode_b64 }}">
+    {% endif %}
+  </div>
+
+  <table class="footer-table">
+    <tr>
+      <td class="footer-left">{{ entity.name }}</td>
+      <td class="footer-right">Pedido de Exames Médicos</td>
+    </tr>
+
+    <tr>
+      <td colspan="3" class="footer-center" style="width:100%; font-size: 10px;">
+        {{ entity.rodape }}
+      </td>
+    </tr>
+  </table>
+</div>
+
+</body>
+</html>

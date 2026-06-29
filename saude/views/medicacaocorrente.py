@@ -1,12 +1,12 @@
 
 from django_resaas.core.base.views import BaseAPIView
 from django_resaas.core.base.views import registerView
-from saude.models.medicacaocorrente import Medicacaocorrente
-from saude.serializers.medicacaocorrente import MedicacaocorrenteSerializer
+from saude.models.medicacaocorrente import MedicacaoCorrente
+from saude.serializers.medicacaocorrente import MedicacaoCorrenteSerializer
 
 
 @registerView('medicacaocorrentes')
-class MedicacaocorrenteAPIView(BaseAPIView):
-    queryset = Medicacaocorrente.objects.all()   
-    serializer_class = MedicacaocorrenteSerializer
+class MedicacaoMorrenteAPIView(BaseAPIView):
+    queryset = MedicacaoCorrente.objects.all()   
+    serializer_class = MedicacaoCorrenteSerializer
     

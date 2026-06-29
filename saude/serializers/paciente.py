@@ -14,4 +14,5 @@ class PacienteSerializer(BaseSerializer):
     class Meta:
         model = Paciente
         fields = "__all__"
+
     

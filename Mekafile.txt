@@ -20,7 +20,7 @@ gitback:
 	git reset --soft HEAD~1
 
 gitrmc:
-	read -p "Digite o caminho do ficheiro ou pasta: " m; \
+	read -p "Digite o caminho dofileou pasta: " m; \
 	git rm --cached "$$m"
 
 

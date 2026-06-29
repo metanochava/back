@@ -1,22 +1,74 @@
 from django.db import models
 from django_resaas.core.base.models import BaseModel
-from django_resaas.core.utils import upload_path
+
 
 class Paciente(BaseModel):
-    nid = models.CharField()
-    person = models.ForeignKey('django_resaas.Person', on_delete=models.CASCADE)
-    profissao = models.CharField()
-    religiao = models.CharField()
-    person_a_contactar = models.CharField()
-    numero_a_contactar = models.CharField()
+
+    nid = models.CharField(
+        max_length=50,
+        unique=True
+    )
+
+    person = models.ForeignKey(
+        'django_resaas.Person',
+        on_delete=models.CASCADE,
+        related_name='pacientes'
+    )
+
+    profissao = models.CharField(
+        max_length=150,
+        blank=True,
+        null=True
+    )
+
+    religiao = models.CharField(
+        max_length=150,
+        blank=True,
+        null=True
+    )
+
+    person_a_contactar = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True
+    )
+
+    numero_a_contactar = models.CharField(
+        max_length=50,
+        blank=True,
+        null=True
+    )
+
+    class Meta:
+        verbose_name = "Paciente"
+        verbose_name_plural = "Pacientes"
+
+        unique_together = (
+            "person",
+            "branch"
+        )
 
     class RESAAS:
-        # label_field = "nid person.name"
-        searchable_fields = ["nid", "person.name"]
+
+        label_field = "person.full_name"
+
+        searchable_fields = [
+            "nid",
+            "person.name",
+            "person.surname",
+            "person.full_name",
+            "numero_a_contactar",
+        ]
+
         crud = True
-        routes={
-            'list': "add_paciente",
-            'view': "view_paciente",
-            'add': "add_paciente",
-            'change': "change_paciente"
+
+        routes = {
+            "list": "add_paciente",
+            "view": "view_paciente",
+            "add": "add_paciente",
+            "change": "change_paciente"
         }
+
+    def __str__(self):
+
+        return f"{self.person.full_name} ({self.nid})"

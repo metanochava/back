@@ -1,21 +1,92 @@
 from django.db import models
 from django_resaas.core.base.models import BaseModel
-from django_resaas.core.utils import upload_path
+
 
 class Consulta(BaseModel):
-     
-    medico = models.ForeignKey('rh.Funcionario', on_delete=models.CASCADE)
-    dc = models.TextField(null=True)
-    conduta_a_estabelecer = models.TextField(null=True)
-    diagnostico = models.TextField(null=True)
-    dados_vitais = models.ForeignKey('saude.DadoVital', null=True, blank=True, on_delete=models.CASCADE)
-    paciente = models.ForeignKey('saude.Paciente', on_delete=models.CASCADE)
-    data = models.DateField(null=True, auto_now_add=True)
-  
+
+    # ==========================================
+    # RELAÇÕES
+    # ==========================================
+
+    paciente = models.ForeignKey(
+        'saude.Paciente',
+        on_delete=models.CASCADE,
+        related_name='consultas'
+    )
+
+    employee = models.ForeignKey(
+        'hr.Employee',
+        on_delete=models.CASCADE,
+        related_name='consultas'
+    )
+
+    # ==========================================
+    # INFORMAÇÃO CLÍNICA
+    # ==========================================
+
+    dc = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Doença Atual / Queixa Principal"
+    )
+
+    diagnostico = models.TextField(
+        null=True,
+        blank=True
+    )
+
+    conduta_a_estabelecer = models.TextField(
+        null=True,
+        blank=True
+    )
+
+    # ==========================================
+    # DATA
+    # ==========================================
+
+    data = models.DateField(
+        auto_now_add=True
+    )
+
+    # ==========================================
+    # META
+    # ==========================================
+
     class Meta:
-        permissions = (
-    
-        )
+        verbose_name = "Consulta"
+        verbose_name_plural = "Consultas"
+        ordering = ["-data", "-created_at"]
+
+    class RESAAS:
+
+        label_field = "paciente.person.full_name"
+
+        searchable_fields = [
+            "paciente.person.name",
+            "paciente.person.surname",
+            "paciente.person.full_name",
+            "paciente.nid",
+            "employee.person.full_name",
+            "diagnostico",
+            "dc"
+        ]
+
+        crud = True
+
+        routes = {
+            'list': "add_consulta",
+            'view': "view_consulta",
+            'add': "add_consulta",
+            'change': "change_consulta"
+        }
+
+    # ==========================================
+    # STRING
+    # ==========================================
 
     def __str__(self):
-        return str(self.paciente.person.nome) + str(self.paciente.person.apelido)
+
+        return (
+            f"{self.paciente.person.full_name}"
+            f" - {self.data}"
+        )

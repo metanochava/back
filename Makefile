@@ -182,3 +182,6 @@ hotfix_finish:
 	read -p "Nome do hotfix: " n; \
 	git flow hotfix finish "$$n"; \
 	git push origin main develop --tags
+
+env:
+	source /var/www/dev/back/venv/bin/activate

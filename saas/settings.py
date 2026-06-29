@@ -37,7 +37,6 @@ LANGUAGE_CODE = 'EN-US'
 MY_APPS = [
     'django_resaas',
     'hr',
-    'rh',
     'saude',
 ]
 
@@ -210,16 +209,12 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/" + os.environ.get("MEDIA_URL", "media") + "/"
 MEDIA_ROOT = BASE_DIR / "mediafiles"
 
-
 if  os.environ.get("MEDIASTATIC_PATH"):
     MEDIA_ROOT = os.environ.get("MEDIASTATIC_PATH") +  "/mediafiles"
     STATIC_ROOT = os.environ.get("MEDIASTATIC_PATH") +  "/staticfiles"
 
-print(os.environ.get("MEDIASTATIC_PATH"), "meano", BASE_DIR, MEDIA_ROOT)
 
 DEPLOY_FILE_PATH = BASE_DIR / "deploy.sh"
-
-
 
 # --------------------------
 # Email

@@ -1,12 +1,12 @@
 
 from django_resaas.core.base.views import BaseAPIView
 from django_resaas.core.base.views import registerView
-from saude.models.alergiacorrente import Alergiacorrente
-from saude.serializers.alergiacorrente import AlergiacorrenteSerializer
+from saude.models.alergiacorrente import AlergiaCorrente
+from saude.serializers.alergiacorrente import AlergiaCorrenteSerializer
 
 
 @registerView('alergiacorrentes')
-class AlergiacorrenteAPIView(BaseAPIView):
-    queryset = Alergiacorrente.objects.all()   
-    serializer_class = AlergiacorrenteSerializer
+class AlergiaCorrenteAPIView(BaseAPIView):
+    queryset = AlergiaCorrente.objects.all()   
+    serializer_class = AlergiaCorrenteSerializer
     
