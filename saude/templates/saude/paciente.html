@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+
+<style>
+@page {
+  size: 85.60mm 53.98mm;
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #1f2937;
+}
+
+.card {
+  width: 85.60mm;
+  height: 53.98mm;
+  position: relative;
+  overflow: hidden;
+  page-break-after: always;
+  background: #f8fbff;
+}
+
+/* ================= FRENTE ================= */
+
+.front {
+  background: linear-gradient(135deg, #073b7a 0%, #0f5fb8 55%, #38bdf8 100%);
+  color: white;
+}
+
+.front::before {
+  content: "";
+  position: absolute;
+  width: 70mm;
+  height: 70mm;
+  border-radius: 50%;
+  left: -32mm;
+  top: -30mm;
+  background: rgba(255,255,255,.12);
+}
+
+.front::after {
+  content: "";
+  position: absolute;
+  width: 48mm;
+  height: 48mm;
+  border-radius: 50%;
+  right: -18mm;
+  bottom: -18mm;
+  background: rgba(255,255,255,.10);
+}
+
+.top-strip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 13mm;
+  background: rgba(0,0,0,.18);
+}
+
+.logo-box {
+  position: absolute;
+  top: 3mm;
+  left: 5mm;
+  width: 10mm;
+  height: 10mm;
+  background: white;
+  border-radius: 2mm;
+  padding: 1mm;
+}
+
+.logo-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.org-name {
+  position: absolute;
+  top: 3.5mm;
+  left: 18mm;
+  right: 6mm;
+  font-size: 8px;
+  font-weight: bold;
+  letter-spacing: .3px;
+}
+
+.org-sub {
+  position: absolute;
+  top: 8mm;
+  left: 18mm;
+  font-size: 5.5px;
+  opacity: .9;
+}
+
+.card-title {
+  position: absolute;
+  top: 16mm;
+  left: 5mm;
+  font-size: 8px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.photo {
+  position: absolute;
+  left: 5mm;
+  top: 22mm;
+  width: 20mm;
+  height: 24mm;
+  background: white;
+  border: 1.2mm solid rgba(255,255,255,.9);
+  border-radius: 3mm;
+  overflow: hidden;
+}
+
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.no-photo {
+  width: 100%;
+  height: 100%;
+  color: #64748b;
+  font-size: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.patient-name {
+  position: absolute;
+  left: 28mm;
+  top: 22mm;
+  right: 6mm;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+.patient-info {
+  position: absolute;
+  left: 28mm;
+  top: 30mm;
+  width: 36mm;
+  font-size: 6px;
+  line-height: 1.55;
+}
+
+.patient-info table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.patient-info td {
+  padding: .5mm 0;
+}
+
+.label {
+  color: #dbeafe;
+  font-weight: bold;
+  width: 15mm;
+}
+
+.qr-box {
+  position: absolute;
+  right: 5mm;
+  bottom: 5mm;
+  width: 15mm;
+  height: 15mm;
+  background: white;
+  border-radius: 2mm;
+  padding: 1mm;
+}
+
+.qr-box img {
+  width: 100%;
+  height: 100%;
+}
+
+.card-number {
+  position: absolute;
+  left: 5mm;
+  bottom: 4mm;
+}
+
+.card-number .small {
+  font-size: 5px;
+  opacity: .9;
+}
+
+.card-number .number {
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.medical-cross {
+  position: absolute;
+  right: 25mm;
+  bottom: 7mm;
+  font-size: 18px;
+  opacity: .18;
+  font-weight: bold;
+}
+
+/* ================= VERSO ================= */
+
+.back {
+  background: #ffffff;
+}
+
+.back-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 14mm;
+  width: 100%;
+  background: linear-gradient(90deg, #073b7a, #0f5fb8);
+  color: white;
+  padding: 3.5mm 5mm;
+}
+
+.back-header-title {
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.back-header-sub {
+  font-size: 5.5px;
+  margin-top: 1mm;
+  opacity: .9;
+}
+
+.back-body {
+  position: absolute;
+  top: 17mm;
+  left: 5mm;
+  right: 5mm;
+  bottom: 12mm;
+  font-size: 6px;
+  color: #1f2937;
+}
+
+.col {
+  float: left;
+  width: 48%;
+}
+
+.col-right {
+  float: right;
+  width: 48%;
+}
+
+.section {
+  margin-bottom: 2.5mm;
+}
+
+.section-title {
+  font-size: 6.5px;
+  color: #0f5fb8;
+  font-weight: bold;
+  text-transform: uppercase;
+  border-bottom: .3mm solid #bfdbfe;
+  padding-bottom: .7mm;
+  margin-bottom: 1mm;
+}
+
+.line {
+  line-height: 1.35;
+}
+
+.back-qr {
+  position: absolute;
+  right: 5mm;
+  top: 3mm;
+  width: 10mm;
+  height: 10mm;
+  background: white;
+  padding: .8mm;
+  border-radius: 1.5mm;
+}
+
+.back-qr img {
+  width: 100%;
+  height: 100%;
+}
+
+.barcode {
+  position: absolute;
+  left: 5mm;
+  right: 5mm;
+  bottom: 7mm;
+  height: 7mm;
+  text-align: center;
+}
+
+.barcode img {
+  width: 55mm;
+  height: 7mm;
+  object-fit: contain;
+}
+
+.back-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6mm;
+  background: #073b7a;
+  color: white;
+  font-size: 4.8px;
+  padding: 1.2mm 5mm;
+}
+
+.footer-left {
+  float: left;
+  width: 60%;
+}
+
+.footer-right {
+  float: right;
+  width: 40%;
+  text-align: right;
+}
+</style>
+</head>
+
+<body>
+
+<!-- FRENTE -->
+<div class="card front">
+  <div class="top-strip"></div>
+
+  <div class="logo-box">
+    {% if logo_b64 %}
+      <img src="data:image/png;base64,{{ logo_b64 }}">
+    {% endif %}
+  </div>
+
+  <div class="org-name">{{ entity.name }}</div>
+  <div class="org-sub">Unidade de Saúde · Sistema Clínico</div>
+
+  <div class="card-title">Cartão do Paciente</div>
+
+  <div class="photo">
+    {% if profile_b64 %}
+      <img src="data:image/png;base64,{{ profile_b64 }}">
+    {% else %}
+      <div class="no-photo">SEM FOTO</div>
+    {% endif %}
+  </div>
+
+  <div class="patient-name">
+    {{ paciente.person.full_name|default:"Paciente" }}
+  </div>
+
+  <div class="patient-info">
+    <table>
+      <tr>
+        <td class="label">NID</td>
+        <td>{{ paciente.nid|default:"-" }}</td>
+      </tr>
+      <tr>
+        <td class="label">Nascimento</td>
+        <td>{{ paciente.person.date_of_birth|default:"-" }}</td>
+      </tr>
+      <tr>
+        <td class="label">Contacto</td>
+        <td>{{ paciente.numero_a_contactar|default:"-" }}</td>
+      </tr>
+      <tr>
+        <td class="label">Profissão</td>
+        <td>{{ paciente.profissao|default:"-" }}</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="medical-cross">✚</div>
+
+  <div class="card-number">
+    <div class="small">NÚMERO DO CARTÃO</div>
+    <div class="number">{{ paciente.nid|default:paciente.id }}</div>
+  </div>
+
+  <div class="qr-box">
+    {% if qr_b64 %}
+      <img src="data:image/png;base64,{{ qr_b64 }}">
+    {% endif %}
+  </div>
+</div>
+
+<!-- VERSO -->
+<div class="card back">
+  <div class="back-header">
+    <div class="back-header-title">INFORMAÇÕES MÉDICAS</div>
+    <div class="back-header-sub">Apresente este cartão em qualquer atendimento clínico.</div>
+  </div>
+
+  <div class="back-qr">
+    {% if qr_b64 %}
+      <img src="data:image/png;base64,{{ qr_b64 }}">
+    {% endif %}
+  </div>
+
+  <div class="back-body">
+    <div class="col">
+      <div class="section">
+        <div class="section-title">Alergias</div>
+        <div class="line">{{ paciente.alergias|default:"Não registado" }}</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Doenças crónicas</div>
+        <div class="line">{{ paciente.doencas_cronicas|default:"Não registado" }}</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Medicação habitual</div>
+        <div class="line">{{ paciente.medicacao_usual|default:"Não registado" }}</div>
+      </div>
+    </div>
+
+    <div class="col-right">
+      <div class="section">
+        <div class="section-title">Emergência</div>
+        <div class="line"><strong>Nome:</strong> {{ paciente.nome_contacto_emergencia|default:"-" }}</div>
+        <div class="line"><strong>Telefone:</strong> {{ paciente.contacto_emergencia|default:"-" }}</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Unidade sanitária</div>
+        <div class="line"><strong>{{ entity.name }}</strong></div>
+        <div class="line">{{ entity.address|default:"" }}</div>
+        <div class="line">{{ entity.telefone|default:"" }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="barcode">
+    {% if barcode_b64 %}
+      <img src="data:image/png;base64,{{ barcode_b64 }}">
+    {% endif %}
+  </div>
+
+  <div class="back-footer">
+    <div class="footer-left">
+      Este cartão é pessoal e intransmissível.
+    </div>
+    <div class="footer-right">
+      Emissão: {{ data_emissao }}
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
