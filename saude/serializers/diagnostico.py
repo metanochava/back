@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django_resaas.models.user import User
-from django_resaas.data.user.serializers.user import UserSerializer
+from django_resaas.data.user.serializers.user import UserSerializer 
+
 
 from django_resaas.core.base.serializers import BaseSerializer
 from saude.models.diagnostico import Diagnostico

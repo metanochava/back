@@ -154,6 +154,21 @@ class InternamentoAdmin(BaseAdmin):
     list_display = ("id",)
 
 
+
+from saude.models.itempedidoexamemedico import ItemPedidoExameMedico
+@admin.register(ItemPedidoExameMedico)
+class ItemPedidoExameMedicoAdmin(BaseAdmin):
+    def get_list_display(self, request): return all_fields(self.model)
+    list_display = ("id",)
+
+
+from saude.models.resultadoexamemedico import ResultadoExameMedico
+@admin.register(ResultadoExameMedico)
+class ResultadoExameMedicoAdmin(BaseAdmin):
+    def get_list_display(self, request): return all_fields(self.model)
+    list_display = ("id",)
+
+
 from saude.models.cirurgia import Cirurgia
 @admin.register(Cirurgia)
 class CirurgiaAdmin(BaseAdmin):

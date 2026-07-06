@@ -18,11 +18,10 @@ class Medico(BaseModel):
         blank=True
     )
 
-    especialidade = models.ForeignKey(
+    especialidade = models.ManyToManyField(
         'hr.Specialty',
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
         related_name='medicos'
     )
 

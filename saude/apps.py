@@ -104,3 +104,5 @@ class SaudeConfig(AppConfig):
 
         for _, module_name, _ in pkgutil.iter_modules(saude.views.__path__):
             importlib.import_module(f"saude.views.{module_name}")
+
+        import saude.signals
