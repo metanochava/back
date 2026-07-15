@@ -41,6 +41,12 @@ class RelatorioMedicoAdmin(BaseAdmin):
     def get_list_display(self, request): return all_fields(self.model)
     list_display = ("id",)
 
+from saude.models.medico import Medico
+@admin.register(Medico)
+class MedicoAdmin(BaseAdmin):
+    def get_list_display(self, request): return all_fields(self.model)
+    list_display = ("id",)
+
 from saude.models.guiatransferencia import GuiaTransferencia
 @admin.register(GuiaTransferencia)
 class GuiaTransferenciaAdmin(BaseAdmin):
