@@ -29,6 +29,16 @@ SUBMENUS = [
         "route": "list_consulta",
     },
 
+    # 🕒 HORÁRIO DO MÉDICO
+    {
+        "add_role": "add_horariomedico",
+        "add_route": "add_horariomedico",
+        "icon": "schedule",
+        "menu": "HorarioMedico",
+        "role": "list_horariomedico",
+        "route": "list_horariomedico",
+    },
+
     # 💊 RECEITA
     {
         "add_role": "add_receitamedica",

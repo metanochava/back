@@ -13,6 +13,7 @@ class PedidoExameMedico(BaseModel):
 
     file = models.FileField(
         upload_to=upload_path("pedidoexame"),
+        max_length=500,
         null=True,
         blank=True
     )
@@ -57,9 +58,9 @@ class PedidoExameMedico(BaseModel):
 
         label_field = "consulta.paciente.person.full_name"
 
-        searchable_fields = [
-            "consulta.paciente.person.full_name",
-            "consulta.employee.person.full_name",
+        search_fields = [
+            "consulta__paciente__person__full_name",
+            "consulta__employee__person__full_name",
             "informacao_clinica",
             "outros_exames"
         ]
@@ -67,7 +68,7 @@ class PedidoExameMedico(BaseModel):
         crud = True
 
         routes = {
-            "list": "add_pedidoexamemedico",
+            "list": "list_pedidoexamemedico",
             "view": "view_pedidoexamemedico",
             "add": "add_pedidoexamemedico",
             "change": "change_pedidoexamemedico"

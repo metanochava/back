@@ -53,17 +53,17 @@ class ObservacaoClinica(BaseModel):
 
     class RESAAS:
         label_field = "titulo"
-        searchable_fields = [
-            "paciente.person.full_name",
-            "paciente.nid",
-            "medico.employee.person.full_name",
+        search_fields = [
+            "paciente__person__full_name",
+            "paciente__nid",
+            "medico__employee__person__full_name",
             "titulo",
             "observacao",
             "tipo"
         ]
         crud = True
         routes = {
-            "list": "add_observacaoclinica",
+            "list": "list_observacaoclinica",
             "view": "view_observacaoclinica",
             "add": "add_observacaoclinica",
             "change": "change_observacaoclinica"

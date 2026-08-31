@@ -39,15 +39,15 @@ class Procedimento(BaseModel):
 
         label_field="nome"
 
-        searchable_fields=[
+        search_fields=[
             "nome",
-            "consulta.paciente.person.full_name"
+            "consulta__paciente__person__full_name"
         ]
 
         crud=True
 
         routes={
-            "list":"add_procedimento",
+            "list": "list_procedimento",
             "view":"view_procedimento",
             "add":"add_procedimento",
             "change":"change_procedimento"

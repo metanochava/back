@@ -68,10 +68,10 @@ class ItemPedidoExameMedico(BaseModel):
 
         label_field = "exame.nome"
 
-        searchable_fields = [
-            "pedido.consulta.paciente.person.full_name",
-            "pedido.consulta.employee.person.full_name",
-            "exame.nome",
+        search_fields = [
+            "pedido__consulta__paciente__person__full_name",
+            "pedido__consulta__employee__person__full_name",
+            "exame__nome",
             "observacao",
             "instrucoes"
         ]
@@ -79,7 +79,7 @@ class ItemPedidoExameMedico(BaseModel):
         crud = True
 
         routes = {
-            "list": "add_itempedidoexamemedico",
+            "list": "list_itempedidoexamemedico",
             "view": "view_itempedidoexamemedico",
             "add": "add_itempedidoexamemedico",
             "change": "change_itempedidoexamemedico"

@@ -70,18 +70,18 @@ class Cirurgia(BaseModel):
 
     class RESAAS:
         label_field = "nome"
-        searchable_fields = [
+        search_fields = [
             "nome",
             "tipo",
-            "paciente.person.full_name",
-            "paciente.nid",
-            "medico_cirurgiao.employee.person.full_name",
+            "paciente__person__full_name",
+            "paciente__nid",
+            "medico_cirurgiao__employee__person__full_name",
             "sala",
             "estado"
         ]
         crud = True
         routes = {
-            "list": "add_cirurgia",
+            "list": "list_cirurgia",
             "view": "view_cirurgia",
             "add": "add_cirurgia",
             "change": "change_cirurgia"

@@ -61,10 +61,10 @@ class Internamento(BaseModel):
 
     class RESAAS:
         label_field = "paciente.person.full_name"
-        searchable_fields = [
-            "paciente.person.full_name",
-            "paciente.nid",
-            "medico_responsavel.employee.person.full_name",
+        search_fields = [
+            "paciente__person__full_name",
+            "paciente__nid",
+            "medico_responsavel__employee__person__full_name",
             "quarto",
             "cama",
             "estado",
@@ -73,7 +73,7 @@ class Internamento(BaseModel):
         ]
         crud = True
         routes = {
-            "list": "add_internamento",
+            "list": "list_internamento",
             "view": "view_internamento",
             "add": "add_internamento",
             "change": "change_internamento"

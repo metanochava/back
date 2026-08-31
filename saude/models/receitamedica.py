@@ -28,15 +28,15 @@ class ReceitaMedica(BaseModel):
 
         label_field = "consulta.paciente.person.full_name"
 
-        searchable_fields = [
-            "consulta.paciente.person.full_name",
-            "consulta.employee.person.full_name",
+        search_fields = [
+            "consulta__paciente__person__full_name",
+            "consulta__employee__person__full_name",
         ]
 
         crud = True
 
         routes = {
-            "list": "add_receitamedica",
+            "list": "list_receitamedica",
             "view": "view_receitamedica",
             "add": "add_receitamedica",
             "change": "change_receitamedica"

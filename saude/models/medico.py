@@ -19,12 +19,10 @@ class Medico(BaseModel):
     )
 
     especialidade = models.ManyToManyField(
-        'hr.Specialty',
-        null=True,
+    'hr.Specialty',
         blank=True,
-        related_name='medicos'
+        related_name="medicos"
     )
-
     categoria = models.CharField(
         max_length=100,
         null=True,
@@ -33,12 +31,14 @@ class Medico(BaseModel):
 
     assinatura = models.ImageField(
         upload_to=upload_path("assinaturas_medicos"),
+        max_length=500,
         null=True,
         blank=True
     )
-        
+
     carimbo = models.ImageField(
         upload_to=upload_path("carimbos_medicos"),
+        max_length=500,
         null=True,
         blank=True
     )
@@ -65,18 +65,18 @@ class Medico(BaseModel):
 
         label_field = "employee.person.full_name"
 
-        searchable_fields = [
-            "employee.person.name",
-            "employee.person.surname",
-            "employee.person.full_name",
+        search_fields = [
+            "employee__person__name",
+            "employee__person__surname",
+            "employee__person__full_name",
             "numero_ordem",
-            "especialidade.nome"
+            "especialidade__title"
         ]
 
         crud = True
 
         routes = {
-            "list": "add_medico",
+            "list": "list_medico",
             "view": "view_medico",
             "add": "add_medico",
             "change": "change_medico"

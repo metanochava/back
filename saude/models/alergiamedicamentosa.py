@@ -46,17 +46,17 @@ class AlergiaMedicamentosa(BaseModel):
 
     class RESAAS:
         label_field = "paciente.person.full_name"
-        searchable_fields = [
-            "paciente.person.full_name",
-            "paciente.nid",
-            "medicamento.descricao",
+        search_fields = [
+            "paciente__person__full_name",
+            "paciente__nid",
+            "medicamento__descricao",
             "nome_medicamento",
             "reacao",
             "gravidade"
         ]
         crud = True
         routes = {
-            "list": "add_alergiamedicamentosa",
+            "list": "list_alergiamedicamentosa",
             "view": "view_alergiamedicamentosa",
             "add": "add_alergiamedicamentosa",
             "change": "change_alergiamedicamentosa"

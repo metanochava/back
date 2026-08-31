@@ -63,18 +63,22 @@ class Agenda(BaseModel):
 
     class RESAAS:
         label_field = "paciente.person.full_name"
-        searchable_fields = [
-            "paciente.person.full_name",
-            "paciente.nid",
-            "medico.employee.person.full_name",
-            "medico.especialidade.nome",
-            "consultorio.nome",
+        search_fields = [
+            "paciente__person__full_name",
+            "paciente__nid",
+            # 'medico' aqui já é o hr.Employee (não saude.Medico) — daí
+            # ir direto a person; o segundo 'medico' é o related_name
+            # inverso de Medico.employee (OneToOneField) até chegar à
+            # especialidade.
+            "medico__person__full_name",
+            "medico__medico__especialidade__title",
+            "consultorio__nome",
             "estado",
             "motivo"
         ]
         crud = True
         routes = {
-            "list": "add_agenda",
+            "list": "list_agenda",
             "view": "view_agenda",
             "add": "add_agenda",
             "change": "change_agenda"

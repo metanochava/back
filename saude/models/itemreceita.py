@@ -47,9 +47,9 @@ class ItemReceita(BaseModel):
 
         label_field = "medicamento.descricao"
 
-        searchable_fields = [
-            "medicamento.descricao",
-            "receita.consulta.paciente.person.full_name",
+        search_fields = [
+            "medicamento__descricao",
+            "receita__consulta__paciente__person__full_name",
             "quantidade",
             "dosagem"
         ]
@@ -57,7 +57,7 @@ class ItemReceita(BaseModel):
         crud = True
 
         routes = {
-            "list": "add_itemreceita",
+            "list": "list_itemreceita",
             "view": "view_itemreceita",
             "add": "add_itemreceita",
             "change": "change_itemreceita"
