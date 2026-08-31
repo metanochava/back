@@ -184,6 +184,17 @@ mkdir -p "$APP_DIR/mediafiles" "$APP_DIR/staticfiles" "$APP_DIR/backups"
 log "Django check..."
 "$PY" "$APP_DIR/manage.py" check
 
+# As migrations dos apps do projecto (saude, inventory, sales, ...) estão no
+# .gitignore (*/migrations/*.py) — não são versionadas, cada ambiente gera as
+# suas. Por isso corremos makemigrations aqui antes do migrate.
+log "Verificando mudanças nos models..."
+if ! "$PY" "$APP_DIR/manage.py" makemigrations --check --dry-run > /dev/null 2>&1; then
+    warn "Models sem migration correspondente — a criar..."
+    "$PY" "$APP_DIR/manage.py" makemigrations
+else
+    ok "Sem mudanças nos models."
+fi
+
 log "Migrations..."
 "$PY" "$APP_DIR/manage.py" migrate --noinput
 
