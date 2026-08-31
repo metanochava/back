@@ -59,9 +59,9 @@ endef
 	bump_patch bump_minor bump_major \
 	build upload \
 	flow_init \
-	feature_start feature_finish \
-	release_start release_finish \
-		hotfix_start hotfix_finish \
+	features featuref \
+	releases releasef \
+		hotfixs hotfixf \
 		env denv django \
 		$(MANAGE_COMMANDS)
 
@@ -297,7 +297,7 @@ upload:
 flow_init:
 	git flow init
 
-feature_start:
+features:
 	read -p "Nome da feature: " nome
 
 	if [[ -z "$$nome" ]]; then
@@ -309,7 +309,7 @@ feature_start:
 	git pull origin develop
 	git flow feature start "$$nome"
 
-feature_finish:
+featuref:
 	read -p "Nome da feature: " nome
 
 	if [[ -z "$$nome" ]]; then
@@ -325,7 +325,7 @@ feature_finish:
 # RELEASE
 # =========================================================
 
-release_start:
+releases:
 	git checkout develop
 	git pull origin develop
 
@@ -345,7 +345,7 @@ release_start:
 
 	echo "Release $$VERSION iniciada."
 
-release_finish:
+releasef:
 	VERSION="$$( $(call GET_VERSION) )"
 
 	if ! git show-ref --verify --quiet \
@@ -369,7 +369,7 @@ release_finish:
 # HOTFIX
 # =========================================================
 
-hotfix_start:
+hotfixs:
 	read -p "Nome do hotfix: " nome
 
 	if [[ -z "$$nome" ]]; then
@@ -381,7 +381,7 @@ hotfix_start:
 	git pull origin main
 	git flow hotfix start "$$nome"
 
-hotfix_finish:
+hotfixf:
 	read -p "Nome do hotfix: " nome
 
 	if [[ -z "$$nome" ]]; then
