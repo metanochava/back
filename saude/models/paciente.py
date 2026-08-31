@@ -52,18 +52,18 @@ class Paciente(BaseModel):
 
         label_field = "person.full_name"
 
-        searchable_fields = [
+        search_fields = [
             "nid",
-            "person.name",
-            "person.surname",
-            "person.full_name",
+            "person__name",
+            "person__surname",
+            "person__full_name",
             "numero_a_contactar",
         ]
 
         crud = True
 
         routes = {
-            "list": "add_paciente",
+            "list": "list_paciente",
             "view": "view_paciente",
             "add": "add_paciente",
             "change": "change_paciente"

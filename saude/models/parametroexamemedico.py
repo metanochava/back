@@ -54,16 +54,16 @@ class ParamentroResultadoExameMedico(BaseModel):
 
         label_field = "nome"
 
-        searchable_fields = [
+        search_fields = [
             "nome",
             "unidade",
-            "exame_medico.nome",
+            "exame_medico__nome",
         ]
 
         crud = True
 
         routes = {
-            "list": "add_paramentroresultadoexamemedico",
+            "list": "list_paramentroresultadoexamemedico",
             "view": "view_paramentroresultadoexamemedico",
             "add": "add_paramentroresultadoexamemedico",
             "change": "change_paramentroresultadoexamemedico",

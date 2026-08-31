@@ -47,7 +47,7 @@ class Medicamento(BaseModel):
 
         label_field = "descricao"
 
-        searchable_fields = [
+        search_fields = [
             "codigo",
             "descricao",
             "principio_ativo",
@@ -58,7 +58,7 @@ class Medicamento(BaseModel):
         crud = True
 
         routes = {
-            'list': "add_medicamento",
+            'list': "list_medicamento",
             'view': "view_medicamento",
             'add': "add_medicamento",
             'change': "change_medicamento"

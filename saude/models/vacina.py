@@ -26,10 +26,10 @@ class Vacina(BaseModel):
 
     class RESAAS:
         label_field = "nome"
-        searchable_fields = ["nome", "codigo", "fabricante", "descricao"]
+        search_fields = ["nome", "codigo", "fabricante", "descricao"]
         crud = True
         routes = {
-            "list": "add_vacina",
+            "list": "list_vacina",
             "view": "view_vacina",
             "add": "add_vacina",
             "change": "change_vacina"

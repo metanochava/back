@@ -22,10 +22,10 @@ class Consultorio(BaseModel):
 
     class RESAAS:
         label_field = "nome"
-        searchable_fields = ["nome", "codigo", "localizacao", "descricao"]
+        search_fields = ["nome", "codigo", "localizacao", "descricao"]
         crud = True
         routes = {
-            "list": "add_consultorio",
+            "list": "list_consultorio",
             "view": "view_consultorio",
             "add": "add_consultorio",
             "change": "change_consultorio"

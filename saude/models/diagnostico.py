@@ -45,16 +45,16 @@ class Diagnostico(BaseModel):
 
         label_field="descricao"
 
-        searchable_fields=[
+        search_fields=[
             "codigo",
             "descricao",
-            "consulta.paciente.person.full_name"
+            "consulta__paciente__person__full_name"
         ]
 
         crud=True
 
         routes={
-            "list":"add_diagnostico",
+            "list": "list_diagnostico",
             "view":"view_diagnostico",
             "add":"add_diagnostico",
             "change":"change_diagnostico"

@@ -64,21 +64,21 @@ class ExameMedico(BaseModel):
 
         label_field = "nome"
 
-        searchable_fields = [
+        search_fields = [
             "codigo",
             "nome",
             "descricao",
             "preparacao",
             "amostra",
             "valor_referencia",
-            "classe_exame_medico.nome",
-            "classe_exame_medico.tipo_exame_medico.nome"
+            "classe_exame_medico__nome",
+            "classe_exame_medico__tipo_exame_medico__nome"
         ]
 
         crud = True
 
         routes = {
-            "list": "add_examemedico",
+            "list": "list_examemedico",
             "view": "view_examemedico",
             "add": "add_examemedico",
             "change": "change_examemedico"

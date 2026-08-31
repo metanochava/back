@@ -27,16 +27,16 @@ class DoencaCorrente(BaseModel):
 
         label_field = "nome"
 
-        searchable_fields = [
+        search_fields = [
             "nome",
-            "paciente.person.full_name",
-            "paciente.nid"
+            "paciente__person__full_name",
+            "paciente__nid"
         ]
 
         crud = True
 
         routes = {
-            'list': "add_doencacorrente",
+            'list': "list_doencacorrente",
             'view': "view_doencacorrente",
             'add': "add_doencacorrente",
             'change': "change_doencacorrente"

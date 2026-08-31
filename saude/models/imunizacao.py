@@ -55,17 +55,17 @@ class Imunizacao(BaseModel):
 
     class RESAAS:
         label_field = "paciente.person.full_name"
-        searchable_fields = [
-            "paciente.person.full_name",
-            "paciente.nid",
-            "vacina.nome",
+        search_fields = [
+            "paciente__person__full_name",
+            "paciente__nid",
+            "vacina__nome",
             "lote",
             "dose",
-            "aplicado_por.person.full_name"
+            "aplicado_por__person__full_name"
         ]
         crud = True
         routes = {
-            "list": "add_imunizacao",
+            "list": "list_imunizacao",
             "view": "view_imunizacao",
             "add": "add_imunizacao",
             "change": "change_imunizacao"

@@ -27,16 +27,16 @@ class AlergiaCorrente(BaseModel):
 
         label_field = "nome"
 
-        searchable_fields = [
+        search_fields = [
             "nome",
-            "paciente.person.full_name",
-            "paciente.nid"
+            "paciente__person__full_name",
+            "paciente__nid"
         ]
 
         crud = True
 
         routes = {
-            'list': "add_alergiacorrente",
+            'list': "list_alergiacorrente",
             'view': "view_alergiacorrente",
             'add': "add_alergiacorrente",
             'change': "change_alergiacorrente"

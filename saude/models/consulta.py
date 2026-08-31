@@ -61,12 +61,12 @@ class Consulta(BaseModel):
 
         label_field = "paciente.person.full_name"
 
-        searchable_fields = [
-            "paciente.person.name",
-            "paciente.person.surname",
-            "paciente.person.full_name",
-            "paciente.nid",
-            "employee.person.full_name",
+        search_fields = [
+            "paciente__person__name",
+            "paciente__person__surname",
+            "paciente__person__full_name",
+            "paciente__nid",
+            "employee__person__full_name",
             "diagnostico",
             "dc"
         ]
@@ -74,7 +74,7 @@ class Consulta(BaseModel):
         crud = True
 
         routes = {
-            'list': "add_consulta",
+            'list': "list_consulta",
             'view': "view_consulta",
             'add': "add_consulta",
             'change': "change_consulta"

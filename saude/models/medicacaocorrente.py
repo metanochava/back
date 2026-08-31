@@ -27,16 +27,16 @@ class MedicacaoCorrente(BaseModel):
 
         label_field = "nome"
 
-        searchable_fields = [
+        search_fields = [
             "nome",
-            "paciente.person.full_name",
-            "paciente.nid"
+            "paciente__person__full_name",
+            "paciente__nid"
         ]
 
         crud = True
 
         routes = {
-            "list": "add_medicacaocorrente",
+            "list": "list_medicacaocorrente",
             "view": "view_medicacaocorrente",
             "add": "add_medicacaocorrente",
             "change": "change_medicacaocorrente"

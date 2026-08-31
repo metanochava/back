@@ -38,6 +38,8 @@ MY_APPS = [
     'django_resaas',
     'hr',
     'saude',
+    'inventory',
+    'sales',
 ]
 
 
@@ -70,6 +72,11 @@ CORS_ALLOWED_ORIGINS = os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.mytech\.co\.mz$",
 ]
+
+# Em DEBUG, permite qualquer porta local (quasar dev muda de porta
+# consoante o que estiver ocupado) — nunca em produção (DEBUG=0).
+if DEBUG:
+    CORS_ALLOWED_ORIGIN_REGEXES.append(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
 
@@ -134,7 +141,7 @@ DATABASES = {
     }
 }
 
-
+RESAAS_CONTEXT_TTL = 60 * 60
 DJANGO_REST_AUTH = {
     'FILE_TOKEN': {
         'KEY': os.environ.get('URL_FILE_KEY'),
@@ -143,6 +150,7 @@ DJANGO_REST_AUTH = {
         'ENABLE_PERMANENT': True,
     },
     'CACHE_TIME': os.environ.get('DJANGO_REST_AUTH_CACHE_TIME'),
+    'RESAAS_CONTEXT_TTL': 60 * 60,
     'FRONT_END': {
         'REQUIRE_CREDENTIALS':os.environ.get('DJANGO_REST_AUTH_REQUIRE_FRONT_END_CREDENTIALS'),
         'PUBLIC_URL': ['public'],

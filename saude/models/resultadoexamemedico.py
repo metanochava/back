@@ -79,6 +79,7 @@ class ResultadoExameMedico(BaseModel):
 
     file = models.FileField(
         upload_to=upload_path("resultados_exames"),
+        max_length=500,
         null=True,
         blank=True
     )
@@ -202,13 +203,13 @@ class ResultadoExameMedico(BaseModel):
 
         label_field = "nome"
 
-        searchable_fields = [
+        search_fields = [
 
             "nome",
 
-            "paciente.person.full_name",
+            "paciente__person__full_name",
 
-            "item_pedido.exame.nome",
+            "item_pedido__exame__nome",
 
             "valor_resultado",
 
@@ -220,7 +221,7 @@ class ResultadoExameMedico(BaseModel):
 
         routes = {
 
-            "list": "add_resultadoexamemedico",
+            "list": "list_resultadoexamemedico",
 
             "view": "view_resultadoexamemedico",
 

@@ -189,20 +189,19 @@ class DadoVital(BaseModel):
 
         label_field = "paciente.person.full_name"
 
-        searchable_fields = [
-            "paciente.person.name",
-            "paciente.person.surname",
-            "paciente.person.full_name",
-            "paciente.nid",
-            "employee.person.full_name",
-            "consulta.id",
+        search_fields = [
+            "paciente__person__name",
+            "paciente__person__surname",
+            "paciente__person__full_name",
+            "paciente__nid",
+            "employee__person__full_name",
             "tipo"
         ]
 
         crud = True
 
         routes = {
-            "list": "add_dadovital",
+            "list": "list_dadovital",
             "view": "view_dadovital",
             "add": "add_dadovital",
             "change": "change_dadovital"

@@ -39,16 +39,16 @@ class AtestadoMedico(BaseModel):
 
         label_field = "consulta.paciente.person.full_name"
 
-        searchable_fields = [
-            "consulta.paciente.person.full_name",
-            "consulta.employee.person.full_name",
+        search_fields = [
+            "consulta__paciente__person__full_name",
+            "consulta__employee__person__full_name",
             "diagnostico"
         ]
 
         crud = True
 
         routes = {
-            "list": "add_atestadomedico",
+            "list": "list_atestadomedico",
             "view": "view_atestadomedico",
             "add": "add_atestadomedico",
             "change": "change_atestadomedico"

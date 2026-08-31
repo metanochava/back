@@ -48,8 +48,8 @@ class EpisodioClinico(BaseModel):
 
         label_field="consulta.paciente.person.full_name"
 
-        searchable_fields=[
-            "consulta.paciente.person.full_name",
+        search_fields=[
+            "consulta__paciente__person__full_name",
             "historia_clinica",
             "plano_terapeutico"
         ]
@@ -57,7 +57,7 @@ class EpisodioClinico(BaseModel):
         crud=True
 
         routes={
-            "list":"add_episodioclinico",
+            "list": "list_episodioclinico",
             "view":"view_episodioclinico",
             "add":"add_episodioclinico",
             "change":"change_episodioclinico"

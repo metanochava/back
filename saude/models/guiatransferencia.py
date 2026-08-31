@@ -40,9 +40,9 @@ class GuiaTransferencia(BaseModel):
 
         label_field = "consulta.paciente.person.full_name"
 
-        searchable_fields = [
-            "consulta.paciente.person.full_name",
-            "consulta.employee.person.full_name",
+        search_fields = [
+            "consulta__paciente__person__full_name",
+            "consulta__employee__person__full_name",
             "destino",
             "motivo",
             "diagnostico",
@@ -52,7 +52,7 @@ class GuiaTransferencia(BaseModel):
         crud = True
 
         routes = {
-            'list': "add_guiatransferencia",
+            'list': "list_guiatransferencia",
             'view': "view_guiatransferencia",
             'add': "add_guiatransferencia",
             'change': "change_guiatransferencia"
