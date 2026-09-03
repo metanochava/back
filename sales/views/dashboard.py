@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from rest_framework.response import Response
 
-from django_resaas.core.base.views import registerView
+from django_resaas.engine.core.base.views import registerView
 
 from sales.models import Sale, SaleItem, Payment
 from ._dashboard_base import TenantDashboardAPIView

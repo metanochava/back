@@ -12,7 +12,7 @@
 #
 # Variáveis opcionais (podem ser exportadas antes de correr o script):
 #   SERVICE_NAME     nome do serviço systemd   (default: gunicorn_<nome-da-pasta>)
-#   GUNICORN_BIND     endereço:porta do Gunicorn (default: 127.0.0.1:8000)
+#   GUNICORN_BIND     endereço:porta do Gunicorn (default: 127.0.0.1:7000)
 #   GUNICORN_WORKERS  nº de workers             (default: 3)
 #   GUNICORN_TIMEOUT  timeout em segundos       (default: 120)
 #   RUN_USER          utilizador que corre o serviço (default: utilizador actual)
@@ -29,8 +29,8 @@ IFS=$'\n\t'
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_DIR="$APP_DIR/venv"
 
-SERVICE_NAME="${SERVICE_NAME:-gunicorn_$(basename "$APP_DIR")}"
-GUNICORN_BIND="${GUNICORN_BIND:-127.0.0.1:8000}"
+SERVICE_NAME="${SERVICE_NAME:-gunicorn_$(basename "$(dirname "$APP_DIR")")_$(basename "$APP_DIR")}"
+GUNICORN_BIND="${GUNICORN_BIND:-127.0.0.1:7000}"
 GUNICORN_WORKERS="${GUNICORN_WORKERS:-3}"
 GUNICORN_TIMEOUT="${GUNICORN_TIMEOUT:-120}"
 RUN_USER="${RUN_USER:-$(id -un)}"

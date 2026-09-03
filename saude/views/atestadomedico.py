@@ -1,11 +1,11 @@
 
-from django_resaas.core.base.views import BaseAPIView
-from django_resaas.core.base.views import registerView
+from django_resaas.engine.core.base.views import BaseAPIView
+from django_resaas.engine.core.base.views import registerView
 from saude.models.atestadomedico import AtestadoMedico
 from saude.serializers.atestadomedico import AtestadoMedicoSerializer
 from rest_framework.decorators import action
-from django_resaas.models.entity import Entity
-from django_resaas.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64, PDF, all
+from django_resaas.engine.models.entity import Entity
+from django_resaas.engine.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64, PDF, all
 
 import barcode
 import qrcode
@@ -13,7 +13,7 @@ import qrcode
 
 from saude.models.consulta import Consulta
 from django.utils import timezone
-from hr.models.employee import Employee
+from django_resaas.hr.models.employee import Employee
 from saude.models.paciente import Paciente
 
 

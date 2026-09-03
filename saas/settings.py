@@ -2,7 +2,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 from corsheaders.defaults import default_headers
-from django_resaas.core.utils import get_cors_origins
+from django_resaas.engine.core.utils import get_cors_origins
 
 
 
@@ -35,11 +35,12 @@ LANGUAGE_CODE = 'EN-US'
 # --------------------------
 
 MY_APPS = [
-    'django_resaas',
-    'hr',
+    'django_resaas.engine',
+    'django_resaas.hr',
     'saude',
     'inventory',
     'sales',
+    'django_resaas.notifications',
 ]
 
 
@@ -94,9 +95,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
 
-    'django_resaas.core.middleware.file_access.FileAccessMiddleware',
-    # 'django_resaas.core.middleware.frontend.FrontEndMiddleware',
-    'django_resaas.core.middleware.tenant.TenantContextMiddleware',
+    'django_resaas.engine.core.middleware.file_access.FileAccessMiddleware',
+    # 'django_resaas.engine.core.middleware.frontend.FrontEndMiddleware',
+    'django_resaas.engine.core.middleware.tenant.TenantContextMiddleware',
 
 ]
 

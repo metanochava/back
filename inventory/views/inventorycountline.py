@@ -1,6 +1,6 @@
 from rest_framework.exceptions import ValidationError
 
-from django_resaas.core.base.views import BaseAPIView, registerView
+from django_resaas.engine.core.base.views import BaseAPIView, registerView
 
 from inventory.models.inventorycount import InventoryCount
 from inventory.models.inventorycountline import InventoryCountLine

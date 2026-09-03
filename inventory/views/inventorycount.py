@@ -1,9 +1,9 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
-from django_resaas.core.base.views import BaseAPIView, registerView
-from django_resaas.core.decorators import resaas_action
-from django_resaas.core.utils import all
+from django_resaas.engine.core.base.views import BaseAPIView, registerView
+from django_resaas.engine.core.decorators import resaas_action
+from django_resaas.engine.core.utils import all
 
 from inventory.models.inventorycount import InventoryCount
 from inventory.serializers.inventorycount import InventoryCountSerializer

@@ -8,10 +8,12 @@ Pillow
 pyotp
 qrcode[pil]==7.4.2
 python-barcode==0.15.1
+dotenv==0.9.9
 
 gunicorn
 django-cors-headers
 psycopg[binary]
 django-filter
+
 
 

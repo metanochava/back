@@ -18,7 +18,7 @@ def create_sales_dashboard_permissions(sender, **kwargs):
     if kwargs.get("app_config").name != "sales":
         return
 
-    from django_resaas.models.group import Group
+    from django_resaas.engine.models.group import Group
     from sales.models import Customer
 
     content_type = ContentType.objects.get_for_model(Customer)

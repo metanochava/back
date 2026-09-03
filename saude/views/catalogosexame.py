@@ -2,9 +2,9 @@ from django.db.models import Prefetch
 
 from rest_framework.response import Response
 
-from django_resaas.core.base.views import BaseAPIView
-from django_resaas.core.base.views import registerView
-from django_resaas.models.entity import Entity
+from django_resaas.engine.core.base.views import BaseAPIView
+from django_resaas.engine.core.base.views import registerView
+from django_resaas.engine.models.entity import Entity
 
 from saude.models.tipoexamemedico import TipoExameMedico
 from saude.models.classeexamemedico import ClasseExameMedico

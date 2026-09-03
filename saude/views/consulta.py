@@ -2,9 +2,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
-from django_resaas.core.base.views import BaseAPIView, registerView
-from django_resaas.models.entity import Entity
-from django_resaas.core.utils import (
+from django_resaas.engine.core.base.views import BaseAPIView, registerView
+from django_resaas.engine.models.entity import Entity
+from django_resaas.engine.core.utils import (
     make_qr_b64,
     make_barcode_b64,
     png_bytes_to_b64,

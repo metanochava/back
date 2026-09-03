@@ -2,14 +2,14 @@ from django.db.models import Q
 
 from rest_framework.decorators import action
 
-from django_resaas.core.base.views import (
+from django_resaas.engine.core.base.views import (
     BaseAPIView,
     registerView,
 )
 
-from django_resaas.models.entity import Entity
+from django_resaas.engine.models.entity import Entity
 
-from django_resaas.core.utils import (
+from django_resaas.engine.core.utils import (
     PDF,
     all,
     make_barcode_b64,

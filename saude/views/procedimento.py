@@ -1,5 +1,5 @@
-from django_resaas.core.base.views import BaseAPIView
-from django_resaas.core.base.views import registerView
+from django_resaas.engine.core.base.views import BaseAPIView
+from django_resaas.engine.core.base.views import registerView
 
 from saude.models.procedimento import Procedimento
 from saude.serializers.procedimento import ProcedimentoSerializer
