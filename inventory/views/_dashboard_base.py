@@ -1,9 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.exceptions import PermissionDenied
 
-from django_resaas.core.base.permissions import isPermited
-from django_resaas.core.utils.api_response import fail
-from django_resaas.models.entity_app import EntityApp
+from django_resaas.engine.core.base.permissions import isPermited
+from django_resaas.engine.core.utils.api_response import fail
+from django_resaas.engine.models.entity_app import EntityApp
 
 
 class TenantDashboardAPIView(APIView):

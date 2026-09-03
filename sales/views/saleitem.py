@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
-from django_resaas.core.base.views import BaseAPIView, registerView
+from django_resaas.engine.core.base.views import BaseAPIView, registerView
 
 from sales.models.saleitem import SaleItem
 from sales.models.sale import Sale

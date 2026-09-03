@@ -1,5 +1,5 @@
-from django_resaas.core.base.views import BaseAPIView
-from django_resaas.core.base.views import registerView
+from django_resaas.engine.core.base.views import BaseAPIView
+from django_resaas.engine.core.base.views import registerView
 
 from saude.models.cirurgia import Cirurgia
 from saude.serializers.cirurgia import CirurgiaSerializer

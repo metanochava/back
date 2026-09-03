@@ -1,4 +1,4 @@
-from django_resaas.core.base.views import BaseAPIView, registerView
+from django_resaas.engine.core.base.views import BaseAPIView, registerView
 from inventory.models.productcategory import ProductCategory
 from inventory.serializers.productcategory import ProductCategorySerializer
 

@@ -1,5 +1,5 @@
-from django_resaas.core.base.views import BaseAPIView
-from django_resaas.core.base.views import registerView
+from django_resaas.engine.core.base.views import BaseAPIView
+from django_resaas.engine.core.base.views import registerView
 from rest_framework.decorators import action
 from rest_framework.response import Response
 

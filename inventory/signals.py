@@ -15,14 +15,14 @@ def create_inventory_dashboard_permissions(sender, **kwargs):
     django_resaas (que só cria view/add/change/delete/list/pdf/
     pdf_list/restore/hard_delete por model) não os cria. Fazemos o
     mesmo aqui, à parte, seguindo o padrão de MODULE_PERMISSIONS do
-    próprio pacote (django_resaas.core.signals.permissions).
+    próprio pacote (django_resaas.engine.core.signals.permissions).
     """
 
     if kwargs.get("app_config").name != "inventory":
         return
 
     # import local: evita import de app ainda não totalmente carregada
-    from django_resaas.models.group import Group
+    from django_resaas.engine.models.group import Group
     from inventory.models import Warehouse
 
     content_type = ContentType.objects.get_for_model(Warehouse)

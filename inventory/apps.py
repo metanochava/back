@@ -13,7 +13,7 @@ class InventoryConfig(AppConfig):
         """
         Auto-carrega todas as views do módulo para que o decorator
         @registerView corra e popule VIEW_REGISTRY (consumido por
-        django_resaas.core.utils.autoload_urls.build_saas_urls()).
+        django_resaas.engine.core.utils.autoload_urls.build_saas_urls()).
         """
 
         from .signals import create_inventory_dashboard_permissions

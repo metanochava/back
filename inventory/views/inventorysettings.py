@@ -1,5 +1,5 @@
-from django_resaas.core.base.views import BaseAPIView, registerView
-from django_resaas.core.utils import all
+from django_resaas.engine.core.base.views import BaseAPIView, registerView
+from django_resaas.engine.core.utils import all
 from inventory.models.inventorysettings import InventorySetting
 from inventory.serializers.inventorysettings import InventorySettingSerializer
 

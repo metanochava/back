@@ -22,7 +22,7 @@ from django.conf import settings
 from django_resaas.view import home
 from django_resaas.view import deploy
 
-from django_resaas.core.utils.autoload_urls import build_saas_urls
+from django_resaas.engine.core.utils.autoload_urls import build_saas_urls
 router, extra_patterns = build_saas_urls()
 
 

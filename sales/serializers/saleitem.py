@@ -1,4 +1,4 @@
-from django_resaas.core.base.serializers import BaseSerializer
+from django_resaas.engine.core.base.serializers import BaseSerializer
 from sales.models.saleitem import SaleItem
 
 

@@ -2,16 +2,16 @@ from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from django_resaas.core.base.views import BaseAPIView, registerView
-from django_resaas.core.decorators import resaas_action
-from django_resaas.core.utils import (
+from django_resaas.engine.core.base.views import BaseAPIView, registerView
+from django_resaas.engine.core.decorators import resaas_action
+from django_resaas.engine.core.utils import (
     PDF,
     all,
     make_barcode_b64,
     make_qr_b64,
     png_bytes_to_b64,
 )
-from django_resaas.data.user.serializers.user import UserSerializer
+from django_resaas.engine.data.user.serializers.user import UserSerializer
 
 from saude.models.paciente import Paciente
 from saude.serializers.paciente import PacienteSerializer

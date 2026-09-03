@@ -1,4 +1,4 @@
-from django_resaas.core.base.admin import BaseAdmin, all_fields
+from django_resaas.engine.core.base.admin import BaseAdmin, all_fields
 from django.contrib import admin
 
 from sales.models.customer import Customer

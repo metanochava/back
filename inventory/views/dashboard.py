@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from rest_framework.response import Response
 
-from django_resaas.core.base.views import registerView
+from django_resaas.engine.core.base.views import registerView
 
 from inventory.models import Product, StockItem, StockMovement, InventoryCount
 from ._dashboard_base import TenantDashboardAPIView

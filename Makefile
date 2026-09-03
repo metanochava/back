@@ -228,6 +228,10 @@ dbreset-migrate: dbreset
 	@echo "A executar migrations..."
 	$(MANAGE) migrate
 	@echo "Base de dados reconstruída."
+	$(MANAGE) create_root
+	@echo "Basics settings done."
+
+
 
 
 django:
@@ -558,3 +562,6 @@ kill:
 	else \
 		echo "Nenhum processo encontrado na porta $$port."; \
 	fi
+
+requirements:
+	pip3 install -r requirements.txt
