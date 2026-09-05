@@ -11,6 +11,12 @@ class PacienteAdmin(BaseAdmin):
     def get_list_display(self, request): return all_fields(self.model)
     list_display = ("id",)
 
+from saude.models.patient_identifier import PatientIdentifier
+@admin.register(PatientIdentifier)
+class PatientIdentifierAdmin(BaseAdmin):
+    def get_list_display(self, request): return all_fields(self.model)
+    list_display = ("id", "paciente", "identifier_type", "identifier")
+
 from saude.models.consulta import Consulta
 @admin.register(Consulta)
 class ConsultaAdmin(BaseAdmin):

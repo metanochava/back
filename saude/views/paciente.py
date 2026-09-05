@@ -7,6 +7,7 @@ from django_resaas.engine.core.decorators import resaas_action
 from django_resaas.engine.core.utils import (
     PDF,
     all,
+    fail,
     make_barcode_b64,
     make_qr_b64,
     png_bytes_to_b64,
@@ -15,6 +16,7 @@ from django_resaas.engine.data.user.serializers.user import UserSerializer
 
 from saude.models.paciente import Paciente
 from saude.serializers.paciente import PacienteSerializer
+from saude.services.patient_matching_service import PatientMatchingService
 
 
 def generate_nid():
@@ -112,6 +114,46 @@ class PacienteAPIView(BaseAPIView):
             "pacientes": queryset,
         })
         return context
+
+    @resaas_action(
+        methods=["get"],
+        detail=False,
+        label="Search Candidates",
+        icon="search",
+        tooltip="Procurar Paciente já existente noutra Entity antes de registar um novo",
+        position="t",
+        order=1,
+    )
+    def search_candidates(self, request):
+        """
+        Fase 1 da iniciativa Patient longitudinal (ver
+        docs/architecture/patient-longitudinal-health-pharmacy.md) -
+        sugere Paciente/Person já existentes, cross-entity, sem
+        nunca criar ou fundir automaticamente. Acção explícita e
+        própria (não `list` genérico) para não expor varrimento
+        livre de Person entre Entities - só quem tiver a permission
+        `search_candidates_paciente` pode chamar.
+        """
+        params = request.query_params
+
+        candidates = PatientMatchingService.find_candidates(
+            nid=params.get("nid"),
+            identifier=params.get("identifier"),
+            email=params.get("email"),
+            phone=params.get("phone"),
+            name=params.get("name"),
+            date_of_birth=params.get("date_of_birth") or None,
+        )
+
+        if candidates is None:
+            return fail(
+                request,
+                "At least one search criterion is required "
+                "(nid, identifier, email, phone, or name + date_of_birth).",
+                status=400,
+            )
+
+        return all(request, candidates=candidates)
 
     # @resaas_action(
     #     methods=["post"],
