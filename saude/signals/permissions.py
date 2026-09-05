@@ -3,6 +3,7 @@ from django.contrib.auth.models import Permission
 
 ACTION_PERMISSIONS = [
     "search_candidates_paciente",
+    "timeline_paciente",
     "grant_consent_paciente",
     "revoke_consent_paciente",
     "start_emergencyaccess",

@@ -16,6 +16,7 @@ from django_resaas.engine.core.utils import (
 )
 from django_resaas.engine.data.user.serializers.user import UserSerializer
 from django_resaas.engine.models.entity import Entity
+from django_resaas.engine.models.person import Person
 
 from saude.models.consent_grant import ConsentGrant
 from saude.models.paciente import Paciente
@@ -23,6 +24,7 @@ from saude.serializers.consent_grant import ConsentGrantSerializer
 from saude.serializers.paciente import PacienteSerializer
 from saude.services.consent_service import ConsentService
 from saude.services.patient_matching_service import PatientMatchingService
+from saude.services.patient_timeline_service import PatientTimelineService
 
 
 def _as_drf_validation_error(exc):
@@ -166,6 +168,44 @@ class PacienteAPIView(BaseAPIView):
             )
 
         return all(request, candidates=candidates)
+
+    @resaas_action(
+        methods=["get"],
+        detail=False,
+        label="Timeline",
+        icon="timeline",
+        tooltip="Linha do tempo clínica, incluindo eventos autorizados de outras Entities",
+        position="t",
+        order=1,
+    )
+    def timeline(self, request):
+        """
+        Fase 4 (ver docs/architecture/patient-longitudinal-health-pharmacy.md)
+        - por person_id (não paciente pk): a Entity actual pode não
+        ter sequer um Paciente próprio para esta Person ainda (ex.:
+        primeiro acesso via emergency access). Nunca usa o
+        get_object()/get_queryset() tenant-scoped - a agregação
+        cross-entity é feita explicitamente pelo service, sempre
+        filtrada pelo scope autorizado.
+        """
+        person_id = request.query_params.get("person_id")
+
+        if not person_id:
+            return fail(request, "person_id is required.", status=400)
+
+        person = Person.objects.filter(id=person_id).first()
+
+        if not person:
+            return fail(request, "Person not found.", status=404)
+
+        requesting_entity = self.get_request_entity(request)
+
+        events = PatientTimelineService.build_timeline(
+            person=person,
+            requesting_entity=requesting_entity,
+        )
+
+        return all(request, events=events)
 
     @resaas_action(
         methods=["post"],
