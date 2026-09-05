@@ -17,6 +17,18 @@ class PatientIdentifierAdmin(BaseAdmin):
     def get_list_display(self, request): return all_fields(self.model)
     list_display = ("id", "paciente", "identifier_type", "identifier")
 
+from saude.models.consent_grant import ConsentGrant
+@admin.register(ConsentGrant)
+class ConsentGrantAdmin(BaseAdmin):
+    def get_list_display(self, request): return all_fields(self.model)
+    list_display = ("id", "person", "source_entity", "target_entity", "status")
+
+from saude.models.emergency_access import EmergencyAccess
+@admin.register(EmergencyAccess)
+class EmergencyAccessAdmin(BaseAdmin):
+    def get_list_display(self, request): return all_fields(self.model)
+    list_display = ("id", "person", "accessed_by", "started_at", "ended_at")
+
 from saude.models.consulta import Consulta
 @admin.register(Consulta)
 class ConsultaAdmin(BaseAdmin):

@@ -1,5 +1,7 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils import timezone
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 
 from django_resaas.engine.core.base.views import BaseAPIView, registerView
@@ -13,10 +15,20 @@ from django_resaas.engine.core.utils import (
     png_bytes_to_b64,
 )
 from django_resaas.engine.data.user.serializers.user import UserSerializer
+from django_resaas.engine.models.entity import Entity
 
+from saude.models.consent_grant import ConsentGrant
 from saude.models.paciente import Paciente
+from saude.serializers.consent_grant import ConsentGrantSerializer
 from saude.serializers.paciente import PacienteSerializer
+from saude.services.consent_service import ConsentService
 from saude.services.patient_matching_service import PatientMatchingService
+
+
+def _as_drf_validation_error(exc):
+    return DRFValidationError(
+        exc.messages if hasattr(exc, "messages") else str(exc)
+    )
 
 
 def generate_nid():
@@ -154,6 +166,97 @@ class PacienteAPIView(BaseAPIView):
             )
 
         return all(request, candidates=candidates)
+
+    @resaas_action(
+        methods=["post"],
+        detail=True,
+        label="Grant Consent",
+        icon="share",
+        tooltip="Autoriza outra Entity a ver um scope dos dados clínicos deste Paciente",
+        position="t",
+        order=2,
+    )
+    def grant_consent(self, request, pk=None):
+        """
+        Fase 2 (ver docs/architecture/patient-longitudinal-health-pharmacy.md)
+        - grant_consent/revoke_consent operam sobre um Paciente da
+        Entity ACTUAL (scope normal, get_object() já garante isso) -
+        é a Entity dona do registo que decide partilhá-lo, nunca o
+        contrário. Único ponto de escrita: ConsentService.
+        """
+        paciente = self.get_object()
+
+        target_entity_id = request.data.get("target_entity_id")
+
+        if not target_entity_id:
+            return fail(request, "target_entity_id is required.", status=400)
+
+        target_entity = Entity.objects.filter(id=target_entity_id).first()
+
+        if not target_entity:
+            return fail(request, "target_entity not found.", status=404)
+
+        source_entity = self.get_request_entity(request)
+
+        try:
+            consent = ConsentService.grant(
+                person=paciente.person,
+                source_entity=source_entity,
+                target_entity=target_entity,
+                scope=request.data.get("scope") or [],
+                reason=request.data.get("reason"),
+                expires_at=request.data.get("expires_at") or None,
+                granted_by=request.user,
+            )
+        except DjangoValidationError as exc:
+            raise _as_drf_validation_error(exc)
+
+        return all(
+            request,
+            data=ConsentGrantSerializer(consent).data,
+            status=201,
+        )
+
+    @resaas_action(
+        methods=["post"],
+        detail=True,
+        label="Revoke Consent",
+        icon="block",
+        tooltip="Revoga um consentimento previamente concedido para este Paciente",
+        position="t",
+        order=3,
+    )
+    def revoke_consent(self, request, pk=None):
+        paciente = self.get_object()
+
+        consent_grant_id = request.data.get("consent_grant_id")
+
+        if not consent_grant_id:
+            return fail(request, "consent_grant_id is required.", status=400)
+
+        consent = ConsentGrant.objects.filter(
+            id=consent_grant_id, person=paciente.person
+        ).first()
+
+        if not consent:
+            return fail(
+                request,
+                "ConsentGrant not found for this Paciente.",
+                status=404,
+            )
+
+        requesting_entity = self.get_request_entity(request)
+
+        try:
+            ConsentService.revoke(
+                consent,
+                revoked_by=request.user,
+                requesting_entity=requesting_entity,
+            )
+        except DjangoValidationError as exc:
+            raise _as_drf_validation_error(exc)
+
+        return all(request, data=ConsentGrantSerializer(consent).data)
 
     # @resaas_action(
     #     methods=["post"],

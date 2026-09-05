@@ -1,5 +1,7 @@
 from saude.models.paciente import Paciente
 from saude.models.patient_identifier import PatientIdentifier
+from saude.models.consent_grant import ConsentGrant
+from saude.models.emergency_access import EmergencyAccess
 from saude.models.consulta import Consulta
 from saude.models.receitamedica import ReceitaMedica
 from saude.models.itemreceita import ItemReceita
