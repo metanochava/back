@@ -39,119 +39,145 @@ SUBMENUS = [
         "route": "list_horariomedico",
     },
 
-    # 💊 RECEITA
+    # 💊 MEDICAÇÃO (grupo: gerador de menu suporta "submenu" aninhado,
+    # ver "Dev" em django_resaas/engine/sidebar.py)
     {
-        "add_role": "add_receitamedica",
-        "add_route": "add_receitamedica",
+        "menu": "Medicação",
         "icon": "medication",
-        "menu": "ReceitaMedica",
         "role": "list_receitamedica",
-        "route": "list_receitamedica",
+        "submenu": [
+            {
+                "add_role": "add_receitamedica",
+                "add_route": "add_receitamedica",
+                "icon": "medication",
+                "menu": "ReceitaMedica",
+                "role": "list_receitamedica",
+                "route": "list_receitamedica",
+            },
+            {
+                "add_role": "add_medicamento",
+                "add_route": "add_medicamento",
+                "icon": "vaccines",
+                "menu": "Medicamento",
+                "role": "list_medicamento",
+                "route": "list_medicamento",
+            },
+            {
+                "add_role": "add_medicacaocorrente",
+                "add_route": "add_medicacaocorrente",
+                "icon": "medication_liquid",
+                "menu": "MedicacaoMorrente",
+                "role": "list_medicacaocorrente",
+                "route": "list_medicacaocorrente",
+            },
+        ],
     },
 
-    # 📄 DOCUMENTOS MÉDICOS
+    # 📄 DOCUMENTOS MÉDICOS (grupo)
     {
-        "add_role": "add_atestadomedico",
-        "add_route": "add_atestadomedico",
+        "menu": "Documentos Médicos",
         "icon": "assignment",
-        "menu": "AtestadoMedico",
         "role": "list_atestadomedico",
-        "route": "list_atestadomedico",
-    },
-    {
-        "add_role": "add_relatoriomedico",
-        "add_route": "add_relatoriomedico",
-        "icon": "description",
-        "menu": "RelatorioMedico",
-        "role": "list_relatoriomedico",
-        "route": "list_relatoriomedico",
-    },
-    {
-        "add_role": "add_guiatransferencia",
-        "add_route": "add_guiatransferencia",
-        "icon": "transfer_within_a_station",
-        "menu": "GuiaTransferencia",
-        "role": "list_guiatransferencia",
-        "route": "list_guiatransferencia",
+        "submenu": [
+            {
+                "add_role": "add_atestadomedico",
+                "add_route": "add_atestadomedico",
+                "icon": "assignment",
+                "menu": "AtestadoMedico",
+                "role": "list_atestadomedico",
+                "route": "list_atestadomedico",
+            },
+            {
+                "add_role": "add_relatoriomedico",
+                "add_route": "add_relatoriomedico",
+                "icon": "description",
+                "menu": "RelatorioMedico",
+                "role": "list_relatoriomedico",
+                "route": "list_relatoriomedico",
+            },
+            {
+                "add_role": "add_guiatransferencia",
+                "add_route": "add_guiatransferencia",
+                "icon": "transfer_within_a_station",
+                "menu": "GuiaTransferencia",
+                "role": "list_guiatransferencia",
+                "route": "list_guiatransferencia",
+            },
+        ],
     },
 
-    # 🧪 EXAMES
+    # 🧪 EXAMES (grupo)
     {
-        "add_role": "add_pedidoexamemedico",
-        "add_route": "add_pedidoexamemedico",
-        "icon": "request_page",
-        "menu": "PedidoExameMedico",
-        "role": "list_pedidoexamemedico",
-        "route": "list_pedidoexamemedico",
-    },
-    {
-        "add_role": "add_examemedico",
-        "add_route": "add_examemedico",
+        "menu": "Exames",
         "icon": "biotech",
-        "menu": "ExameMedico",
-        "role": "list_examemedico",
-        "route": "list_examemedico",
-    },
-    {
-        "add_role": "add_classeexamemedico",
-        "add_route": "add_classeexamemedico",
-        "icon": "category",
-        "menu": "ClasseExameMedico",
-        "role": "list_classeexamemedico",
-        "route": "list_classeexamemedico",
-    },
-    {
-        "add_role": "add_tipoexamemedico",
-        "add_route": "add_tipoexamemedico",
-        "icon": "tune",
-        "menu": "TipoExameMedico",
-        "role": "list_tipoexamemedico",
-        "route": "list_tipoexamemedico",
+        "role": "list_pedidoexamemedico",
+        "submenu": [
+            {
+                "add_role": "add_pedidoexamemedico",
+                "add_route": "add_pedidoexamemedico",
+                "icon": "request_page",
+                "menu": "PedidoExameMedico",
+                "role": "list_pedidoexamemedico",
+                "route": "list_pedidoexamemedico",
+            },
+            {
+                "add_role": "add_examemedico",
+                "add_route": "add_examemedico",
+                "icon": "biotech",
+                "menu": "ExameMedico",
+                "role": "list_examemedico",
+                "route": "list_examemedico",
+            },
+            {
+                "add_role": "add_classeexamemedico",
+                "add_route": "add_classeexamemedico",
+                "icon": "category",
+                "menu": "ClasseExameMedico",
+                "role": "list_classeexamemedico",
+                "route": "list_classeexamemedico",
+            },
+            {
+                "add_role": "add_tipoexamemedico",
+                "add_route": "add_tipoexamemedico",
+                "icon": "tune",
+                "menu": "TipoExameMedico",
+                "role": "list_tipoexamemedico",
+                "route": "list_tipoexamemedico",
+            },
+        ],
     },
 
-    # ❤️ DADOS VITAIS
+    # 🧬 HISTÓRICO CLÍNICO (grupo: factos correntes/longitudinais -
+    # dados vitais, doenças e alergias correntes)
     {
-        "add_role": "add_dadovital",
-        "add_route": "add_dadovital",
-        "icon": "monitor_heart",
-        "menu": "DadoVital",
+        "menu": "Histórico Clínico",
+        "icon": "history_edu",
         "role": "list_dadovital",
-        "route": "list_dadovital",
-    },
-
-    # 💊 MEDICAÇÃO
-    {
-        "add_role": "add_medicamento",
-        "add_route": "add_medicamento",
-        "icon": "vaccines",
-        "menu": "Medicamento",
-        "role": "list_medicamento",
-        "route": "list_medicamento",
-    },
-    {
-        "add_role": "add_medicacaocorrente",
-        "add_route": "add_medicacaocorrente",
-        "icon": "medication_liquid",
-        "menu": "MedicacaoMorrente",
-        "role": "list_medicacaocorrente",
-        "route": "list_medicacaocorrente",
-    },
-
-    # 🧬 HISTÓRICO CLÍNICO
-    {
-        "add_role": "add_doencacorrente",
-        "add_route": "add_doencacorrente",
-        "icon": "coronavirus",
-        "menu": "DoencaCorrente",
-        "role": "list_doencacorrente",
-        "route": "list_doencacorrente",
-    },
-    {
-        "add_role": "add_alergiacorrente",
-        "add_route": "add_alergiacorrente",
-        "icon": "warning_amber",
-        "menu": "AlergiaCorrente",
-        "role": "list_alergiacorrente",
-        "route": "list_alergiacorrente",
+        "submenu": [
+            {
+                "add_role": "add_dadovital",
+                "add_route": "add_dadovital",
+                "icon": "monitor_heart",
+                "menu": "DadoVital",
+                "role": "list_dadovital",
+                "route": "list_dadovital",
+            },
+            {
+                "add_role": "add_doencacorrente",
+                "add_route": "add_doencacorrente",
+                "icon": "coronavirus",
+                "menu": "DoencaCorrente",
+                "role": "list_doencacorrente",
+                "route": "list_doencacorrente",
+            },
+            {
+                "add_role": "add_alergiacorrente",
+                "add_route": "add_alergiacorrente",
+                "icon": "warning_amber",
+                "menu": "AlergiaCorrente",
+                "role": "list_alergiacorrente",
+                "route": "list_alergiacorrente",
+            },
+        ],
     },
 ]
