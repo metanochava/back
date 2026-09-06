@@ -1,17 +1,20 @@
 """
 Camada de serviço do inventory. Única forma permitida de alterar stock.
 
-Interface pública usada por outros módulos (ex.: sales):
+Interface pública usada por outros módulos (ex.: sales, farmacia):
     - inventory_module_active(entity_id)
     - reserve_stock(lines, warehouse_id, entity_id)
     - apply_movement(...)
     - transfer_stock(...)
     - commit_sale_movements(sale, user)
     - revert_sale_movements(sale, user)
+    - commit_dispensation_movements(dispensation, user)
+    - revert_dispensation_movements(dispensation, user)
     - finalize_inventory_count(inventory_count, user)
 
-`sales` só deve importar deste módulo — nunca importar models do
-inventory diretamente para escrever dados.
+Outros módulos (sales, farmacia, ...) só devem importar deste
+ficheiro — nunca importar models do inventory diretamente para
+escrever dados.
 """
 
 import uuid
@@ -373,6 +376,84 @@ def revert_sale_movements(*, sale_id, warehouse_id, items, entity_id, branch_id,
             motivo=f"Anulação da venda {sale_id}",
             documento_origem_tipo="sale",
             documento_origem_id=sale_id,
+            entity_id=entity_id,
+            branch_id=branch_id,
+            user=user,
+        )
+
+        movimentos.append(movement)
+
+    return movimentos
+
+
+# =========================================================
+# 💊 INTEGRAÇÃO COM FARMACIA
+# =========================================================
+
+@transaction.atomic
+def commit_dispensation_movements(*, dispensation_id, warehouse_id, items, entity_id, branch_id, user):
+    """
+    Cria os movimentos de saída referentes a uma dispensação de
+    farmácia. Mesma forma que commit_sale_movements, só muda a
+    origem do documento — mantém o livro-razão rastreável por tipo
+    de operação (ex.: recall de lote -> encontrar movimentos ->
+    encontrar dispensações -> identificar pacientes afetados).
+
+    items: iterável de dicts {"product_id": ..., "quantidade": ...}.
+    Tudo ou nada: se faltar stock nalguma linha, a transação inteira
+    é revertida.
+
+    'farmacia' chama esta função — nunca cria StockMovement
+    diretamente nem importa inventory.models.
+    """
+
+    warehouse = Warehouse.objects.get(id=warehouse_id)
+
+    movimentos = []
+
+    for item in items:
+        product = Product.objects.get(id=item["product_id"])
+
+        movement, _ = apply_movement(
+            product=product,
+            warehouse=warehouse,
+            tipo=StockMovement.TIPO_SAIDA,
+            quantidade=-Decimal(item["quantidade"]),
+            custo_unitario=None,
+            documento_origem_tipo="dispensation",
+            documento_origem_id=dispensation_id,
+            entity_id=entity_id,
+            branch_id=branch_id,
+            user=user,
+        )
+
+        movimentos.append(movement)
+
+    return movimentos
+
+
+@transaction.atomic
+def revert_dispensation_movements(*, dispensation_id, warehouse_id, items, entity_id, branch_id, user):
+    """
+    Cria movimentos de devolução para anular o efeito de stock de uma
+    dispensação anulada. NUNCA apaga os movimentos originais.
+    """
+
+    warehouse = Warehouse.objects.get(id=warehouse_id)
+
+    movimentos = []
+
+    for item in items:
+        product = Product.objects.get(id=item["product_id"])
+
+        movement, _ = apply_movement(
+            product=product,
+            warehouse=warehouse,
+            tipo=StockMovement.TIPO_DEVOLUCAO,
+            quantidade=Decimal(item["quantidade"]),
+            motivo=f"Anulação da dispensação {dispensation_id}",
+            documento_origem_tipo="dispensation",
+            documento_origem_id=dispensation_id,
             entity_id=entity_id,
             branch_id=branch_id,
             user=user,

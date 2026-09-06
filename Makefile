@@ -112,7 +112,7 @@ pipsaas:
 	$(PIP) install --upgrade django_resaas
 
 libs:
-	$(PIP) install -r requirements
+	$(PIP) install -r requirements.txt
 
 
 # =========================================================
