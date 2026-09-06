@@ -1,4 +1,4 @@
-MENU = "Vendas"
+MENU = "Sales"
 ICON = "point_of_sale"
 
 SUBMENUS = [
@@ -9,32 +9,32 @@ SUBMENUS = [
         "route": "view_sales_dashboard",
     },
 
-    # 🛒 VENDAS
+    # 🛒 SALES
     {
         "add_role": "add_sale",
         "add_route": "add_sale",
         "icon": "point_of_sale",
-        "menu": "Vendas",
+        "menu": "Sales",
         "role": "list_sale",
         "route": "list_sale",
     },
     {
         "icon": "payments",
-        "menu": "Pagamentos",
+        "menu": "Payments",
         "role": "list_payment",
         "route": "list_payment",
     },
 
-    # 👤 CLIENTES
+    # 👤 CUSTOMERS
     {
         "icon": "groups",
-        "menu": "Clientes",
+        "menu": "Customers",
         "role": "list_customer",
         "route": "list_customer",
     },
     {
         "icon": "contact_phone",
-        "menu": "Contactos de Cliente",
+        "menu": "Customer Contacts",
         "role": "list_customercontact",
         "route": "list_customercontact",
     },

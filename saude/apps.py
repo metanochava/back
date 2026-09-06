@@ -101,8 +101,14 @@ class SaudeConfig(AppConfig):
 
         # 🔹 Fase 1 (Patient longitudinal): concede a permissão de
         # search_candidates ao Root - mesmo padrão de farmacia/signals.py
-        from saude.signals.permissions import grant_action_permissions_to_root
+        from saude.signals.permissions import (
+            create_and_grant_dashboard_permissions,
+            grant_action_permissions_to_root,
+        )
         post_migrate.connect(grant_action_permissions_to_root, sender=self)
+
+        # 🔹 Dashboards por grupo do sidebar - cria e concede ao Root
+        post_migrate.connect(create_and_grant_dashboard_permissions, sender=self)
 
         # 🔹 AUTO LOAD VIEWS
         import saude.views

@@ -7,10 +7,10 @@ from django.utils import timezone
 
 from rest_framework.response import Response
 
+from django_resaas.engine.core.base.dashboard import TenantDashboardAPIView
 from django_resaas.engine.core.base.views import registerView
 
 from inventory.models import Product, StockItem, StockMovement, InventoryCount
-from ._dashboard_base import TenantDashboardAPIView
 
 
 VALUE_EXPR = ExpressionWrapper(

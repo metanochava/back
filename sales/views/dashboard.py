@@ -10,10 +10,10 @@ from django.utils import timezone
 
 from rest_framework.response import Response
 
+from django_resaas.engine.core.base.dashboard import TenantDashboardAPIView
 from django_resaas.engine.core.base.views import registerView
 
 from sales.models import Sale, SaleItem, Payment
-from ._dashboard_base import TenantDashboardAPIView
 
 
 ITEM_VALUE_EXPR = ExpressionWrapper(

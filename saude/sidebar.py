@@ -47,6 +47,12 @@ SUBMENUS = [
         "role": "list_receitamedica",
         "submenu": [
             {
+                "icon": "space_dashboard",
+                "menu": "Dashboard",
+                "role": "view_dashboard_saude_medicacao",
+                "route": "view_dashboard_saude_medicacao",
+            },
+            {
                 "add_role": "add_receitamedica",
                 "add_route": "add_receitamedica",
                 "icon": "medication",
@@ -80,6 +86,12 @@ SUBMENUS = [
         "role": "list_atestadomedico",
         "submenu": [
             {
+                "icon": "space_dashboard",
+                "menu": "Dashboard",
+                "role": "view_dashboard_saude_documentos_medicos",
+                "route": "view_dashboard_saude_documentos_medicos",
+            },
+            {
                 "add_role": "add_atestadomedico",
                 "add_route": "add_atestadomedico",
                 "icon": "assignment",
@@ -112,6 +124,12 @@ SUBMENUS = [
         "icon": "biotech",
         "role": "list_pedidoexamemedico",
         "submenu": [
+            {
+                "icon": "space_dashboard",
+                "menu": "Dashboard",
+                "role": "view_dashboard_saude_exames",
+                "route": "view_dashboard_saude_exames",
+            },
             {
                 "add_role": "add_pedidoexamemedico",
                 "add_route": "add_pedidoexamemedico",
@@ -154,6 +172,12 @@ SUBMENUS = [
         "icon": "history_edu",
         "role": "list_dadovital",
         "submenu": [
+            {
+                "icon": "space_dashboard",
+                "menu": "Dashboard",
+                "role": "view_dashboard_saude_historico_clinico",
+                "route": "view_dashboard_saude_historico_clinico",
+            },
             {
                 "add_role": "add_dadovital",
                 "add_route": "add_dadovital",

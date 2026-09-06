@@ -16,6 +16,8 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+
 API = os.environ.get("START_API_URL")
 DEPLOY_TOKEN=os.environ.get("DEPLOY_TOKEN")
 SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -41,6 +43,7 @@ MY_APPS = [
     'inventory',
     'sales',
     'django_resaas.notifications',
+    'farmacia',
 ]
 
 
@@ -96,7 +99,7 @@ MIDDLEWARE = [
 
 
     'django_resaas.engine.core.middleware.file_access.FileAccessMiddleware',
-    # 'django_resaas.engine.core.middleware.frontend.FrontEndMiddleware',
+    'django_resaas.engine.core.middleware.front_end.FrontEndMiddleware',
     'django_resaas.engine.core.middleware.tenant.TenantContextMiddleware',
 
 ]
@@ -223,8 +226,9 @@ if  os.environ.get("MEDIASTATIC_PATH"):
     STATIC_ROOT = os.environ.get("MEDIASTATIC_PATH") +  "/staticfiles"
 
 
-DEPLOY_FILE_PATH = BASE_DIR / "deploy.sh"
 
+
+OTP_KEY = os.environ.get("OTP_KEY", SECRET_KEY)
 # --------------------------
 # Email
 # --------------------------
