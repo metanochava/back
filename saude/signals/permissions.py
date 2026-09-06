@@ -9,6 +9,7 @@ ACTION_PERMISSIONS = [
     "start_emergencyaccess",
     "end_emergencyaccess",
     "review_emergencyaccess",
+    "merge_patients_paciente",
 ]
 
 

@@ -22,8 +22,10 @@ from saude.models.consent_grant import ConsentGrant
 from saude.models.paciente import Paciente
 from saude.serializers.consent_grant import ConsentGrantSerializer
 from saude.serializers.paciente import PacienteSerializer
+from saude.serializers.patient_merge import PatientMergeSerializer
 from saude.services.consent_service import ConsentService
 from saude.services.patient_matching_service import PatientMatchingService
+from saude.services.patient_merge_service import PatientMergeService
 from saude.services.patient_timeline_service import PatientTimelineService
 
 
@@ -297,6 +299,70 @@ class PacienteAPIView(BaseAPIView):
             raise _as_drf_validation_error(exc)
 
         return all(request, data=ConsentGrantSerializer(consent).data)
+
+    @resaas_action(
+        methods=["post"],
+        detail=False,
+        label="Merge Patients",
+        icon="merge_type",
+        tooltip="Funde duas identidades de Paciente que afinal são a mesma pessoa",
+        position="t",
+        order=4,
+    )
+    def merge_patients(self, request):
+        """
+        Fase 5 (ver docs/architecture/patient-longitudinal-health-pharmacy.md)
+        - última e mais arriscada por ser parcialmente irreversível.
+        `survivor_paciente_id` tem de pertencer à Entity actual (é a
+        Entity dona do registo sobrevivente que decide a fusão);
+        `duplicate_paciente_id` pode pertencer a qualquer Entity
+        (tipicamente encontrado via search_candidates). Único ponto
+        de escrita: PatientMergeService.
+        """
+        survivor_paciente_id = request.data.get("survivor_paciente_id")
+        duplicate_paciente_id = request.data.get("duplicate_paciente_id")
+
+        if not survivor_paciente_id or not duplicate_paciente_id:
+            return fail(
+                request,
+                "survivor_paciente_id and duplicate_paciente_id are required.",
+                status=400,
+            )
+
+        survivor_paciente = Paciente.objects.filter(
+            id=survivor_paciente_id,
+            entity_id=request.entity_id,
+        ).first()
+
+        if not survivor_paciente:
+            return fail(
+                request,
+                "survivor Paciente not found in your Entity.",
+                status=404,
+            )
+
+        duplicate_paciente = Paciente.objects.filter(id=duplicate_paciente_id).first()
+
+        if not duplicate_paciente:
+            return fail(request, "duplicate Paciente not found.", status=404)
+
+        try:
+            merge_record = PatientMergeService.merge(
+                survivor_person=survivor_paciente.person,
+                duplicate_person=duplicate_paciente.person,
+                performed_by=request.user,
+                entity_id=request.entity_id,
+                branch_id=request.branch_id,
+                reason=request.data.get("reason"),
+            )
+        except DjangoValidationError as exc:
+            raise _as_drf_validation_error(exc)
+
+        return all(
+            request,
+            data=PatientMergeSerializer(merge_record).data,
+            status=201,
+        )
 
     # @resaas_action(
     #     methods=["post"],

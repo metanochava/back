@@ -29,6 +29,12 @@ class EmergencyAccessAdmin(BaseAdmin):
     def get_list_display(self, request): return all_fields(self.model)
     list_display = ("id", "person", "accessed_by", "started_at", "ended_at")
 
+from saude.models.patient_merge import PatientMerge
+@admin.register(PatientMerge)
+class PatientMergeAdmin(BaseAdmin):
+    def get_list_display(self, request): return all_fields(self.model)
+    list_display = ("id", "survivor_person", "merged_person", "performed_at")
+
 from saude.models.consulta import Consulta
 @admin.register(Consulta)
 class ConsultaAdmin(BaseAdmin):
