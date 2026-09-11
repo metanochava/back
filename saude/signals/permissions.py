@@ -24,6 +24,12 @@ DASHBOARD_PERMISSIONS = [
     ("view_dashboard_saude_documentos_medicos", "Can view Documentos Médicos dashboard"),
     ("view_dashboard_saude_exames", "Can view Exames dashboard"),
     ("view_dashboard_saude_historico_clinico", "Can view Histórico Clínico dashboard"),
+    # Dashboard do motor genérico (django_resaas.engine.core.dashboards),
+    # declarado em saude/dashboard.py - nome distinto de
+    # 'view_saude_dashboard' (o dashboard antigo, DashBoarde.vue) e dos
+    # 4 acima (dashboards por grupo do sidebar antigo), para não colidir
+    # com nenhum dos dois.
+    ("view_dashboard_saude_clinica", "Can view Clínica dashboard"),
 ]
 
 
