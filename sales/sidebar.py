@@ -1,7 +1,8 @@
-MENU = "Sales"
-ICON = "point_of_sale"
+ALL = [{
+'MENU' : "Sales",
+'ICON' : "point_of_sale",
 
-SUBMENUS = [
+'SUBMENUS' : [
     {
         "icon": "space_dashboard",
         "menu": "Dashboard",
@@ -38,4 +39,4 @@ SUBMENUS = [
         "role": "list_customercontact",
         "route": "list_customercontact",
     },
-]
+]}]

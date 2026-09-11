@@ -1,7 +1,7 @@
-
-MENU = "Farmacia"
-ICON = "local_pharmacy"
-SUBMENUS = [
+ALL = [{
+'MENU' : "Farmacia",
+'ICON' : "local_pharmacy",
+'SUBMENUS' : [
     {
         "menu": "Dashboard",
         "icon": "dashboard",
@@ -23,3 +23,4 @@ SUBMENUS = [
         "route": "list_dispensa",
     },
 ]
+}]

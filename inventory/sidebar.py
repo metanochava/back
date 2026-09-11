@@ -1,7 +1,8 @@
-MENU = "Stock"
-ICON = "inventory_2"
+ALL = [{
+'MENU' : "Stock",
+'ICON' : "inventory_2",
 
-SUBMENUS = [
+'SUBMENUS' : [
     {
         "icon": "space_dashboard",
         "menu": "Dashboard",
@@ -56,4 +57,4 @@ SUBMENUS = [
         "role": "list_inventorysetting",
         "route": "list_inventorysetting",
     },
-]
+]}]

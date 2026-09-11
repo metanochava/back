@@ -1,12 +1,24 @@
-MENU = "Saude"
-ICON = "local_hospital"  # 🔥 identity médica
+ALL = [{
+'MENU' : "Saude",
+'ICON' : "local_hospital",  # 🔥 identity médica
 
-SUBMENUS = [
+'SUBMENUS' : [
     {
         "icon": "space_dashboard",
         "menu": "Dashboard",
         "role": "view_saude_dashboard",
         "route": "view_saude_dashboard",
+    },
+
+    # 📊 CLÍNICA (dashboard dinâmico - saude/dashboard.py, motor
+    # django_resaas.engine.core.dashboards. Entrada nova e adicional,
+    # não substitui o "Dashboard" acima nem os 4 dashboards por grupo
+    # já existentes mais abaixo - ver docs/architecture/dashboards.md)
+    {
+        "icon": "medical_services",
+        "menu": "Clínica",
+        "role": "view_dashboard_saude_clinica",
+        "route": "dashboard_saude_clinica",
     },
 
     # 👤 PACIENTE
@@ -27,6 +39,16 @@ SUBMENUS = [
         "menu": "Consulta",
         "role": "list_consulta",
         "route": "list_consulta",
+    },
+
+    # 🩺 MÉDICO
+    {
+        "add_role": "add_medico",
+        "add_route": "add_medico",
+        "icon": "medical_services",
+        "menu": "Medico",
+        "role": "list_medico",
+        "route": "list_medico",
     },
 
     # 🕒 HORÁRIO DO MÉDICO
@@ -204,4 +226,4 @@ SUBMENUS = [
             },
         ],
     },
-]
+]}]

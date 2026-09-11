@@ -1,7 +1,7 @@
 from django.db import models
+
 from django_resaas.engine.core.base.models import BaseModel
 from django_resaas.engine.core.utils import upload_path
-
 
 
 class Medico(BaseModel):
@@ -18,11 +18,6 @@ class Medico(BaseModel):
         blank=True
     )
 
-    especialidade = models.ManyToManyField(
-    'hr.Specialty',
-        blank=True,
-        related_name="medicos"
-    )
     categoria = models.CharField(
         max_length=100,
         null=True,
@@ -70,7 +65,6 @@ class Medico(BaseModel):
             "employee__person__surname",
             "employee__person__full_name",
             "numero_ordem",
-            "especialidade__title"
         ]
 
         crud = True

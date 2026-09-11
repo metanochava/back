@@ -35,50 +35,16 @@ def create_saude_groups(sender, **kwargs):
     # 🔹 IMPORT LOCAL
     # ------------------------------------------------------
     from django_resaas.engine.core.utils.group_creator import group_creator
+    from saude.profiles import SAUDE_PROFILES, SAUDE_RENAME_FROM
 
     # ------------------------------------------------------
-    # 🔹 CRIAÇÃO DE GRUPOS
+    # 🔹 CRIAÇÃO DE GRUPOS (perfis em inglês - terminologia
+    # ocupacional internacional; nomes antigos em português
+    # renomeados no lugar, nunca duplicados - ver
+    # saude/profiles.py's SAUDE_RENAME_FROM e group_creator()'s
+    # rename_from)
     # ------------------------------------------------------
-    group_creator([
-        # 👨‍⚕️ Clínica
-        "Médico Geral",
-        "Médico Especialista",
-        "Cirurgião",
-        "Enfermeiro",
-        "Enfermeiro Chefe",
-        "Parteira",
-        "Fisioterapeuta",
-        "Psicólogo",
-        "Nutricionista",
-        "Farmacêutico",
-        "Técnico de Farmácia",
-
-        # 🧪 Exames
-        "Técnico de Laboratório",
-        "Técnico de Radiologia",
-        "Técnico de Imagiologia",
-        "Técnico de Ecografia",
-        "Técnico de Tomografia",
-        "Técnico de Ressonância",
-        "Analista Clínico",
-
-        # 🏢 Atendimento
-        "Secretária Clínica",
-        "Gestor de Pacientes",
-        "Triagem",
-
-        # 💰 Financeiro
-        "Administrador",
-        "Gestor Financeiro",
-        "Contabilista",
-        "Tesoureiro",
-        "Faturamento",
-        "Auditor",
-
-        # 🏥 Gestão
-        "Diretor Clínico",
-        "Coordenador Médico",
-    ])
+    group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
 
 
 # ==========================================================
