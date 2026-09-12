@@ -1,7 +1,7 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from django_resaas.engine.core.events import EventDispatcher
+from django_resaas.saas.core.events import EventDispatcher
 
 from saude.models.receitamedica import ReceitaMedica
 

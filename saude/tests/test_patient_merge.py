@@ -5,8 +5,8 @@ from django.test import TestCase
 
 from testutils.tenant import bootstrap_tenant
 
-from django_resaas.engine.models.person import Person
-from django_resaas.engine.models.user import User
+from django_resaas.saas.models.person import Person
+from django_resaas.saas.models.user import User
 from django_resaas.hr.models.employee import Employee
 
 from saude.models.consent_grant import ConsentGrant
@@ -133,7 +133,7 @@ class PatientMergeServiceTests(TestCase):
         self.assertEqual(access.person_id, self.survivor_person.id)
 
     def test_creates_audit_record_and_emits_event(self):
-        from django_resaas.engine.core.events import EventDispatcher
+        from django_resaas.saas.core.events import EventDispatcher
 
         payloads = []
 
@@ -296,9 +296,9 @@ class PatientMergeEndpointTests(TestCase):
         # transacção de teste. Por isso, tal como nos testes de
         # Consent/EmergencyAccess/Timeline, usamos aqui um Group
         # "Guest" à parte, sem nenhuma permissão concedida.
-        from django_resaas.engine.core.tenant.context import ResaasContextService
-        from django_resaas.engine.models.branch_user_group import BranchUserGroup
-        from django_resaas.engine.models.group import Group
+        from django_resaas.saas.core.tenant.context import ResaasContextService
+        from django_resaas.saas.models.branch_user_group import BranchUserGroup
+        from django_resaas.saas.models.group import Group
         from rest_framework.test import APIClient
 
         guest_group, _ = Group.objects.get_or_create(name="Guest")

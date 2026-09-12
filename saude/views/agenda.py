@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
-from django_resaas.engine.core.base.views import BaseAPIView, registerView
+from django_resaas.saas.core.base.views import BaseAPIView, registerView
 from django_resaas.hr.models.employee import Employee
 
 from saude.models.agenda import Agenda

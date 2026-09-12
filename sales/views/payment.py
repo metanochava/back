@@ -1,4 +1,4 @@
-from django_resaas.engine.core.base.views import BaseAPIView, registerView
+from django_resaas.saas.core.base.views import BaseAPIView, registerView
 from sales.models.payment import Payment
 from sales.serializers.payment import PaymentSerializer
 

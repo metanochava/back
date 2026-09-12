@@ -1,4 +1,4 @@
-"""Dashboard 'farmacia' do motor genérico (django_resaas.engine.core.
+"""Dashboard 'farmacia' do motor genérico (django_resaas.saas.core.
 dashboards) - farmacia/dashboard.py + farmacia/dashboard_providers.py.
 
 farmacia não tinha testes nenhuns até agora (`tests/` criado por este
@@ -13,10 +13,10 @@ from rest_framework.test import APIClient
 
 from testutils.tenant import bootstrap_tenant
 
-from django_resaas.engine.core.tenant.context import ResaasContextService
-from django_resaas.engine.models.branch_user_group import BranchUserGroup
-from django_resaas.engine.models.group import Group
-from django_resaas.engine.models.person import Person
+from django_resaas.saas.core.tenant.context import ResaasContextService
+from django_resaas.saas.models.branch_user_group import BranchUserGroup
+from django_resaas.saas.models.group import Group
+from django_resaas.saas.models.person import Person
 from django_resaas.hr.models.employee import Employee
 
 from farmacia.models import Dispensa, FilaFarmacia

@@ -32,7 +32,7 @@ def grant_action_permissions_to_root(sender, **kwargs):
     if kwargs.get("app_config").name != "farmacia":
         return
 
-    from django_resaas.engine.models.group import Group
+    from django_resaas.saas.models.group import Group
 
     root_group, _ = Group.objects.get_or_create(name="Root")
 
@@ -49,7 +49,7 @@ def create_and_grant_dashboard_permissions(sender, **kwargs):
     if kwargs.get("app_config").name != "farmacia":
         return
 
-    from django_resaas.engine.models.group import Group
+    from django_resaas.saas.models.group import Group
     from farmacia.models import FilaFarmacia
 
     content_type = ContentType.objects.get_for_model(FilaFarmacia)

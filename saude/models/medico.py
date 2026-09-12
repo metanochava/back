@@ -1,7 +1,7 @@
 from django.db import models
 
-from django_resaas.engine.core.base.models import BaseModel
-from django_resaas.engine.core.utils import upload_path
+from django_resaas.saas.core.base.models import BaseModel
+from django_resaas.saas.core.utils import upload_path
 
 
 class Medico(BaseModel):

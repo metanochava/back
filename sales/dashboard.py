@@ -1,5 +1,5 @@
 """Configuração declarativa do dashboard 'sales' (motor genérico -
-django_resaas.engine.core.dashboards). Só metadados - toda a lógica
+django_resaas.saas.core.dashboards). Só metadados - toda a lógica
 vive em sales/dashboard_providers.py.
 
 6 dos 7 tipos de widget (sem 'calendar' - sales não tem nenhum

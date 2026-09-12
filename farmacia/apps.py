@@ -13,12 +13,12 @@ def create_farmacia_groups(sender, **kwargs):
     if kwargs.get("app_config").name != "farmacia":
         return
 
-    from django_resaas.engine.models.entity_type import EntityType
+    from django_resaas.saas.models.entity_type import EntityType
 
     if not EntityType.objects.exists():
         return
 
-    from django_resaas.engine.core.utils.group_creator import group_creator
+    from django_resaas.saas.core.utils.group_creator import group_creator
     from farmacia.profiles import FARMACIA_PROFILES
 
     group_creator(FARMACIA_PROFILES)
@@ -45,7 +45,7 @@ class FarmaciaConfig(AppConfig):
         # farmacia ouve 'saude.prescription.created' para alimentar a
         # fila automaticamente — nunca importa saude aqui, só reage
         # ao nome do evento (ver farmacia/listeners.py).
-        from django_resaas.engine.core.events import EventDispatcher
+        from django_resaas.saas.core.events import EventDispatcher
         from farmacia.listeners import on_prescription_created
 
         EventDispatcher.register("saude.prescription.created", on_prescription_created)

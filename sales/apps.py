@@ -27,7 +27,7 @@ def create_sales_groups(sender, **kwargs):
     # ------------------------------------------------------
     # 🔹 GARANTE CONTEXTO
     # ------------------------------------------------------
-    from django_resaas.engine.models.entity_type import EntityType
+    from django_resaas.saas.models.entity_type import EntityType
 
     if not EntityType.objects.exists():
         return
@@ -35,7 +35,7 @@ def create_sales_groups(sender, **kwargs):
     # ------------------------------------------------------
     # 🔹 IMPORT LOCAL
     # ------------------------------------------------------
-    from django_resaas.engine.core.utils.group_creator import group_creator
+    from django_resaas.saas.core.utils.group_creator import group_creator
     from sales.profiles import SALES_PROFILES
 
     # ------------------------------------------------------

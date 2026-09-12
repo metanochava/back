@@ -11,7 +11,7 @@ from datetime import date, timedelta
 from django.db.models import Count
 from django.db.models.functions import TruncDay
 
-from django_resaas.engine.core.dashboards.providers import (
+from django_resaas.saas.core.dashboards.providers import (
     BaseDashboardProvider,
     register_provider,
 )

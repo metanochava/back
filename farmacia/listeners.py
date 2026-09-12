@@ -5,7 +5,7 @@ EventDispatcher — nunca importa saude para se subscrever, só reage a
 um nome de evento.
 """
 
-from django_resaas.engine.models.user import User
+from django_resaas.saas.models.user import User
 
 
 def on_prescription_created(payload):

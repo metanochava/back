@@ -18,7 +18,7 @@ from django.db import transaction
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from django_resaas.engine.core.events import EventDispatcher
+from django_resaas.saas.core.events import EventDispatcher
 
 from inventory import services as inventory_services
 

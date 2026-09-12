@@ -1,5 +1,5 @@
 """Configuração declarativa do dashboard clínico (motor genérico -
-django_resaas.engine.core.dashboards). Só metadados; toda a lógica
+django_resaas.saas.core.dashboards). Só metadados; toda a lógica
 vive em saude/dashboard_providers.py (import abaixo é só para os
 providers correrem @register_provider antes de qualquer request).
 

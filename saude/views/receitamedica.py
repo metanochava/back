@@ -1,12 +1,12 @@
 
-from django_resaas.engine.core.base.views import BaseAPIView
-from django_resaas.engine.core.base.views import registerView
+from django_resaas.saas.core.base.views import BaseAPIView
+from django_resaas.saas.core.base.views import registerView
 from saude.models.receitamedica import ReceitaMedica
 from saude.models.itemreceita import ItemReceita
 from saude.serializers.receitamedica import ReceitaMedicaSerializer
 from rest_framework.decorators import action
-from django_resaas.engine.models.entity import Entity
-from django_resaas.engine.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64, PDF, all
+from django_resaas.saas.models.entity import Entity
+from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64, PDF, all
 
 import barcode
 import qrcode

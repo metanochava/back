@@ -1,10 +1,10 @@
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
-from django_resaas.engine.core.base.views import BaseAPIView, registerView
-from django_resaas.engine.core.decorators import resaas_action
-from django_resaas.engine.core.utils import all, fail
-from django_resaas.engine.models.person import Person
+from django_resaas.saas.core.base.views import BaseAPIView, registerView
+from django_resaas.saas.core.decorators import resaas_action
+from django_resaas.saas.core.utils import all, fail
+from django_resaas.saas.models.person import Person
 
 from saude.models.emergency_access import EmergencyAccess
 from saude.serializers.emergency_access import EmergencyAccessSerializer

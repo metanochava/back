@@ -1,5 +1,5 @@
 """Configuração declarativa do dashboard 'inventory' (motor genérico -
-django_resaas.engine.core.dashboards). Só metadados - toda a lógica
+django_resaas.saas.core.dashboards). Só metadados - toda a lógica
 vive em inventory/dashboard_providers.py.
 
 6 dos 7 tipos de widget (sem 'calendar' - inventory não tem nenhum

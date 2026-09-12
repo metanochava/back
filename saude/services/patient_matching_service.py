@@ -1,6 +1,6 @@
 from django.db.models import Q
 
-from django_resaas.engine.models.person import Person
+from django_resaas.saas.models.person import Person
 
 from saude.models.paciente import Paciente
 from saude.models.patient_identifier import PatientIdentifier

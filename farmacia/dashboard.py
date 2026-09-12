@@ -1,5 +1,5 @@
 """Configuração declarativa do dashboard 'farmacia' (motor genérico -
-django_resaas.engine.core.dashboards). Só metadados - toda a lógica
+django_resaas.saas.core.dashboards). Só metadados - toda a lógica
 vive em farmacia/dashboard_providers.py.
 
 farmacia não tinha nenhum dashboard (nem o antigo

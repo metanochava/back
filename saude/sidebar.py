@@ -11,7 +11,7 @@ ALL = [{
     },
 
     # 📊 CLÍNICA (dashboard dinâmico - saude/dashboard.py, motor
-    # django_resaas.engine.core.dashboards. Entrada nova e adicional,
+    # django_resaas.saas.core.dashboards. Entrada nova e adicional,
     # não substitui o "Dashboard" acima nem os 4 dashboards por grupo
     # já existentes mais abaixo - ver docs/architecture/dashboards.md)
     {
