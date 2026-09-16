@@ -4,12 +4,12 @@ black==26.5.1
 brotli==1.2.0
 cffi==2.1.1
 click==8.5.0
+cryptography==50.0.1
 cssselect2==0.10.1
 Django==5.2.10
 django-cors-headers==4.9.0
 django-filter==26.1
 django-money==3.6.1
-django_resaas==0.0.525
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
 dotenv==0.9.9

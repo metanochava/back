@@ -48,11 +48,12 @@ endef
 
 .PHONY: \
 	dbbackup dbrestore dbbackups \
-	help clean version status \
+	help clean clean-migrations version status \
 	gitsaas pipsaas libs reload \
 	gitback gitrmc pull push \
 	check migrations migrate createsuperuser \
 	createuser create_root create_entity \
+	sync_actions sync_language \
 	dev pro staticfiles \
 	teste teste1 teste2 \
 	dbreset dbreset-migrate \
@@ -61,9 +62,10 @@ endef
 	flow_init \
 	features featuref \
 	releases releasef \
-		hotfixs hotfixf \
-		env denv django \
-		$(MANAGE_COMMANDS)
+	hotfixs hotfixf \
+	env denv django \
+	kill requirements \
+	$(MANAGE_COMMANDS)
 
 
 # =========================================================
@@ -73,29 +75,36 @@ endef
 help:
 	@echo "Comandos disponíveis:"
 	@echo ""
-	@echo "  make check             - Verificar o projeto Django"
-	@echo "  make migrations        - Criar migrations"
-	@echo "  make migrate           - Executar migrations"
-	@echo "  make dbreset           - Eliminar todas as tabelas PostgreSQL"
-	@echo "  make dbreset-migrate   - Limpar e reconstruir a base de dados"
-	@echo "  make createsuperuser   - Criar superutilizador"
-	@echo "  make dev            	- Executar servidor de desenvolvimento"
-	@echo "  make pro            	- Executar servidor na porta de produção"
-	@echo "  make staticfiles       - Recolher ficheiros estáticos"
-	@echo "  make gitsaas           - Instalar django_resaas pelo GitHub"
-	@echo "  make pipsaas           - Atualizar django_resaas pelo PyPI"
-	@echo "  make libs              - Instalar requirements"
-	@echo "  make status            - Mostrar estado do Git"
-	@echo "  make pull              - Atualizar repositório"
-	@echo "  make push              - Enviar main e develop"
-	@echo "  make version           - Mostrar versão atual"
-	@echo "  make build             - Construir pacote"
-	@echo "  make upload            - Publicar pacote no PyPI"
-	@echo "  make dbbackup          - Criar backup PostgreSQL"
-	@echo "  make dbrestore         - Restaurar um backup PostgreSQL"
-	@echo "  make dbbackups         - Listar backups existentes"
-	@echo "  make <comando>         - Executar um comando Django disponível"
-	@echo "  make <comando> ARGS=\"...\" - Executar um comando Django com argumentos"
+	@echo "  make check              - Verificar o projecto Django"
+	@echo "  make migrations         - Criar migrations"
+	@echo "  make migrate            - Executar migrations"
+	@echo "  make clean-migrations   - Eliminar migrations preservando __init__.py"
+	@echo "  make dbreset            - Eliminar todas as tabelas PostgreSQL"
+	@echo "  make dbreset-migrate    - Limpar e reconstruir a base de dados"
+	@echo "  make createsuperuser    - Criar superutilizador"
+	@echo "  make createuser         - Criar utilizador"
+	@echo "  make create_root        - Criar utilizador/root inicial"
+	@echo "  make create_entity      - Criar entidade"
+	@echo "  make sync_actions       - Sincronizar actions"
+	@echo "  make sync_language      - Sincronizar idiomas"
+	@echo "  make dev                - Executar servidor de desenvolvimento"
+	@echo "  make pro                - Executar servidor na porta de produção"
+	@echo "  make staticfiles        - Recolher ficheiros estáticos"
+	@echo "  make gitsaas            - Instalar django_resaas pelo GitHub"
+	@echo "  make pipsaas            - Actualizar django_resaas pelo PyPI"
+	@echo "  make libs               - Instalar requirements"
+	@echo "  make status             - Mostrar estado do Git"
+	@echo "  make pull               - Actualizar repositório"
+	@echo "  make push               - Enviar main e develop"
+	@echo "  make version            - Mostrar versão actual"
+	@echo "  make build              - Construir pacote"
+	@echo "  make upload             - Publicar pacote no PyPI"
+	@echo "  make dbbackup           - Criar backup PostgreSQL"
+	@echo "  make dbrestore          - Restaurar um backup PostgreSQL"
+	@echo "  make dbbackups          - Listar backups existentes"
+	@echo "  make kill               - Terminar processo numa porta"
+	@echo "  make <comando>          - Executar um comando Django disponível"
+	@echo "  make <comando> ARGS=\"...\" - Executar comando Django com argumentos"
 
 
 # =========================================================
@@ -113,6 +122,7 @@ pipsaas:
 
 libs:
 	$(PIP) install -r requirements.txt
+
 
 
 # =========================================================
@@ -133,6 +143,66 @@ clean:
 	find . -type d -name "__pycache__" -prune -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 	find . -type f -name "*.pyo" -delete
+	@echo "Cache Python removida."
+
+
+# =========================================================
+# LIMPAR MIGRATIONS
+# =========================================================
+
+clean-migrations:
+	@echo ""
+	@echo "========================================================="
+	@echo " ATENÇÃO: LIMPEZA DE MIGRATIONS"
+	@echo "========================================================="
+	@echo ""
+	@echo "Serão eliminados:"
+	@echo "  - */migrations/*.py"
+	@echo "  - excepto */migrations/__init__.py"
+	@echo "  - */migrations/*.pyc"
+	@echo "  - */migrations/__pycache__/"
+	@echo ""
+	@echo "A base de dados NÃO será alterada."
+	@echo ""
+
+	read -p "Deseja continuar? Digite 'yes': " resposta
+
+	if [[ "$$resposta" != "yes" ]]; then
+		echo ""
+		echo "Operação cancelada."
+		exit 0
+	fi
+
+	echo ""
+	echo "A remover migrations..."
+
+	find . \
+		-type f \
+		-path "*/migrations/*.py" \
+		! -name "__init__.py" \
+		-print \
+		-delete
+
+	find . \
+		-type f \
+		-path "*/migrations/*.pyc" \
+		-print \
+		-delete
+
+	find . \
+		-type d \
+		-path "*/migrations/__pycache__" \
+		-prune \
+		-print \
+		-exec rm -rf {} +
+
+	echo ""
+	echo "========================================================="
+	echo " Migrations removidas com sucesso."
+	echo " __init__.py foi preservado em todas as apps."
+	echo "========================================================="
+	echo ""
+
 
 version:
 	@$(call GET_VERSION)
@@ -172,10 +242,18 @@ sync_actions:
 sync_language:
 	$(MANAGE) sync_language
 
-# Encaminha os restantes alvos diretamente para manage.py.
-# Exemplo: make startapp ARGS=clientes
+
+# Encaminha os restantes alvos directamente para manage.py.
+# Exemplo:
+# make startapp ARGS=clientes
+
 $(MANAGE_COMMANDS):
 	$(MANAGE) $@ $(ARGS)
+
+
+# =========================================================
+# SERVIDOR DJANGO
+# =========================================================
 
 dev:
 	$(MANAGE) runserver 0.0.0.0:7001
@@ -206,7 +284,14 @@ teste: teste1 teste2
 # =========================================================
 
 dbreset:
-	@echo "ATENÇÃO: todas as tabelas e dados serão eliminados."
+	@echo ""
+	@echo "========================================================="
+	@echo " ATENÇÃO: RESET DA BASE DE DADOS"
+	@echo "========================================================="
+	@echo ""
+	@echo "Todas as tabelas e dados serão eliminados."
+	@echo ""
+
 	read -p "Deseja continuar? Digite 'yes': " resposta
 
 	if [[ "$$resposta" != "yes" ]]; then
@@ -214,6 +299,7 @@ dbreset:
 		exit 0
 	fi
 
+	echo ""
 	echo "A apagar a base de dados..."
 
 	echo "\
@@ -222,21 +308,32 @@ dbreset:
 	GRANT ALL ON SCHEMA public TO public; \
 	" | $(MANAGE) dbshell
 
+	echo ""
 	echo "Base de dados limpa."
 
+
 dbreset-migrate: dbreset
+	@echo ""
 	@echo "A executar migrations..."
 	$(MANAGE) migrate
+
+	@echo ""
 	@echo "Base de dados reconstruída."
+
 	$(MANAGE) create_root
-	@echo "Basics settings done."
+
+	@echo ""
+	@echo "Basic settings done."
 
 
-
+# =========================================================
+# AJUDA DJANGO
+# =========================================================
 
 django:
 	@echo ""
 	$(MANAGE) -h
+
 
 # =========================================================
 # GIT BÁSICO
@@ -301,6 +398,11 @@ upload:
 flow_init:
 	git flow init
 
+
+# =========================================================
+# FEATURE
+# =========================================================
+
 features:
 	read -p "Nome da feature: " nome
 
@@ -312,6 +414,7 @@ features:
 	git checkout develop
 	git pull origin develop
 	git flow feature start "$$nome"
+
 
 featuref:
 	read -p "Nome da feature: " nome
@@ -349,6 +452,7 @@ releases:
 
 	echo "Release $$VERSION iniciada."
 
+
 releasef:
 	VERSION="$$( $(call GET_VERSION) )"
 
@@ -385,6 +489,7 @@ hotfixs:
 	git pull origin main
 	git flow hotfix start "$$nome"
 
+
 hotfixf:
 	read -p "Nome do hotfix: " nome
 
@@ -402,19 +507,20 @@ hotfixf:
 # =========================================================
 
 env:
+	@echo ""
 	@echo "Execute o seguinte comando no terminal:"
 	@echo "source /var/www/dev/back/venv/bin/activate"
 
+
 denv:
-	@echo "Fechando o VIRTUAL Enviromente"
-	@echo "source /var/www/dev/back/venv/bin/deactivate"
+	@echo ""
+	@echo "Para sair do ambiente virtual execute:"
+	@echo "deactivate"
+
 
 # =========================================================
 # BACKUP E RESTORE — POSTGRESQL
 # =========================================================
-
-
-
 
 dbbackup:
 	@echo "A preparar backup da base de dados..."
@@ -477,6 +583,7 @@ dbrestore:
 	@echo ""
 
 	mkdir -p "$(BACKUP_DIR)"
+
 	ls -lh "$(BACKUP_DIR)"/*.dump 2>/dev/null || \
 		echo "Nenhum backup encontrado."
 
@@ -489,7 +596,8 @@ dbrestore:
 	fi
 
 	echo ""
-	echo "ATENÇÃO: os dados atuais serão substituídos."
+	echo "ATENÇÃO: os dados actuais serão substituídos."
+
 	read -p "Digite 'yes' para continuar: " CONFIRMATION
 
 	if [[ "$$CONFIRMATION" != "yes" ]]; then
@@ -543,6 +651,7 @@ dbrestore:
 		--exit-on-error \
 		"$$BACKUP_FILE"
 
+	echo ""
 	echo "Base de dados restaurada com sucesso."
 
 
@@ -553,6 +662,10 @@ dbbackups:
 		echo "Nenhum backup encontrado."
 
 
+# =========================================================
+# PROCESSOS / PORTAS
+# =========================================================
+
 kill:
 	@read -p "Port: " port; \
 	pid=$$(sudo lsof -t -i:$$port); \
@@ -562,6 +675,3 @@ kill:
 	else \
 		echo "Nenhum processo encontrado na porta $$port."; \
 	fi
-
-requirements:
-	pip3 install -r requirements.txt
