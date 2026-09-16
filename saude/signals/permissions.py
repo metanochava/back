@@ -24,7 +24,7 @@ DASHBOARD_PERMISSIONS = [
     ("view_dashboard_saude_documentos_medicos", "Can view Documentos Médicos dashboard"),
     ("view_dashboard_saude_exames", "Can view Exames dashboard"),
     ("view_dashboard_saude_historico_clinico", "Can view Histórico Clínico dashboard"),
-    # Dashboard do motor genérico (django_resaas.engine.core.dashboards),
+    # Dashboard do motor genérico (django_resaas.saas.core.dashboards),
     # declarado em saude/dashboard.py - nome distinto de
     # 'view_saude_dashboard' (o dashboard antigo, DashBoarde.vue) e dos
     # 4 acima (dashboards por grupo do sidebar antigo), para não colidir
@@ -46,7 +46,7 @@ def grant_action_permissions_to_root(sender, **kwargs):
     if kwargs.get("app_config").name != "saude":
         return
 
-    from django_resaas.engine.models.group import Group
+    from django_resaas.saas.models.group import Group
 
     root_group, _ = Group.objects.get_or_create(name="Root")
 
@@ -62,13 +62,13 @@ def create_and_grant_dashboard_permissions(sender, **kwargs):
     ainda em lado nenhum - têm de ser criadas (não só concedidas).
     Usa o Paciente como content_type só para bookkeeping (o
     check_permission real filtra só por codename, nunca por
-    content_type - ver django_resaas.engine.core.base.permissions).
+    content_type - ver django_resaas.saas.core.base.permissions).
     """
 
     if kwargs.get("app_config").name != "saude":
         return
 
-    from django_resaas.engine.models.group import Group
+    from django_resaas.saas.models.group import Group
 
     from saude.models.paciente import Paciente
 

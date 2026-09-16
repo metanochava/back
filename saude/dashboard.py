@@ -1,5 +1,5 @@
 """Configuração declarativa do dashboard clínico (motor genérico -
-django_resaas.engine.core.dashboards). Só metadados; toda a lógica
+django_resaas.saas.core.dashboards). Só metadados; toda a lógica
 vive em saude/dashboard_providers.py (import abaixo é só para os
 providers correrem @register_provider antes de qualquer request).
 
@@ -24,7 +24,7 @@ DASHBOARD = {
     "schema_version": "1.0",
 
     "name": "saude",
-    "label": "Clínica",
+    "label": "Clinic",
     "icon": "medical_services",
     "route": "dashboard_saude_clinica",
     "order": 10,
@@ -33,7 +33,7 @@ DASHBOARD = {
 
     "permission": "view_dashboard_saude_clinica",
 
-    "tooltip": "Visão geral clínica: pacientes activos, marcações e consultas do período seleccionado.",
+    "tooltip": "Clinical overview: active patients, appointments and consultations for the selected period.",
 
     "layout": {
         "columns": 12,
@@ -50,7 +50,7 @@ DASHBOARD = {
         {
             "name": "period",
             "type": "date_range",
-            "label": "Período",
+            "label": "Period",
             "scope": "global",
             # Sem 'default' estático - ver dashboard_providers.py's
             # _period_bounds() para porque um "últimos 30 dias"
@@ -60,7 +60,7 @@ DASHBOARD = {
         {
             "name": "status",
             "type": "select",
-            "label": "Estado",
+            "label": "Status",
             "scope": "global",
             "clearable": True,
             "options": _ESTADO_OPTIONS,
@@ -68,7 +68,7 @@ DASHBOARD = {
         {
             "name": "search",
             "type": "search",
-            "label": "Pesquisar paciente",
+            "label": "Search patient",
             "scope": "global",
         },
     ],
@@ -77,7 +77,7 @@ DASHBOARD = {
         {
             "name": "total_pacientes",
             "type": "stat",
-            "label": "Total de pacientes",
+            "label": "Total Patients",
             "icon": "groups",
             "color": "primary",
 
@@ -86,7 +86,7 @@ DASHBOARD = {
             "permissions": ["view_paciente"],
             "permission_mode": "all",
 
-            "tooltip": "Total de pacientes activos. Clique para abrir a lista completa.",
+            "tooltip": "Total active patients. Click to open the full list.",
 
             # primary_action: clicar no cabeçalho do widget abre a
             # lista de pacientes (rota real 'list_paciente',
@@ -106,7 +106,7 @@ DASHBOARD = {
                     "name": "add_patient",
                     "type": "route",
                     "icon": "person_add",
-                    "tooltip": "Registar paciente",
+                    "tooltip": "Register patient",
                     "route": {"name": "add_paciente"},
                     "permissions": ["add_paciente"],
                 },
@@ -122,7 +122,7 @@ DASHBOARD = {
         {
             "name": "agendas_por_estado",
             "type": "bar_chart",
-            "label": "Marcações por estado",
+            "label": "Appointments by Status",
 
             "provider": "saude.appointments_by_status",
 
@@ -139,7 +139,7 @@ DASHBOARD = {
         {
             "name": "consultas_por_dia",
             "type": "line_chart",
-            "label": "Consultas por dia",
+            "label": "Consultations per Day",
 
             "provider": "saude.consultations_by_day",
 
@@ -156,7 +156,7 @@ DASHBOARD = {
         {
             "name": "pacientes_por_genero",
             "type": "pie_chart",
-            "label": "Pacientes por género",
+            "label": "Patients by Gender",
 
             "provider": "saude.patients_by_gender",
 
@@ -173,14 +173,14 @@ DASHBOARD = {
         {
             "name": "proximas_consultas",
             "type": "table",
-            "label": "Marcações",
+            "label": "Appointments",
 
             "provider": "saude.upcoming_appointments",
 
             "permissions": ["view_agenda"],
             "permission_mode": "all",
 
-            "tooltip": "Próximas marcações. Use a acção da linha para abrir a ficha do paciente.",
+            "tooltip": "Upcoming appointments. Use the row action to open the patient record.",
 
             # row_actions: cada linha é uma Agenda (marcação), não uma
             # Consulta - por isso a acção da linha aponta para a ficha
@@ -194,7 +194,7 @@ DASHBOARD = {
                     "name": "view_patient",
                     "type": "route",
                     "icon": "person",
-                    "tooltip": "Ver ficha do paciente",
+                    "tooltip": "View patient record",
                     "route": {"name": "view_paciente", "params": {"id": "{paciente_id}"}},
                     "permissions": ["view_paciente"],
                 },
@@ -214,7 +214,7 @@ DASHBOARD = {
                 {
                     "name": "medico",
                     "type": "autocomplete",
-                    "label": "Médico",
+                    "label": "Doctor",
                     "scope": "widget",
                     "clearable": True,
                     "options_provider": "saude.doctor_options",
@@ -224,14 +224,14 @@ DASHBOARD = {
         {
             "name": "ultimos_pacientes",
             "type": "list",
-            "label": "Últimos pacientes",
+            "label": "Recent Patients",
 
             "provider": "saude.recent_patients",
 
             "permissions": ["view_paciente"],
             "permission_mode": "all",
 
-            "tooltip": "Últimos pacientes registados. Clique num item para abrir a ficha.",
+            "tooltip": "Recently registered patients. Click an item to open the record.",
 
             # item_action: um único destino para qualquer item da lista
             # ({id} já vem no dict de cada item, ver
@@ -254,14 +254,14 @@ DASHBOARD = {
         {
             "name": "agenda_calendario",
             "type": "calendar",
-            "label": "Calendário de marcações",
+            "label": "Appointment Calendar",
 
             "provider": "saude.appointment_calendar",
 
             "permissions": ["view_agenda"],
             "permission_mode": "all",
 
-            "tooltip": "Calendário de marcações do período. Clique num evento para abrir a ficha do paciente.",
+            "tooltip": "Appointment calendar for the period. Click an event to open the patient record.",
 
             "item_action": {
                 "name": "open_patient",

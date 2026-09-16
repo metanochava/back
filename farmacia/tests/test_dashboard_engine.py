@@ -1,4 +1,4 @@
-"""Dashboard 'farmacia' do motor genérico (django_resaas.engine.core.
+"""Dashboard 'farmacia' do motor genérico (django_resaas.saas.core.
 dashboards) - farmacia/dashboard.py + farmacia/dashboard_providers.py.
 
 farmacia não tinha testes nenhuns até agora (`tests/` criado por este
@@ -13,10 +13,10 @@ from rest_framework.test import APIClient
 
 from testutils.tenant import bootstrap_tenant
 
-from django_resaas.engine.core.tenant.context import ResaasContextService
-from django_resaas.engine.models.branch_user_group import BranchUserGroup
-from django_resaas.engine.models.group import Group
-from django_resaas.engine.models.person import Person
+from django_resaas.saas.core.tenant.context import ResaasContextService
+from django_resaas.saas.models.branch_user_group import BranchUserGroup
+from django_resaas.saas.models.group import Group
+from django_resaas.saas.models.person import Person
 from django_resaas.hr.models.employee import Employee
 
 from farmacia.models import Dispensa, FilaFarmacia
@@ -121,15 +121,19 @@ class FarmaciaDashboardEngineTests(TestCase):
         self.assertEqual(response.status_code, 200, response.data)
         labels = response.data["data"]["labels"]
         values = response.data["data"]["series"][0]["data"]
-        self.assertEqual(values[labels.index("Pendente")], 1)
-        self.assertEqual(values[labels.index("Dispensada")], 1)
+        # FilaFarmacia.ESTADO_CHOICES's display labels are canonical
+        # English (see CLAUDE.md's LANGUAGE section).
+        self.assertEqual(values[labels.index("Pending")], 1)
+        self.assertEqual(values[labels.index("Dispensed")], 1)
 
     def test_pie_chart_dispensas_por_estado(self):
         response = self.tenant["client"].get(
             "/api/django_resaas/dashboard/farmacia/widget/dispensas_por_estado/?format=json"
         )
         self.assertEqual(response.status_code, 200, response.data)
-        self.assertIn("Concluída", response.data["data"]["labels"])
+        # Dispensa.ESTADO_CHOICES's display labels are canonical
+        # English (see CLAUDE.md's LANGUAGE section).
+        self.assertIn("Completed", response.data["data"]["labels"])
 
     def test_table_fila_pendente_tabela(self):
         response = self.tenant["client"].get(

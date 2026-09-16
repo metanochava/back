@@ -1,18 +1,18 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class HorarioMedico(BaseModel):
 
     # dia_semana segue o padrão Python date.weekday(): Segunda=0 ... Domingo=6
     DIA_SEMANA_CHOICES = [
-        (0, "Segunda-feira"),
-        (1, "Terça-feira"),
-        (2, "Quarta-feira"),
-        (3, "Quinta-feira"),
-        (4, "Sexta-feira"),
-        (5, "Sábado"),
-        (6, "Domingo"),
+        (0, "Monday"),
+        (1, "Tuesday"),
+        (2, "Wednesday"),
+        (3, "Thursday"),
+        (4, "Friday"),
+        (5, "Saturday"),
+        (6, "Sunday"),
     ]
 
     employee = models.ForeignKey(

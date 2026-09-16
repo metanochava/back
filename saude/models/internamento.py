@@ -1,5 +1,5 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class Internamento(BaseModel):
@@ -43,11 +43,11 @@ class Internamento(BaseModel):
     estado = models.CharField(
         max_length=30,
         choices=[
-            ("ativo", "Activo"),
-            ("alta", "Alta"),
-            ("transferido", "Transferido"),
-            ("obito", "Óbito"),
-            ("cancelado", "Cancelado"),
+            ("ativo", "Active"),
+            ("alta", "Discharged"),
+            ("transferido", "Transferred"),
+            ("obito", "Deceased"),
+            ("cancelado", "Cancelled"),
         ],
         default="ativo"
     )

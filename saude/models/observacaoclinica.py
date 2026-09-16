@@ -1,5 +1,5 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class ObservacaoClinica(BaseModel):
@@ -33,11 +33,11 @@ class ObservacaoClinica(BaseModel):
     tipo = models.CharField(
         max_length=50,
         choices=[
-            ("geral", "Geral"),
-            ("evolucao", "Evolução"),
-            ("enfermagem", "Enfermagem"),
-            ("medica", "Médica"),
-            ("administrativa", "Administrativa"),
+            ("geral", "General"),
+            ("evolucao", "Progress Note"),
+            ("enfermagem", "Nursing"),
+            ("medica", "Medical"),
+            ("administrativa", "Administrative"),
         ],
         default="geral"
     )

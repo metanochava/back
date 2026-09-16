@@ -1,5 +1,5 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class AlergiaMedicamentosa(BaseModel):
@@ -25,10 +25,10 @@ class AlergiaMedicamentosa(BaseModel):
     gravidade = models.CharField(
         max_length=30,
         choices=[
-            ("leve", "Leve"),
-            ("moderada", "Moderada"),
-            ("grave", "Grave"),
-            ("anafilaxia", "Anafilaxia"),
+            ("leve", "Mild"),
+            ("moderada", "Moderate"),
+            ("grave", "Severe"),
+            ("anafilaxia", "Anaphylaxis"),
         ],
         default="leve"
     )

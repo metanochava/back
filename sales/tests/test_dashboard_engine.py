@@ -1,4 +1,4 @@
-"""Dashboard 'sales' do motor genérico (django_resaas.engine.core.
+"""Dashboard 'sales' do motor genérico (django_resaas.saas.core.
 dashboards) - sales/dashboard.py + sales/dashboard_providers.py.
 """
 import uuid
@@ -9,9 +9,9 @@ from rest_framework.test import APIClient
 
 from testutils.tenant import bootstrap_tenant
 
-from django_resaas.engine.core.tenant.context import ResaasContextService
-from django_resaas.engine.models.branch_user_group import BranchUserGroup
-from django_resaas.engine.models.group import Group
+from django_resaas.saas.core.tenant.context import ResaasContextService
+from django_resaas.saas.models.branch_user_group import BranchUserGroup
+from django_resaas.saas.models.group import Group
 
 from sales import services
 from sales.models import Payment
@@ -76,7 +76,9 @@ class SalesDashboardEngineTests(TestCase):
         self.assertEqual(response.status_code, 200, response.data)
         labels = response.data["data"]["labels"]
         values = response.data["data"]["series"][0]["data"]
-        self.assertEqual(values[labels.index("Paga")], 1)
+        # Sale.ESTADO_CHOICES's display labels are canonical English
+        # (see CLAUDE.md's LANGUAGE section) - "paga" -> "Paid".
+        self.assertEqual(values[labels.index("Paid")], 1)
 
     def test_pie_chart_pagamentos_por_forma(self):
         response = self.tenant["client"].get(

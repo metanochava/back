@@ -1,7 +1,7 @@
 from django.test import TestCase
 
-from django_resaas.engine.core.utils.group_creator import group_creator
-from django_resaas.engine.models.group import Group
+from django_resaas.saas.core.utils.group_creator import group_creator
+from django_resaas.saas.models.group import Group
 
 from inventory.profiles import INVENTORY_PROFILES
 from testutils.tenant import bootstrap_tenant

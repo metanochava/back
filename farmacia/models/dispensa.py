@@ -1,5 +1,5 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class Dispensa(BaseModel):
@@ -13,8 +13,8 @@ class Dispensa(BaseModel):
     ESTADO_ANULADA = "anulada"
 
     ESTADO_CHOICES = (
-        (ESTADO_CONCLUIDA, "Concluída"),
-        (ESTADO_ANULADA, "Anulada"),
+        (ESTADO_CONCLUIDA, "Completed"),
+        (ESTADO_ANULADA, "Voided"),
     )
 
     fila = models.ForeignKey(

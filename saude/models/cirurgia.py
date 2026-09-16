@@ -1,5 +1,5 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class Cirurgia(BaseModel):
@@ -55,10 +55,10 @@ class Cirurgia(BaseModel):
     estado = models.CharField(
         max_length=30,
         choices=[
-            ("agendada", "Agendada"),
-            ("em_realizacao", "Em Realização"),
-            ("concluida", "Concluída"),
-            ("cancelada", "Cancelada"),
+            ("agendada", "Scheduled"),
+            ("em_realizacao", "In Progress"),
+            ("concluida", "Completed"),
+            ("cancelada", "Cancelled"),
         ],
         default="agendada"
     )

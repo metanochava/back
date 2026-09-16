@@ -1,5 +1,5 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class Diagnostico(BaseModel):
@@ -21,9 +21,9 @@ class Diagnostico(BaseModel):
     tipo = models.CharField(
         max_length=30,
         choices=[
-            ("principal","Principal"),
-            ("secundario","Secundário"),
-            ("diferencial","Diferencial")
+            ("principal","Primary"),
+            ("secundario","Secondary"),
+            ("diferencial","Differential")
         ],
         default="principal"
     )

@@ -1,5 +1,5 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class Agenda(BaseModel):
@@ -45,13 +45,13 @@ class Agenda(BaseModel):
     estado = models.CharField(
         max_length=30,
         choices=[
-            ("marcada", "Marcada"),
-            ("confirmada", "Confirmada"),
-            ("em_espera", "Em Espera"),
-            ("em_atendimento", "Em Atendimento"),
-            ("concluida", "Concluída"),
-            ("cancelada", "Cancelada"),
-            ("faltou", "Faltou"),
+            ("marcada", "Scheduled"),
+            ("confirmada", "Confirmed"),
+            ("em_espera", "Waiting"),
+            ("em_atendimento", "In Progress"),
+            ("concluida", "Completed"),
+            ("cancelada", "Cancelled"),
+            ("faltou", "No-show"),
         ],
         default="marcada"
     )

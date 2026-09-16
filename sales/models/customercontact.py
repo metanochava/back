@@ -1,5 +1,5 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class CustomerContact(BaseModel):
@@ -9,9 +9,9 @@ class CustomerContact(BaseModel):
     ROLE_RESPONSAVEL = "responsavel"
 
     ROLE_CHOICES = (
-        (ROLE_COMPRADOR, "Comprador"),
-        (ROLE_FINANCEIRO, "Financeiro"),
-        (ROLE_RESPONSAVEL, "Responsável"),
+        (ROLE_COMPRADOR, "Buyer"),
+        (ROLE_FINANCEIRO, "Finance"),
+        (ROLE_RESPONSAVEL, "Responsible"),
     )
 
     customer = models.ForeignKey(

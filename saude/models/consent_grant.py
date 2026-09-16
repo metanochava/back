@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 
-from django_resaas.engine.core.base.models import TimeModel
+from django_resaas.saas.core.base.models import TimeModel
 
 
 class ConsentGrant(TimeModel):

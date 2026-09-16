@@ -7,9 +7,9 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 
-from django_resaas.engine.core.utils.group_creator import group_creator
-from django_resaas.engine.models.branch_user_group import BranchUserGroup
-from django_resaas.engine.models.group import Group
+from django_resaas.saas.core.utils.group_creator import group_creator
+from django_resaas.saas.models.branch_user_group import BranchUserGroup
+from django_resaas.saas.models.group import Group
 
 from saude.profiles import SAUDE_PROFILES, SAUDE_RENAME_FROM
 from testutils.tenant import bootstrap_tenant

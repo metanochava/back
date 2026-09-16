@@ -3,8 +3,8 @@ import os
 
 from django.db import models
 
-from django_resaas.engine.core.base.models import BaseModel
-from django_resaas.engine.core.utils import upload_path
+from django_resaas.saas.core.base.models import BaseModel
+from django_resaas.saas.core.utils import upload_path
 
 
 class ResultadoExameMedico(BaseModel):
@@ -13,8 +13,8 @@ class ResultadoExameMedico(BaseModel):
     FILE = "File"
 
     TIPO_CHOICES = (
-        (FOLDER, "Pasta"),
-        (FILE, "Ficheiro"),
+        (FOLDER, "Folder"),
+        (FILE, "File"),
     )
 
     paciente = models.ForeignKey(

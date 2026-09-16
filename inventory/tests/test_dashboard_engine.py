@@ -1,4 +1,4 @@
-"""Dashboard 'inventory' do motor genérico (django_resaas.engine.core.
+"""Dashboard 'inventory' do motor genérico (django_resaas.saas.core.
 dashboards) - inventory/dashboard.py + inventory/dashboard_providers.py.
 """
 from datetime import date
@@ -8,9 +8,9 @@ from rest_framework.test import APIClient
 
 from testutils.tenant import bootstrap_tenant
 
-from django_resaas.engine.core.tenant.context import ResaasContextService
-from django_resaas.engine.models.branch_user_group import BranchUserGroup
-from django_resaas.engine.models.group import Group
+from django_resaas.saas.core.tenant.context import ResaasContextService
+from django_resaas.saas.models.branch_user_group import BranchUserGroup
+from django_resaas.saas.models.group import Group
 
 from inventory import services
 from inventory.models import Product, StockMovement, Warehouse
@@ -93,7 +93,9 @@ class InventoryDashboardEngineTests(TestCase):
         self.assertEqual(response.status_code, 200, response.data)
         labels = response.data["data"]["labels"]
         values = response.data["data"]["series"][0]["data"]
-        self.assertEqual(values[labels.index("Entrada")], 1)
+        # StockMovement.TIPO_CHOICES's display labels are canonical
+        # English (see CLAUDE.md's LANGUAGE section) - "entrada" -> "Inbound".
+        self.assertEqual(values[labels.index("Inbound")], 1)
 
     def test_table_produtos_abaixo_minimo(self):
         _product(self.tenant, "Sem stock", estoque_minimo="5")

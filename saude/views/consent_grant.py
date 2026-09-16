@@ -1,7 +1,7 @@
 from django.db.models import Q
 
-from django_resaas.engine.core.base.views import BaseAPIView, registerView
-from django_resaas.engine.core.utils import fail
+from django_resaas.saas.core.base.views import BaseAPIView, registerView
+from django_resaas.saas.core.utils import fail
 
 from saude.models.consent_grant import ConsentGrant
 from saude.serializers.consent_grant import ConsentGrantSerializer

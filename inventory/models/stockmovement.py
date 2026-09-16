@@ -1,5 +1,5 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class StockMovement(BaseModel):
@@ -19,11 +19,11 @@ class StockMovement(BaseModel):
     TIPO_DEVOLUCAO = "devolucao"
 
     TIPO_CHOICES = (
-        (TIPO_ENTRADA, "Entrada"),
-        (TIPO_SAIDA, "Saída"),
-        (TIPO_AJUSTE, "Ajuste"),
-        (TIPO_TRANSFERENCIA, "Transferência"),
-        (TIPO_DEVOLUCAO, "Devolução"),
+        (TIPO_ENTRADA, "Inbound"),
+        (TIPO_SAIDA, "Outbound"),
+        (TIPO_AJUSTE, "Adjustment"),
+        (TIPO_TRANSFERENCIA, "Transfer"),
+        (TIPO_DEVOLUCAO, "Return"),
     )
 
     product = models.ForeignKey(

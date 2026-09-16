@@ -4,9 +4,9 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 
-from django_resaas.engine.core.base.views import BaseAPIView, registerView
-from django_resaas.engine.core.decorators import resaas_action
-from django_resaas.engine.core.utils import (
+from django_resaas.saas.core.base.views import BaseAPIView, registerView
+from django_resaas.saas.core.decorators import resaas_action
+from django_resaas.saas.core.utils import (
     PDF,
     all,
     fail,
@@ -14,9 +14,9 @@ from django_resaas.engine.core.utils import (
     make_qr_b64,
     png_bytes_to_b64,
 )
-from django_resaas.engine.data.user.serializers.user import UserSerializer
-from django_resaas.engine.models.entity import Entity
-from django_resaas.engine.models.person import Person
+from django_resaas.saas.data.user.serializers.user import UserSerializer
+from django_resaas.saas.models.entity import Entity
+from django_resaas.saas.models.person import Person
 
 from saude.models.consent_grant import ConsentGrant
 from saude.models.paciente import Paciente

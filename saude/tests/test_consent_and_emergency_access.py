@@ -6,8 +6,8 @@ from django.utils import timezone
 
 from testutils.tenant import bootstrap_tenant
 
-from django_resaas.engine.core.events import EventDispatcher
-from django_resaas.engine.models.person import Person
+from django_resaas.saas.core.events import EventDispatcher
+from django_resaas.saas.models.person import Person
 
 from saude.models.consent_grant import ConsentGrant
 from saude.models.emergency_access import EmergencyAccess

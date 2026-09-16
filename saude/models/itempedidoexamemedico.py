@@ -1,5 +1,5 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class ItemPedidoExameMedico(BaseModel):
@@ -31,8 +31,8 @@ class ItemPedidoExameMedico(BaseModel):
         max_length=20,
         choices=[
             ("normal", "Normal"),
-            ("urgente", "Urgente"),
-            ("muito_urgente", "Muito Urgente"),
+            ("urgente", "Urgent"),
+            ("muito_urgente", "Very Urgent"),
         ],
         default="normal"
     )
@@ -40,12 +40,12 @@ class ItemPedidoExameMedico(BaseModel):
     estado_exame = models.CharField(
         max_length=20,
         choices=[
-            ("pendente", "Pendente"),
-            ("agendado", "Agendado"),
-            ("colhido", "Colhido"),
-            ("processamento", "Em Processamento"),
-            ("concluido", "Concluído"),
-            ("cancelado", "Cancelado"),
+            ("pendente", "Pending"),
+            ("agendado", "Scheduled"),
+            ("colhido", "Collected"),
+            ("processamento", "Processing"),
+            ("concluido", "Completed"),
+            ("cancelado", "Cancelled"),
         ],
         default="pendente"
     )

@@ -15,17 +15,17 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from rest_framework.test import APIClient
 
-from django_resaas.engine.models.entity import Entity
-from django_resaas.engine.models.entity_type import EntityType
-from django_resaas.engine.models.branch import Branch
-from django_resaas.engine.models.entity_user import EntityUser
-from django_resaas.engine.models.branch_user import BranchUser
-from django_resaas.engine.models.branch_user_group import BranchUserGroup
-from django_resaas.engine.models.group import Group
-from django_resaas.engine.models.app import App
-from django_resaas.engine.models.entity_app import EntityApp
-from django_resaas.engine.models.user import User
-from django_resaas.engine.core.tenant.context import ResaasContextService
+from django_resaas.saas.models.entity import Entity
+from django_resaas.saas.models.entity_type import EntityType
+from django_resaas.saas.models.branch import Branch
+from django_resaas.saas.models.entity_user import EntityUser
+from django_resaas.saas.models.branch_user import BranchUser
+from django_resaas.saas.models.branch_user_group import BranchUserGroup
+from django_resaas.saas.models.group import Group
+from django_resaas.saas.models.app import App
+from django_resaas.saas.models.entity_app import EntityApp
+from django_resaas.saas.models.user import User
+from django_resaas.saas.core.tenant.context import ResaasContextService
 
 
 _counter = itertools.count(1)
@@ -40,7 +40,7 @@ CRUD_CODENAMES = [
 
 def _ensure_crud_permissions(group, app_labels):
     """
-    django_resaas.engine.core.signals.permissions.create_model_permissions (que
+    django_resaas.saas.core.signals.permissions.create_model_permissions (que
     normalmente cria e concede ao group 'Root' as permissões
     list_/view_/add_/change_/delete_/pdf_/pdf_list_/restore_/hard_delete_
     por model) tem `if not EntityType.objects.exists(): return` — ou

@@ -23,8 +23,8 @@ from decimal import Decimal
 from django.db import transaction, IntegrityError
 from django.core.exceptions import ValidationError
 
-from django_resaas.engine.models.app import App
-from django_resaas.engine.models.entity_app import EntityApp
+from django_resaas.saas.models.app import App
+from django_resaas.saas.models.entity_app import EntityApp
 
 from inventory.models import (
     Product,

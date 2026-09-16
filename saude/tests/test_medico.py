@@ -13,7 +13,7 @@ from django.test import TestCase
 
 from testutils.tenant import bootstrap_tenant
 
-from django_resaas.engine.models.person import Person
+from django_resaas.saas.models.person import Person
 from django_resaas.hr.models.employee import Employee
 
 from saude.models.medico import Medico

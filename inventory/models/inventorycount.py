@@ -1,5 +1,5 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class InventoryCount(BaseModel):
@@ -8,8 +8,8 @@ class InventoryCount(BaseModel):
     ESTADO_CONCLUIDO = "concluido"
 
     ESTADO_CHOICES = (
-        (ESTADO_ABERTO, "Aberto"),
-        (ESTADO_CONCLUIDO, "Concluído"),
+        (ESTADO_ABERTO, "Open"),
+        (ESTADO_CONCLUIDO, "Completed"),
     )
 
     warehouse = models.ForeignKey(

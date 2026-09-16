@@ -1,5 +1,5 @@
 from django.db import models
-from django_resaas.engine.core.base.models import BaseModel
+from django_resaas.saas.core.base.models import BaseModel
 
 
 class DadoVital(BaseModel):
@@ -35,10 +35,10 @@ class DadoVital(BaseModel):
     tipo = models.CharField(
         max_length=20,
         choices=[
-            ("triagem", "Triagem"),
-            ("consulta", "Consulta"),
-            ("internamento", "Internamento"),
-            ("urgencia", "Urgência"),
+            ("triagem", "Triage"),
+            ("consulta", "Consultation"),
+            ("internamento", "Inpatient"),
+            ("urgencia", "Emergency"),
         ],
         default="consulta"
     )
@@ -134,10 +134,10 @@ class DadoVital(BaseModel):
     estado_consciencia = models.CharField(
         max_length=20,
         choices=[
-            ("alerta", "Alerta"),
-            ("sonolento", "Sonolento"),
-            ("confuso", "Confuso"),
-            ("inconsciente", "Inconsciente"),
+            ("alerta", "Alert"),
+            ("sonolento", "Drowsy"),
+            ("confuso", "Confused"),
+            ("inconsciente", "Unconscious"),
         ],
         null=True,
         blank=True

@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
-from django_resaas.engine.core.events import EventDispatcher
+from django_resaas.saas.core.events import EventDispatcher
 
 from saude.models.emergency_access import EmergencyAccess
 

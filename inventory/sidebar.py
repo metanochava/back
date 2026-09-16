@@ -13,19 +13,19 @@ ALL = [{
     # 📦 CATÁLOGO
     {
         "icon": "inventory_2",
-        "menu": "Produtos",
+        "menu": "Products",
         "role": "list_product",
         "route": "list_product",
     },
     {
         "icon": "category",
-        "menu": "Categorias de Produto",
+        "menu": "Product Categories",
         "role": "list_productcategory",
         "route": "list_productcategory",
     },
     {
         "icon": "warehouse",
-        "menu": "Armazéns",
+        "menu": "Warehouses",
         "role": "list_warehouse",
         "route": "list_warehouse",
     },
@@ -33,19 +33,19 @@ ALL = [{
     # 📊 STOCK
     {
         "icon": "inventory",
-        "menu": "Saldo de Stock",
+        "menu": "Stock Balance",
         "role": "list_stockitem",
         "route": "list_stockitem",
     },
     {
         "icon": "receipt_long",
-        "menu": "Movimentos de Stock",
+        "menu": "Stock Movements",
         "role": "list_stockmovement",
         "route": "list_stockmovement",
     },
     {
         "icon": "fact_check",
-        "menu": "Contagens Físicas",
+        "menu": "Physical Counts",
         "role": "list_inventorycount",
         "route": "list_inventorycount",
     },
@@ -53,7 +53,7 @@ ALL = [{
     # ⚙️ CONFIGURAÇÃO
     {
         "icon": "settings",
-        "menu": "Configurações",
+        "menu": "Settings",
         "role": "list_inventorysetting",
         "route": "list_inventorysetting",
     },

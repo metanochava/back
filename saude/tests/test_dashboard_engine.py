@@ -1,4 +1,4 @@
-"""Dashboard clínico do motor genérico (django_resaas.engine.core.
+"""Dashboard clínico do motor genérico (django_resaas.saas.core.
 dashboards) - saude/dashboard.py + saude/dashboard_providers.py.
 
 Cobre: os 7 tipos de widget com dados reais, protecção por permissão
@@ -14,11 +14,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from rest_framework.test import APIClient
 
-from django_resaas.engine.core.tenant.context import ResaasContextService
-from django_resaas.engine.models.branch_user_group import BranchUserGroup
-from django_resaas.engine.models.entity import Entity
-from django_resaas.engine.models.group import Group
-from django_resaas.engine.models.person import Person
+from django_resaas.saas.core.tenant.context import ResaasContextService
+from django_resaas.saas.models.branch_user_group import BranchUserGroup
+from django_resaas.saas.models.entity import Entity
+from django_resaas.saas.models.group import Group
+from django_resaas.saas.models.person import Person
 
 from testutils.tenant import bootstrap_tenant
 
@@ -116,7 +116,9 @@ class SaudeDashboardWidgetsTests(TestCase):
         labels = response.data["data"]["labels"]
         values = response.data["data"]["series"][0]["data"]
         self.assertEqual(sum(values), 3)
-        self.assertIn("Confirmada", labels)
+        # Agenda.estado's display labels are canonical English (see
+        # CLAUDE.md's LANGUAGE section) - "confirmada" -> "Confirmed".
+        self.assertIn("Confirmed", labels)
 
     def test_pie_chart_widget_groups_patients_by_gender(self):
         response = self.tenant["client"].get(

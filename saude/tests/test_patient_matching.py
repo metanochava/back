@@ -2,7 +2,7 @@ from django.test import TestCase
 
 from testutils.tenant import bootstrap_tenant
 
-from django_resaas.engine.models.person import Person
+from django_resaas.saas.models.person import Person
 
 from saude.models.paciente import Paciente
 from saude.models.patient_identifier import PatientIdentifier
@@ -140,9 +140,9 @@ class SearchCandidatesEndpointTests(TestCase):
         # django_resaas testa "sem permissão" (ver
         # engine/tests/test_base_api_view.py), usamos aqui um Group
         # "Guest" à parte, sem nenhuma permissão concedida.
-        from django_resaas.engine.core.tenant.context import ResaasContextService
-        from django_resaas.engine.models.branch_user_group import BranchUserGroup
-        from django_resaas.engine.models.group import Group
+        from django_resaas.saas.core.tenant.context import ResaasContextService
+        from django_resaas.saas.models.branch_user_group import BranchUserGroup
+        from django_resaas.saas.models.group import Group
         from rest_framework.test import APIClient
 
         guest_group, _ = Group.objects.get_or_create(name="Guest")

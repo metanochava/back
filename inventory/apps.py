@@ -13,12 +13,12 @@ def create_inventory_groups(sender, **kwargs):
     if kwargs.get("app_config").name != "inventory":
         return
 
-    from django_resaas.engine.models.entity_type import EntityType
+    from django_resaas.saas.models.entity_type import EntityType
 
     if not EntityType.objects.exists():
         return
 
-    from django_resaas.engine.core.utils.group_creator import group_creator
+    from django_resaas.saas.core.utils.group_creator import group_creator
     from inventory.profiles import INVENTORY_PROFILES
 
     group_creator(INVENTORY_PROFILES)
@@ -32,7 +32,7 @@ class InventoryConfig(AppConfig):
         """
         Auto-carrega todas as views do módulo para que o decorator
         @registerView corra e popule VIEW_REGISTRY (consumido por
-        django_resaas.engine.core.utils.autoload_urls.build_saas_urls()).
+        django_resaas.saas.core.utils.autoload_urls.build_saas_urls()).
         """
 
         from .signals import create_inventory_dashboard_permissions
