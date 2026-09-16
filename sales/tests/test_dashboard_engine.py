@@ -76,7 +76,9 @@ class SalesDashboardEngineTests(TestCase):
         self.assertEqual(response.status_code, 200, response.data)
         labels = response.data["data"]["labels"]
         values = response.data["data"]["series"][0]["data"]
-        self.assertEqual(values[labels.index("Paga")], 1)
+        # Sale.ESTADO_CHOICES's display labels are canonical English
+        # (see CLAUDE.md's LANGUAGE section) - "paga" -> "Paid".
+        self.assertEqual(values[labels.index("Paid")], 1)
 
     def test_pie_chart_pagamentos_por_forma(self):
         response = self.tenant["client"].get(

@@ -93,7 +93,9 @@ class InventoryDashboardEngineTests(TestCase):
         self.assertEqual(response.status_code, 200, response.data)
         labels = response.data["data"]["labels"]
         values = response.data["data"]["series"][0]["data"]
-        self.assertEqual(values[labels.index("Entrada")], 1)
+        # StockMovement.TIPO_CHOICES's display labels are canonical
+        # English (see CLAUDE.md's LANGUAGE section) - "entrada" -> "Inbound".
+        self.assertEqual(values[labels.index("Inbound")], 1)
 
     def test_table_produtos_abaixo_minimo(self):
         _product(self.tenant, "Sem stock", estoque_minimo="5")

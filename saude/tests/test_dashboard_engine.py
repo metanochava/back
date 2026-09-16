@@ -116,7 +116,9 @@ class SaudeDashboardWidgetsTests(TestCase):
         labels = response.data["data"]["labels"]
         values = response.data["data"]["series"][0]["data"]
         self.assertEqual(sum(values), 3)
-        self.assertIn("Confirmada", labels)
+        # Agenda.estado's display labels are canonical English (see
+        # CLAUDE.md's LANGUAGE section) - "confirmada" -> "Confirmed".
+        self.assertIn("Confirmed", labels)
 
     def test_pie_chart_widget_groups_patients_by_gender(self):
         response = self.tenant["client"].get(

@@ -17,14 +17,14 @@ class Payment(BaseModel):
     FORMA_OUTRO = "outro"
 
     FORMA_CHOICES = (
-        (FORMA_NUMERARIO, "Numerário"),
+        (FORMA_NUMERARIO, "Cash"),
         (FORMA_MPESA, "M-Pesa"),
         (FORMA_EMOLA, "e-Mola"),
         (FORMA_MKESH, "mKesh"),
-        (FORMA_CARTAO, "Cartão (Multicaixa/POS)"),
-        (FORMA_TRANSFERENCIA, "Transferência Bancária"),
+        (FORMA_CARTAO, "Card (Multicaixa/POS)"),
+        (FORMA_TRANSFERENCIA, "Bank Transfer"),
         (FORMA_CHEQUE, "Cheque"),
-        (FORMA_OUTRO, "Outro"),
+        (FORMA_OUTRO, "Other"),
     )
 
     sale = models.ForeignKey(

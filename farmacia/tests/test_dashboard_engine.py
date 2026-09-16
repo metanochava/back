@@ -121,15 +121,19 @@ class FarmaciaDashboardEngineTests(TestCase):
         self.assertEqual(response.status_code, 200, response.data)
         labels = response.data["data"]["labels"]
         values = response.data["data"]["series"][0]["data"]
-        self.assertEqual(values[labels.index("Pendente")], 1)
-        self.assertEqual(values[labels.index("Dispensada")], 1)
+        # FilaFarmacia.ESTADO_CHOICES's display labels are canonical
+        # English (see CLAUDE.md's LANGUAGE section).
+        self.assertEqual(values[labels.index("Pending")], 1)
+        self.assertEqual(values[labels.index("Dispensed")], 1)
 
     def test_pie_chart_dispensas_por_estado(self):
         response = self.tenant["client"].get(
             "/api/django_resaas/dashboard/farmacia/widget/dispensas_por_estado/?format=json"
         )
         self.assertEqual(response.status_code, 200, response.data)
-        self.assertIn("Concluída", response.data["data"]["labels"])
+        # Dispensa.ESTADO_CHOICES's display labels are canonical
+        # English (see CLAUDE.md's LANGUAGE section).
+        self.assertIn("Completed", response.data["data"]["labels"])
 
     def test_table_fila_pendente_tabela(self):
         response = self.tenant["client"].get(

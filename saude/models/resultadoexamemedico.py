@@ -13,8 +13,8 @@ class ResultadoExameMedico(BaseModel):
     FILE = "File"
 
     TIPO_CHOICES = (
-        (FOLDER, "Pasta"),
-        (FILE, "Ficheiro"),
+        (FOLDER, "Folder"),
+        (FILE, "File"),
     )
 
     paciente = models.ForeignKey(

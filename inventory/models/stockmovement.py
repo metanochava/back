@@ -19,11 +19,11 @@ class StockMovement(BaseModel):
     TIPO_DEVOLUCAO = "devolucao"
 
     TIPO_CHOICES = (
-        (TIPO_ENTRADA, "Entrada"),
-        (TIPO_SAIDA, "Saída"),
-        (TIPO_AJUSTE, "Ajuste"),
-        (TIPO_TRANSFERENCIA, "Transferência"),
-        (TIPO_DEVOLUCAO, "Devolução"),
+        (TIPO_ENTRADA, "Inbound"),
+        (TIPO_SAIDA, "Outbound"),
+        (TIPO_AJUSTE, "Adjustment"),
+        (TIPO_TRANSFERENCIA, "Transfer"),
+        (TIPO_DEVOLUCAO, "Return"),
     )
 
     product = models.ForeignKey(

@@ -9,9 +9,9 @@ class CustomerContact(BaseModel):
     ROLE_RESPONSAVEL = "responsavel"
 
     ROLE_CHOICES = (
-        (ROLE_COMPRADOR, "Comprador"),
-        (ROLE_FINANCEIRO, "Financeiro"),
-        (ROLE_RESPONSAVEL, "Responsável"),
+        (ROLE_COMPRADOR, "Buyer"),
+        (ROLE_FINANCEIRO, "Finance"),
+        (ROLE_RESPONSAVEL, "Responsible"),
     )
 
     customer = models.ForeignKey(

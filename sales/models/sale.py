@@ -14,10 +14,10 @@ class Sale(BaseModel):
     ESTADO_ANULADA = "anulada"
 
     ESTADO_CHOICES = (
-        (ESTADO_RASCUNHO, "Rascunho"),
-        (ESTADO_CONFIRMADA, "Confirmada"),
-        (ESTADO_PAGA, "Paga"),
-        (ESTADO_ANULADA, "Anulada"),
+        (ESTADO_RASCUNHO, "Draft"),
+        (ESTADO_CONFIRMADA, "Confirmed"),
+        (ESTADO_PAGA, "Paid"),
+        (ESTADO_ANULADA, "Voided"),
     )
 
     customer = models.ForeignKey(

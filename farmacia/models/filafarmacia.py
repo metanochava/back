@@ -19,13 +19,13 @@ class FilaFarmacia(BaseModel):
     ESTADO_CANCELADA = "cancelada"
 
     ESTADO_CHOICES = (
-        (ESTADO_PENDENTE, "Pendente"),
-        (ESTADO_EM_REVISAO, "Em Revisão"),
-        (ESTADO_APROVADA, "Aprovada"),
-        (ESTADO_REJEITADA, "Rejeitada"),
-        (ESTADO_DISPENSADA_PARCIAL, "Dispensada Parcialmente"),
-        (ESTADO_DISPENSADA, "Dispensada"),
-        (ESTADO_CANCELADA, "Cancelada"),
+        (ESTADO_PENDENTE, "Pending"),
+        (ESTADO_EM_REVISAO, "Under Review"),
+        (ESTADO_APROVADA, "Approved"),
+        (ESTADO_REJEITADA, "Rejected"),
+        (ESTADO_DISPENSADA_PARCIAL, "Partially Dispensed"),
+        (ESTADO_DISPENSADA, "Dispensed"),
+        (ESTADO_CANCELADA, "Cancelled"),
     )
 
     receita = models.ForeignKey(

@@ -8,8 +8,8 @@ class InventoryCount(BaseModel):
     ESTADO_CONCLUIDO = "concluido"
 
     ESTADO_CHOICES = (
-        (ESTADO_ABERTO, "Aberto"),
-        (ESTADO_CONCLUIDO, "Concluído"),
+        (ESTADO_ABERTO, "Open"),
+        (ESTADO_CONCLUIDO, "Completed"),
     )
 
     warehouse = models.ForeignKey(

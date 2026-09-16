@@ -13,8 +13,8 @@ class Dispensa(BaseModel):
     ESTADO_ANULADA = "anulada"
 
     ESTADO_CHOICES = (
-        (ESTADO_CONCLUIDA, "Concluída"),
-        (ESTADO_ANULADA, "Anulada"),
+        (ESTADO_CONCLUIDA, "Completed"),
+        (ESTADO_ANULADA, "Voided"),
     )
 
     fila = models.ForeignKey(

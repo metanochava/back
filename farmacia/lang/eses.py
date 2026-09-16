@@ -1,7 +1,16 @@
 key_value = {
 
+    "Approved": "Aprobada",
     "Batch": "Lote",
+    "Cancelled": "Cancelada",
+    "Completed": "Completada",
+    "Dispensed": "Dispensada",
+    "Partially Dispensed": "Dispensada Parcialmente",
+    "Pending": "Pendiente",
     "Period": "Período",
+    "Rejected": "Rechazada",
+    "Under Review": "En Revisión",
+    "Voided": "Anulada",
     "Dispensation": "Dispensación",
     "Dispensations": "Dispensaciones",
     "Dispensations by Status": "Dispensaciones por Estado",

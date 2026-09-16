@@ -6,10 +6,16 @@ English. This guards the backend side: sidebar.py's menu values and
 dashboard.py's widget/filter labels reach tdc()/Translate.tdc() as
 lookup keys and must be canonical English, translated into
 pt-pt/fr-fr/es-es (via inventory's own lang/<code>.py, or the shared
-saas core one)."""
+saas core one). Also covers every model field's `choices=` display
+labels, auto-discovered via Django's app registry rather than a
+hand-maintained list - a hand-maintained list is exactly what let
+InventoryCount.ESTADO_CHOICES/StockMovement.TIPO_CHOICES slip through
+the first translation pass, since `choices=SOME_CONSTANT` doesn't
+match a naive `choices=\\[` grep."""
 import re
 
 import pytest
+from django.apps import apps
 
 from inventory.sidebar import ALL as INVENTORY_SIDEBAR
 from inventory.dashboard import DASHBOARD as INVENTORY_DASHBOARD
@@ -49,9 +55,21 @@ def _dashboard_text(node):
             yield from _dashboard_text(item)
 
 
+def _choice_labels():
+    for Model in apps.get_app_config("inventory").get_models():
+        for field in Model._meta.get_fields():
+            choices = getattr(field, "choices", None)
+            if not choices:
+                continue
+            for _, label in choices:
+                if isinstance(label, str):
+                    yield label
+
+
 ALL_LABELS = sorted(set(
     list(_sidebar_menu_labels(INVENTORY_SIDEBAR))
     + list(_dashboard_text(INVENTORY_DASHBOARD))
+    + list(_choice_labels())
 ))
 
 

@@ -22,7 +22,7 @@ class Customer(BaseModel):
 
     TYPE_CHOICES = (
         (TYPE_INDIVIDUAL, "Individual"),
-        (TYPE_COMPANY, "Empresa"),
+        (TYPE_COMPANY, "Company"),
     )
 
     customer_type = models.CharField(

@@ -4,25 +4,22 @@ Portuguese as the tdc() canonical key throughout - the opposite of
 CLAUDE.md's "English is the canonical source language" rule. All tdc()
 keys were rewritten to English; this test guards the backend side of
 that fix: sidebar.py's menu values, dashboard.py's widget/filter
-labels and tooltips, and the model `choices=` display labels that feed
-the dashboard's status filter and appear in the schema - all reach
-tdc()/Translate.tdc() as lookup keys and must be canonical English,
-translated into pt-pt/fr-fr/es-es (via saude's own lang/<code>.py, or
-the shared saas core one)."""
+labels and tooltips, and every model field's `choices=` display labels
+(auto-discovered via Django's app registry, not a hand-maintained list
+- a hand-maintained list is exactly what let saude/farmacia/inventory/
+sales' named CHOICES constants like FilaFarmacia.ESTADO_CHOICES or
+HorarioMedico.DIA_SEMANA_CHOICES slip through the first pass, since
+`choices=SOME_CONSTANT` doesn't match a naive `choices=\\[` grep) - all
+reach tdc()/Translate.tdc() as lookup keys and must be canonical
+English, translated into pt-pt/fr-fr/es-es (via saude's own
+lang/<code>.py, or the shared saas core one)."""
 import re
 
 import pytest
+from django.apps import apps
 
 from saude.sidebar import ALL as SAUDE_SIDEBAR
 from saude.dashboard import DASHBOARD as SAUDE_DASHBOARD
-from saude.models.agenda import Agenda
-from saude.models.alergiamedicamentosa import AlergiaMedicamentosa
-from saude.models.cirurgia import Cirurgia
-from saude.models.internamento import Internamento
-from saude.models.diagnostico import Diagnostico
-from saude.models.itempedidoexamemedico import ItemPedidoExameMedico
-from saude.models.dadovital import DadoVital
-from saude.models.observacaoclinica import ObservacaoClinica
 from saude.lang import ptpt as saude_ptpt
 from saude.lang import frfr as saude_frfr
 from saude.lang import eses as saude_eses
@@ -37,19 +34,6 @@ NON_ENGLISH_CHARS = re.compile(r"[àâãçéêíóôõúÀ-ÿ]")
 PT = {**saas_ptpt.key_value, **saude_ptpt.key_value}
 FR = {**saas_frfr.key_value, **saude_frfr.key_value}
 ES = {**saas_eses.key_value, **saude_eses.key_value}
-
-CHOICE_FIELDS = [
-    (Agenda, "estado"),
-    (AlergiaMedicamentosa, "gravidade"),
-    (Cirurgia, "estado"),
-    (Internamento, "estado"),
-    (Diagnostico, "tipo"),
-    (ItemPedidoExameMedico, "prioridade"),
-    (ItemPedidoExameMedico, "estado_exame"),
-    (DadoVital, "tipo"),
-    (DadoVital, "estado_consciencia"),
-    (ObservacaoClinica, "tipo"),
-]
 
 
 def _sidebar_menu_labels(entries):
@@ -73,9 +57,14 @@ def _dashboard_text(node):
 
 
 def _choice_labels():
-    for Model, field_name in CHOICE_FIELDS:
-        for _, label in Model._meta.get_field(field_name).choices:
-            yield label
+    for Model in apps.get_app_config("saude").get_models():
+        for field in Model._meta.get_fields():
+            choices = getattr(field, "choices", None)
+            if not choices:
+                continue
+            for _, label in choices:
+                if isinstance(label, str):
+                    yield label
 
 
 ALL_LABELS = sorted(set(
