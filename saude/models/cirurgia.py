@@ -55,10 +55,10 @@ class Cirurgia(BaseModel):
     estado = models.CharField(
         max_length=30,
         choices=[
-            ("agendada", "Agendada"),
-            ("em_realizacao", "Em Realização"),
-            ("concluida", "Concluída"),
-            ("cancelada", "Cancelada"),
+            ("agendada", "Scheduled"),
+            ("em_realizacao", "In Progress"),
+            ("concluida", "Completed"),
+            ("cancelada", "Cancelled"),
         ],
         default="agendada"
     )

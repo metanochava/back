@@ -12,13 +12,13 @@ ALL = [{
     # 💊 FILA / DISPENSAÇÃO
     {
         "icon": "fact_check",
-        "menu": "Fila de Farmácia",
+        "menu": "Pharmacy Queue",
         "role": "list_filafarmacia",
         "route": "list_filafarmacia",
     },
     {
         "icon": "medication",
-        "menu": "Dispensas",
+        "menu": "Dispensations",
         "role": "list_dispensa",
         "route": "list_dispensa",
     },

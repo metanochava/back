@@ -16,7 +16,7 @@ DASHBOARD = {
     "schema_version": "1.0",
 
     "name": "sales",
-    "label": "Vendas",
+    "label": "Sales",
     "icon": "point_of_sale",
     "route": "dashboard_sales",
     "order": 30,
@@ -33,7 +33,7 @@ DASHBOARD = {
         {
             "name": "period",
             "type": "date_range",
-            "label": "Período",
+            "label": "Period",
             "scope": "global",
         },
     ],
@@ -42,7 +42,7 @@ DASHBOARD = {
         {
             "name": "resumo_periodo",
             "type": "stat",
-            "label": "Receita do período",
+            "label": "Revenue for the Period",
             "icon": "payments",
             "color": "positive",
             "provider": "sales.period_summary",
@@ -57,7 +57,7 @@ DASHBOARD = {
         {
             "name": "vendas_por_estado",
             "type": "bar_chart",
-            "label": "Vendas por estado",
+            "label": "Sales by Status",
             "provider": "sales.sales_by_status",
             "permissions": ["view_dashboard_sales"],
             "permission_mode": "all",
@@ -70,7 +70,7 @@ DASHBOARD = {
         {
             "name": "receita_por_dia",
             "type": "line_chart",
-            "label": "Receita por dia",
+            "label": "Revenue per Day",
             "provider": "sales.revenue_by_day",
             "permissions": ["view_dashboard_sales"],
             "permission_mode": "all",
@@ -83,7 +83,7 @@ DASHBOARD = {
         {
             "name": "pagamentos_por_forma",
             "type": "pie_chart",
-            "label": "Pagamentos por método",
+            "label": "Payments by Method",
             "provider": "sales.payments_by_method",
             "permissions": ["view_dashboard_sales"],
             "permission_mode": "all",
@@ -96,7 +96,7 @@ DASHBOARD = {
         {
             "name": "top_produtos",
             "type": "table",
-            "label": "Produtos mais vendidos",
+            "label": "Top Selling Products",
             "provider": "sales.top_products",
             "permissions": ["view_dashboard_sales"],
             "permission_mode": "all",
@@ -109,7 +109,7 @@ DASHBOARD = {
         {
             "name": "vendas_recentes",
             "type": "list",
-            "label": "Vendas recentes",
+            "label": "Recent Sales",
             "provider": "sales.recent_sales",
             "permissions": ["view_dashboard_sales"],
             "permission_mode": "all",

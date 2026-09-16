@@ -20,7 +20,7 @@ DASHBOARD = {
     "schema_version": "1.0",
 
     "name": "farmacia",
-    "label": "Farmácia",
+    "label": "Pharmacy",
     "icon": "local_pharmacy",
     "route": "dashboard_farmacia",
     "order": 40,
@@ -37,7 +37,7 @@ DASHBOARD = {
         {
             "name": "period",
             "type": "date_range",
-            "label": "Período",
+            "label": "Period",
             "scope": "global",
         },
     ],
@@ -46,7 +46,7 @@ DASHBOARD = {
         {
             "name": "fila_pendente",
             "type": "stat",
-            "label": "Fila pendente",
+            "label": "Pending Queue",
             "icon": "fact_check",
             "color": "warning",
             "provider": "farmacia.pending_queue",
@@ -61,7 +61,7 @@ DASHBOARD = {
         {
             "name": "fila_por_estado",
             "type": "bar_chart",
-            "label": "Fila por estado",
+            "label": "Queue by Status",
             "provider": "farmacia.queue_by_status",
             "permissions": ["view_farmacia_dashboard"],
             "permission_mode": "all",
@@ -74,7 +74,7 @@ DASHBOARD = {
         {
             "name": "dispensas_por_dia",
             "type": "line_chart",
-            "label": "Dispensas por dia",
+            "label": "Dispensations per Day",
             "provider": "farmacia.dispensations_by_day",
             "permissions": ["view_farmacia_dashboard"],
             "permission_mode": "all",
@@ -87,7 +87,7 @@ DASHBOARD = {
         {
             "name": "dispensas_por_estado",
             "type": "pie_chart",
-            "label": "Dispensas por estado",
+            "label": "Dispensations by Status",
             "provider": "farmacia.dispensations_by_status",
             "permissions": ["view_farmacia_dashboard"],
             "permission_mode": "all",
@@ -100,7 +100,7 @@ DASHBOARD = {
         {
             "name": "fila_pendente_tabela",
             "type": "table",
-            "label": "Fila pendente",
+            "label": "Pending Queue",
             "provider": "farmacia.pending_queue_table",
             "permissions": ["view_farmacia_dashboard"],
             "permission_mode": "all",
@@ -113,7 +113,7 @@ DASHBOARD = {
         {
             "name": "dispensas_recentes",
             "type": "list",
-            "label": "Dispensas recentes",
+            "label": "Recent Dispensations",
             "provider": "farmacia.recent_dispensations",
             "permissions": ["view_farmacia_dashboard"],
             "permission_mode": "all",

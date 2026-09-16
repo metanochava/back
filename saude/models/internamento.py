@@ -43,11 +43,11 @@ class Internamento(BaseModel):
     estado = models.CharField(
         max_length=30,
         choices=[
-            ("ativo", "Activo"),
-            ("alta", "Alta"),
-            ("transferido", "Transferido"),
-            ("obito", "Óbito"),
-            ("cancelado", "Cancelado"),
+            ("ativo", "Active"),
+            ("alta", "Discharged"),
+            ("transferido", "Transferred"),
+            ("obito", "Deceased"),
+            ("cancelado", "Cancelled"),
         ],
         default="ativo"
     )

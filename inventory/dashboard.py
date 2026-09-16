@@ -18,7 +18,7 @@ DASHBOARD = {
     "schema_version": "1.0",
 
     "name": "inventory",
-    "label": "Inventário",
+    "label": "Inventory",
     "icon": "inventory_2",
     "route": "dashboard_inventory",
     "order": 20,
@@ -35,13 +35,13 @@ DASHBOARD = {
         {
             "name": "period",
             "type": "date_range",
-            "label": "Período",
+            "label": "Period",
             "scope": "global",
         },
         {
             "name": "warehouse",
             "type": "select",
-            "label": "Armazém",
+            "label": "Warehouse",
             "scope": "global",
             "clearable": True,
             "options_provider": "inventory.warehouse_options",
@@ -52,7 +52,7 @@ DASHBOARD = {
         {
             "name": "valor_total_stock",
             "type": "stat",
-            "label": "Valor total em stock",
+            "label": "Total Stock Value",
             "icon": "payments",
             "color": "primary",
             "provider": "inventory.total_stock_value",
@@ -67,7 +67,7 @@ DASHBOARD = {
         {
             "name": "valor_por_armazem",
             "type": "bar_chart",
-            "label": "Valor em stock por armazém",
+            "label": "Stock Value by Warehouse",
             "provider": "inventory.value_by_warehouse",
             "permissions": ["view_dashboard_inventory"],
             "permission_mode": "all",
@@ -80,7 +80,7 @@ DASHBOARD = {
         {
             "name": "movimentos_por_dia",
             "type": "line_chart",
-            "label": "Movimentos por dia",
+            "label": "Movements per Day",
             "provider": "inventory.movements_by_day",
             "permissions": ["view_dashboard_inventory"],
             "permission_mode": "all",
@@ -93,7 +93,7 @@ DASHBOARD = {
         {
             "name": "movimentos_por_tipo",
             "type": "pie_chart",
-            "label": "Movimentos por tipo",
+            "label": "Movements by Type",
             "provider": "inventory.movements_by_type",
             "permissions": ["view_dashboard_inventory"],
             "permission_mode": "all",
@@ -106,7 +106,7 @@ DASHBOARD = {
         {
             "name": "produtos_abaixo_minimo",
             "type": "table",
-            "label": "Produtos abaixo do stock mínimo",
+            "label": "Products Below Minimum Stock",
             "provider": "inventory.products_below_minimum",
             "permissions": ["view_dashboard_inventory"],
             "permission_mode": "all",
@@ -119,7 +119,7 @@ DASHBOARD = {
         {
             "name": "movimentos_recentes",
             "type": "list",
-            "label": "Movimentos recentes",
+            "label": "Recent Movements",
             "provider": "inventory.recent_movements",
             "permissions": ["view_dashboard_inventory"],
             "permission_mode": "all",

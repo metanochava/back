@@ -16,7 +16,7 @@ ALL = [{
     # já existentes mais abaixo - ver docs/architecture/dashboards.md)
     {
         "icon": "medical_services",
-        "menu": "Clínica",
+        "menu": "Clinic",
         "role": "view_dashboard_saude_clinica",
         "route": "dashboard_saude_clinica",
     },
@@ -26,7 +26,7 @@ ALL = [{
         "add_role": "add_paciente",
         "add_route": "add_paciente",
         "icon": "person",
-        "menu": "Paciente",
+        "menu": "Patient",
         "role": "list_paciente",
         "route": "list_paciente",
     },
@@ -36,7 +36,7 @@ ALL = [{
         "add_role": "add_consulta",
         "add_route": "add_consulta",
         "icon": "health_and_safety",
-        "menu": "Consulta",
+        "menu": "Consultation",
         "role": "list_consulta",
         "route": "list_consulta",
     },
@@ -46,7 +46,7 @@ ALL = [{
         "add_role": "add_medico",
         "add_route": "add_medico",
         "icon": "medical_services",
-        "menu": "Medico",
+        "menu": "Doctor",
         "role": "list_medico",
         "route": "list_medico",
     },
@@ -56,7 +56,7 @@ ALL = [{
         "add_role": "add_horariomedico",
         "add_route": "add_horariomedico",
         "icon": "schedule",
-        "menu": "HorarioMedico",
+        "menu": "Doctor Schedule",
         "role": "list_horariomedico",
         "route": "list_horariomedico",
     },
@@ -64,7 +64,7 @@ ALL = [{
     # 💊 MEDICAÇÃO (grupo: gerador de menu suporta "submenu" aninhado,
     # ver "Dev" em django_resaas/engine/sidebar.py)
     {
-        "menu": "Medicação",
+        "menu": "Medication",
         "icon": "medication",
         "role": "list_receitamedica",
         "submenu": [
@@ -78,7 +78,7 @@ ALL = [{
                 "add_role": "add_receitamedica",
                 "add_route": "add_receitamedica",
                 "icon": "medication",
-                "menu": "ReceitaMedica",
+                "menu": "Prescription",
                 "role": "list_receitamedica",
                 "route": "list_receitamedica",
             },
@@ -86,7 +86,7 @@ ALL = [{
                 "add_role": "add_medicamento",
                 "add_route": "add_medicamento",
                 "icon": "vaccines",
-                "menu": "Medicamento",
+                "menu": "Medicine",
                 "role": "list_medicamento",
                 "route": "list_medicamento",
             },
@@ -94,7 +94,7 @@ ALL = [{
                 "add_role": "add_medicacaocorrente",
                 "add_route": "add_medicacaocorrente",
                 "icon": "medication_liquid",
-                "menu": "MedicacaoMorrente",
+                "menu": "Current Medication",
                 "role": "list_medicacaocorrente",
                 "route": "list_medicacaocorrente",
             },
@@ -103,7 +103,7 @@ ALL = [{
 
     # 📄 DOCUMENTOS MÉDICOS (grupo)
     {
-        "menu": "Documentos Médicos",
+        "menu": "Medical Documents",
         "icon": "assignment",
         "role": "list_atestadomedico",
         "submenu": [
@@ -117,7 +117,7 @@ ALL = [{
                 "add_role": "add_atestadomedico",
                 "add_route": "add_atestadomedico",
                 "icon": "assignment",
-                "menu": "AtestadoMedico",
+                "menu": "Medical Certificate",
                 "role": "list_atestadomedico",
                 "route": "list_atestadomedico",
             },
@@ -125,7 +125,7 @@ ALL = [{
                 "add_role": "add_relatoriomedico",
                 "add_route": "add_relatoriomedico",
                 "icon": "description",
-                "menu": "RelatorioMedico",
+                "menu": "Medical Report",
                 "role": "list_relatoriomedico",
                 "route": "list_relatoriomedico",
             },
@@ -133,7 +133,7 @@ ALL = [{
                 "add_role": "add_guiatransferencia",
                 "add_route": "add_guiatransferencia",
                 "icon": "transfer_within_a_station",
-                "menu": "GuiaTransferencia",
+                "menu": "Transfer Referral",
                 "role": "list_guiatransferencia",
                 "route": "list_guiatransferencia",
             },
@@ -142,7 +142,7 @@ ALL = [{
 
     # 🧪 EXAMES (grupo)
     {
-        "menu": "Exames",
+        "menu": "Exams",
         "icon": "biotech",
         "role": "list_pedidoexamemedico",
         "submenu": [
@@ -156,7 +156,7 @@ ALL = [{
                 "add_role": "add_pedidoexamemedico",
                 "add_route": "add_pedidoexamemedico",
                 "icon": "request_page",
-                "menu": "PedidoExameMedico",
+                "menu": "Exam Request",
                 "role": "list_pedidoexamemedico",
                 "route": "list_pedidoexamemedico",
             },
@@ -164,7 +164,7 @@ ALL = [{
                 "add_role": "add_examemedico",
                 "add_route": "add_examemedico",
                 "icon": "biotech",
-                "menu": "ExameMedico",
+                "menu": "Medical Exam",
                 "role": "list_examemedico",
                 "route": "list_examemedico",
             },
@@ -172,7 +172,7 @@ ALL = [{
                 "add_role": "add_classeexamemedico",
                 "add_route": "add_classeexamemedico",
                 "icon": "category",
-                "menu": "ClasseExameMedico",
+                "menu": "Exam Class",
                 "role": "list_classeexamemedico",
                 "route": "list_classeexamemedico",
             },
@@ -180,7 +180,7 @@ ALL = [{
                 "add_role": "add_tipoexamemedico",
                 "add_route": "add_tipoexamemedico",
                 "icon": "tune",
-                "menu": "TipoExameMedico",
+                "menu": "Exam Type",
                 "role": "list_tipoexamemedico",
                 "route": "list_tipoexamemedico",
             },
@@ -190,7 +190,7 @@ ALL = [{
     # 🧬 HISTÓRICO CLÍNICO (grupo: factos correntes/longitudinais -
     # dados vitais, doenças e alergias correntes)
     {
-        "menu": "Histórico Clínico",
+        "menu": "Clinical History",
         "icon": "history_edu",
         "role": "list_dadovital",
         "submenu": [
@@ -204,7 +204,7 @@ ALL = [{
                 "add_role": "add_dadovital",
                 "add_route": "add_dadovital",
                 "icon": "monitor_heart",
-                "menu": "DadoVital",
+                "menu": "Vital Sign",
                 "role": "list_dadovital",
                 "route": "list_dadovital",
             },
@@ -212,7 +212,7 @@ ALL = [{
                 "add_role": "add_doencacorrente",
                 "add_route": "add_doencacorrente",
                 "icon": "coronavirus",
-                "menu": "DoencaCorrente",
+                "menu": "Current Condition",
                 "role": "list_doencacorrente",
                 "route": "list_doencacorrente",
             },
@@ -220,7 +220,7 @@ ALL = [{
                 "add_role": "add_alergiacorrente",
                 "add_route": "add_alergiacorrente",
                 "icon": "warning_amber",
-                "menu": "AlergiaCorrente",
+                "menu": "Current Allergy",
                 "role": "list_alergiacorrente",
                 "route": "list_alergiacorrente",
             },

@@ -33,11 +33,11 @@ class ObservacaoClinica(BaseModel):
     tipo = models.CharField(
         max_length=50,
         choices=[
-            ("geral", "Geral"),
-            ("evolucao", "Evolução"),
-            ("enfermagem", "Enfermagem"),
-            ("medica", "Médica"),
-            ("administrativa", "Administrativa"),
+            ("geral", "General"),
+            ("evolucao", "Progress Note"),
+            ("enfermagem", "Nursing"),
+            ("medica", "Medical"),
+            ("administrativa", "Administrative"),
         ],
         default="geral"
     )

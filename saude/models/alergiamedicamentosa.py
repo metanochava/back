@@ -25,10 +25,10 @@ class AlergiaMedicamentosa(BaseModel):
     gravidade = models.CharField(
         max_length=30,
         choices=[
-            ("leve", "Leve"),
-            ("moderada", "Moderada"),
-            ("grave", "Grave"),
-            ("anafilaxia", "Anafilaxia"),
+            ("leve", "Mild"),
+            ("moderada", "Moderate"),
+            ("grave", "Severe"),
+            ("anafilaxia", "Anaphylaxis"),
         ],
         default="leve"
     )

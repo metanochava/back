@@ -21,9 +21,9 @@ class Diagnostico(BaseModel):
     tipo = models.CharField(
         max_length=30,
         choices=[
-            ("principal","Principal"),
-            ("secundario","Secundário"),
-            ("diferencial","Diferencial")
+            ("principal","Primary"),
+            ("secundario","Secondary"),
+            ("diferencial","Differential")
         ],
         default="principal"
     )
