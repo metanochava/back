@@ -37,10 +37,11 @@ class PatientRegistrationTests(TestCase):
             "person": {
                 "name": "Helena", "surname": "Marrengula",
                 "email": "helena.pac@example.com",
+                "occupation": "Teacher", "blood_type": "O+",
             },
             "documents": [{"tipo": str(self.doc_type.id), "numero": "111222333"}],
             "contacts": [{"name": "Irmao Marrengula", "relationship": "Sibling", "is_emergency": True}],
-            "patient": {"profissao": "Teacher", "religiao": "None"},
+            "patient": {"religion": "None", "clinical_alert": "Penicillin allergy", "special_needs": "Wheelchair"},
         })
 
         self.assertEqual(response.status_code, 201, response.data)
@@ -52,7 +53,13 @@ class PatientRegistrationTests(TestCase):
         paciente = Paciente.objects.get(person=person)
         self.assertEqual(paciente.branch_id, self.tenant["branch"].id)
         self.assertEqual(paciente.entity_id, self.tenant["entity"].id)
-        self.assertEqual(paciente.profissao, "Teacher")
+        self.assertEqual(person.occupation, "Teacher")
+        self.assertEqual(person.blood_type, "O+")
+        self.assertEqual(paciente.religion, "None")
+        self.assertEqual(paciente.clinical_alert, "Penicillin allergy")
+        self.assertEqual(paciente.special_needs, "Wheelchair")
+        self.assertEqual(paciente.status, "Active")
+        self.assertEqual(paciente.emergency_contact.name, "Irmao Marrengula")
         self.assertRegex(paciente.nid, r"^PAC-\d{4}-\d{6}$")
         self.assertEqual(paciente.state, "Active")
 
@@ -91,7 +98,7 @@ class PatientRegistrationTests(TestCase):
         response = _post(self.client_, {
             "person": {"name": "Ghost", "surname": "Rollback"},
             "documents": [{"tipo": str(self.doc_type.id), "numero": "ROLL-1"}],
-            "patient": {"profissao": "x" * 500},  # max_length=150 -> invalid
+            "patient": {"religion": "x" * 500},  # max_length=150 -> invalid
         })
 
         self.assertEqual(response.status_code, 400)
@@ -189,10 +196,53 @@ class PatientRegistrationTests(TestCase):
 
         response = self.client_.patch(
             f"/api/saude/pacientes/{created.data['id']}/",
-            {"profissao": "Nurse", "religiao": "Catholic"},
+            {"religion": "Catholic", "status": "Inactive", "care_preferences": "Morning visits"},
             format="json",
         )
 
         self.assertEqual(response.status_code, 200, response.data)
         paciente = Paciente.objects.get(id=created.data["id"])
-        self.assertEqual((paciente.profissao, paciente.religiao, paciente.nid), ("Nurse", "Catholic", nid))
+        self.assertEqual(
+            (paciente.religion, paciente.status, paciente.care_preferences, paciente.nid),
+            ("Catholic", "Inactive", "Morning visits", nid),
+        )
+
+    def test_nid_only_has_to_be_unique_per_branch(self):
+        """unique_patient_nid_branch replaced the global unique=True."""
+        from django.db import IntegrityError, transaction
+        from django_resaas.saas.models.branch import Branch
+
+        first = _post(self.client_, {"person": {"name": "A", "surname": "One"}})
+        self.assertEqual(first.status_code, 201, first.data)
+        paciente = Paciente.objects.get(id=first.data["id"])
+
+        other_branch = Branch.objects.create(name="Other branch", entity=self.tenant["entity"])
+        other_person = Person.objects.create(name="B", surname="Two")
+
+        Paciente.objects.create(
+            nid=paciente.nid, person=other_person,
+            entity=self.tenant["entity"], branch=other_branch,
+        )  # same nid, different branch: allowed
+
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            Paciente.objects.create(
+                nid=paciente.nid, person=Person.objects.create(name="C", surname="Three"),
+                entity=self.tenant["entity"], branch=self.tenant["branch"],
+            )  # same nid, same branch: rejected
+
+    def test_emergency_contact_prefers_the_flagged_one(self):
+        response = _post(self.client_, {
+            "person": {"name": "Zita", "surname": "Mabjaia"},
+            "contacts": [
+                {"name": "Neighbour", "phone": "111"},
+                {"name": "Mother", "phone": "222", "is_emergency": True},
+            ],
+        })
+        paciente = Paciente.objects.get(id=response.data["id"])
+
+        self.assertEqual(paciente.emergency_contact.phone, "222")
+
+    def test_emergency_contact_is_none_without_contacts(self):
+        response = _post(self.client_, {"person": {"name": "Solo", "surname": "Person"}})
+
+        self.assertIsNone(Paciente.objects.get(id=response.data["id"]).emergency_contact)

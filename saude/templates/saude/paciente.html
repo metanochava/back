@@ -379,11 +379,11 @@ body {
       </tr>
       <tr>
         <td class="label">Contacto</td>
-        <td>{{ paciente.numero_a_contactar|default:"-" }}</td>
+        <td>{{ paciente.emergency_contact.phone|default:"-" }}</td>
       </tr>
       <tr>
         <td class="label">Profissão</td>
-        <td>{{ paciente.profissao|default:"-" }}</td>
+        <td>{{ paciente.person.occupation|default:"-" }}</td>
       </tr>
     </table>
   </div>

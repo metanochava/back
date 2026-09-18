@@ -42,9 +42,10 @@ class PatientAlreadyExists(Exception):
 
 
 def generate_nid():
-    """PAC-<year>-<sequence>, globally unique (Paciente.nid is unique=True
-    across every Entity, not per tenant - it is also what
-    PatientMatchingService searches by across Entities)."""
+    """PAC-<year>-<sequence>. Paciente.nid only has to be unique per branch
+    (unique_patient_nid_branch), but the sequence is still counted across
+    every Entity so a number never repeats between branches - it is also
+    what PatientMatchingService searches by across Entities."""
     year = timezone.now().strftime("%Y")
     last = Paciente.objects.filter(
         nid__startswith=f"PAC-{year}"
@@ -74,9 +75,11 @@ def register_patient(
     """
     person_id / person_data / photo / documents / contacts: see
     person_registration_service (identical semantics to add_employee).
-    patient_data: PacienteSerializer-shaped dict (profissao, religiao,
-        person_a_contactar, numero_a_contactar). nid/state are never
-        client-supplied - they are generated/forced here.
+    patient_data: PacienteSerializer-shaped dict (religion, status,
+        clinical_alert, special_needs, care_preferences). nid/state are
+        never client-supplied - they are generated/forced here. The
+        person's occupation and emergency contacts belong to the Person
+        (person_data / contacts), not the patient.
     """
     try:
         person = resolve_person(
