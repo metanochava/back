@@ -239,4 +239,21 @@ key_value = {
     "View patient": "Voir le patient",
     "The patient form has unsaved information. Are you sure you want to leave?": "Le formulaire du patient contient des informations non enregistrées. Voulez-vous vraiment quitter ?",
 
+    # patient registration
+    "Clinical alert": "Alerte clinique",
+    "Special needs": "Besoins spécifiques",
+    "Care preferences": "Préférences de soins",
+    "Shown prominently to every professional who opens this patient": "Affiché en évidence à tous les professionnels qui ouvrent ce patient",
+
+    # patient registration
+    "Clinical summary": "Résumé clinique",
+    "Consultations": "Consultations",
+    "Timeline": "Chronologie",
+
+    # patient registration
+    "Click to copy": "Cliquer pour copier",
+    "Copied": "Copié",
+    "Patient card (PDF)": "Fiche du patient (PDF)",
+    "Registered on": "Enregistré le",
+
 }

@@ -402,12 +402,12 @@
         <td>{{ paciente.nid }}</td>
 
         <td class="label">Contacto:</td>
-        <td>{{ paciente.numero_a_contactar }}</td>
+        <td>{{ paciente.emergency_contact.phone }}</td>
       </tr>
 
       <tr>
         <td class="label">Profissão:</td>
-        <td>{{ paciente.profissao }}</td>
+        <td>{{ paciente.person.occupation }}</td>
 
         <td class="label">Data:</td>
         <td>
