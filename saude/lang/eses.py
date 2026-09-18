@@ -250,4 +250,10 @@ key_value = {
     "Consultations": "Consultas",
     "Timeline": "Línea de tiempo",
 
+    # patient registration
+    "Click to copy": "Clic para copiar",
+    "Copied": "Copiado",
+    "Patient card (PDF)": "Ficha del paciente (PDF)",
+    "Registered on": "Registrado el",
+
 }
