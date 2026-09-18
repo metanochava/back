@@ -9,7 +9,12 @@ class PacienteSerializer(BaseSerializer):
     person = serializers.PrimaryKeyRelatedField(
         queryset=Person.objects.all(), write_only=True
     )
-    person_data = PersonSerializer(read_only=True)
+    # Same "xxx_data" convention as EmployeeSerializer.person_data. It
+    # used to be declared without source= (so it resolved to a
+    # non-existent Paciente.person_data attribute and was silently
+    # dropped from every response) - the edit/view pages need the
+    # nested Person to show and edit its data.
+    person_data = PersonSerializer(source='person', read_only=True)
 
     class Meta:
         model = Paciente

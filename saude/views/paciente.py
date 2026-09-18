@@ -1,10 +1,14 @@
+import json
+
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils import timezone
+from rest_framework import status as http_status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 
 from django_resaas.saas.core.base.views import BaseAPIView, registerView
+from django_resaas.saas.core.base.permissions import isPermited
 from django_resaas.saas.core.decorators import resaas_action
 from django_resaas.saas.core.utils import (
     PDF,
@@ -25,6 +29,12 @@ from saude.serializers.paciente import PacienteSerializer
 from saude.serializers.patient_merge import PatientMergeSerializer
 from saude.services.consent_service import ConsentService
 from saude.services.patient_matching_service import PatientMatchingService
+from saude.services.patient_registration_service import (
+    register_patient,
+    generate_nid,
+    PatientRegistrationError,
+    PatientAlreadyExists,
+)
 from saude.services.patient_merge_service import PatientMergeService
 from saude.services.patient_timeline_service import PatientTimelineService
 
@@ -33,16 +43,6 @@ def _as_drf_validation_error(exc):
     return DRFValidationError(
         exc.messages if hasattr(exc, "messages") else str(exc)
     )
-
-
-def generate_nid():
-    year = timezone.now().strftime("%Y")
-    last = Paciente.objects.filter(
-        nid__startswith=f"PAC-{year}"
-    ).order_by("-nid").first()
-
-    number = int(last.nid.split("-")[-1]) + 1 if last else 1
-    return f"PAC-{year}-{number:06d}"
 
 
 @registerView("pacientes")
@@ -69,6 +69,80 @@ class PacienteAPIView(BaseAPIView):
             request,
             data=self.get_serializer(paciente).data,
             status=201,
+        )
+
+    # =========================
+    # REGISTRATION (add_paciente)
+    # =========================
+    # Person(+reuse)/Document/PersonContact/Paciente, all in one DB
+    # transaction (patient_registration_service.register_patient) - the
+    # health-side twin of EmployeeAPIView.register, same payload shape
+    # (multipart: a JSON `payload` + the new person's photo + one file per
+    # document) and same double permission check. Duplicate detection is
+    # the shared PersonAPIView.match, called by the frontend BEFORE this.
+    @resaas_action(detail=False, methods=["post"])
+    def register(self, request, *args, **kwargs):
+        try:
+            payload = json.loads(request.data.get("payload") or "{}")
+        except (TypeError, ValueError):
+            return Response(
+                {"detail": "Invalid payload."},
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
+
+        person_id = payload.get("person_id") or None
+
+        # add_paciente/register_paciente already gate the action itself;
+        # these are the EXTRA capabilities the specific payload exercises.
+        required_extra = []
+
+        if not person_id:
+            required_extra.append("add_person")
+        if payload.get("documents"):
+            required_extra.append("add_document")
+        if payload.get("contacts"):
+            required_extra.append("add_personcontact")
+
+        missing = [p for p in required_extra if not isPermited(request=request, role=p)]
+
+        if missing:
+            return Response(
+                {"detail": f"Missing permission(s): {', '.join(missing)}."},
+                status=http_status.HTTP_403_FORBIDDEN,
+            )
+
+        documents = []
+        for doc in payload.get("documents") or []:
+            file_key = doc.get("_file_key")
+            documents.append({
+                **doc,
+                "arquivo": request.FILES.get(file_key) if file_key else None,
+            })
+
+        try:
+            paciente = register_patient(
+                request=request,
+                person_id=person_id,
+                person_data=payload.get("person"),
+                photo=request.FILES.get("person_photo"),
+                documents=documents,
+                contacts=payload.get("contacts"),
+                patient_data=payload.get("patient") or {},
+            )
+        except PatientAlreadyExists as exc:
+            return Response(
+                {
+                    "detail": "This person is already a patient in this branch.",
+                    "existing_paciente_id": str(exc.paciente.id),
+                },
+                status=http_status.HTTP_409_CONFLICT,
+            )
+        except PatientRegistrationError as exc:
+            return Response(exc.errors, status=http_status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            PacienteSerializer(paciente, context={"request": request}).data,
+            status=http_status.HTTP_201_CREATED,
         )
 
     @action(detail=True, methods=["get"])

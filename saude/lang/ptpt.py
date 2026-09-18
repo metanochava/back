@@ -226,4 +226,17 @@ key_value = {
     "No events": "Sem eventos",
     "No records": "Sem registos",
     "View All": "Ver Todas",
+
+    # patient registration
+    "Edit patient": "Editar paciente",
+    "Add patient": "Adicionar paciente",
+    "Search for an existing person happens automatically when you save.": "A pesquisa de uma pessoa já existente é feita automaticamente ao guardar.",
+    "Patient data": "Dados do paciente",
+    "Person to contact": "Pessoa a contactar",
+    "Contact number": "Número de contacto",
+    "Save patient": "Guardar paciente",
+    "This person is already a patient in this branch.": "Esta pessoa já é paciente nesta sucursal.",
+    "View patient": "Ver paciente",
+    "The patient form has unsaved information. Are you sure you want to leave?": "O formulário do paciente tem informação por guardar. Tem a certeza de que quer sair?",
+
 }
