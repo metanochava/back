@@ -14,6 +14,7 @@ PersonContact behind without the Paciente the operation was for.
 from django.db import transaction, IntegrityError
 from django.utils import timezone
 
+from django_resaas.saas.core.utils.translate import Translate
 from django_resaas.saas.core.services.person_registration_service import (
     PersonRegistrationError,
     resolve_person,
@@ -136,4 +137,4 @@ def register_patient(
                 raise PatientAlreadyExists(existing)
             # otherwise: nid collision - try the next number
 
-    raise PatientRegistrationError({"nid": ["Could not generate a patient number."]})
+    raise PatientRegistrationError({"nid": [Translate.tdc(request, "Could not generate a patient number.")]})

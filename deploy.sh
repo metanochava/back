@@ -27,7 +27,7 @@ IFS=$'\n\t'
 # --------------------------------------------------------------------
 
 APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV_DIR="$APP_DIR/venv"
+VENV_DIR="$APP_DIR/../venv"
 
 SERVICE_NAME="${SERVICE_NAME:-gunicorn_$(basename "$(dirname "$APP_DIR")")_$(basename "$APP_DIR")}"
 GUNICORN_BIND="${GUNICORN_BIND:-127.0.0.1:7000}"
