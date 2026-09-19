@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from django_resaas.saas.core.base.views import BaseAPIView, registerView
 from django_resaas.saas.core.base.permissions import isPermited
+from django_resaas.saas.core.utils.translate import Translate
 from django_resaas.saas.core.decorators import resaas_action
 from django_resaas.saas.core.utils import (
     PDF,
@@ -86,7 +87,7 @@ class PacienteAPIView(BaseAPIView):
             payload = json.loads(request.data.get("payload") or "{}")
         except (TypeError, ValueError):
             return Response(
-                {"detail": "Invalid payload."},
+                {"detail": Translate.tdc(request, "Invalid payload.")},
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
 
@@ -107,7 +108,7 @@ class PacienteAPIView(BaseAPIView):
 
         if missing:
             return Response(
-                {"detail": f"Missing permission(s): {', '.join(missing)}."},
+                {"detail": f"{Translate.tdc(request, 'Missing permission(s)')}: {', '.join(missing)}."},
                 status=http_status.HTTP_403_FORBIDDEN,
             )
 
@@ -132,7 +133,7 @@ class PacienteAPIView(BaseAPIView):
         except PatientAlreadyExists as exc:
             return Response(
                 {
-                    "detail": "This person is already a patient in this branch.",
+                    "detail": Translate.tdc(request, "This person is already a patient in this branch."),
                     "existing_paciente_id": str(exc.paciente.id),
                 },
                 status=http_status.HTTP_409_CONFLICT,
