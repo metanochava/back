@@ -114,3 +114,23 @@ class SaudeLabelsAreTranslated(SimpleTestCase):
                     missing[text] = str(path.relative_to(pages))
 
         self.assertEqual(missing, {}, "Untranslated tdc() strings in the saude frontend")
+
+    def test_every_group_name_defined_by_the_modules_is_translated(self):
+        """Group names are data but the frontend shows them everywhere
+        (selectors, modals, tables) through tdc() - each name a module
+        seeds must exist in the dictionaries."""
+        from saude.profiles import SAUDE_PROFILES
+        from farmacia.profiles import FARMACIA_PROFILES
+        from inventory.profiles import INVENTORY_PROFILES
+        from sales.profiles import SALES_PROFILES
+        from django_resaas.hr.profiles import HR_PROFILES
+        from django_resaas.saas.profiles import CORE_PROFILES
+
+        names = {"Root", "Admin", "Guest"}
+        for profiles in (CORE_PROFILES, SAUDE_PROFILES, FARMACIA_PROFILES, INVENTORY_PROFILES, SALES_PROFILES, HR_PROFILES):
+            names.update(profile["name"] for profile in profiles)
+
+        missing = sorted(name for name in names if _untranslated(name))
+
+        self.assertEqual(missing, [], "Untranslated group names (add them to the module's lang/*.py)")
+

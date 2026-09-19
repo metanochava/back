@@ -92,4 +92,9 @@ key_value = {
     "Walk-in Customer": "Client de Passage",
     "Warehouse": "Entrepôt",
     "Without a warehouse, the sale does not move stock": "Sans entrepôt, la vente ne déplace pas de stock",
+
+    # group names (sales)
+    "Sales Manager": "Responsable des ventes",
+    "Sales Representative": "Représentant commercial",
+
 }

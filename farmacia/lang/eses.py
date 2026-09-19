@@ -38,4 +38,9 @@ key_value = {
     "Reviewed by": "Revisado por",
     "Stock Product": "Producto en Existencia",
     "Warehouse": "Almacén",
+
+    # group names (farmacia)
+    "Pharmacy Manager": "Gerente de farmacia",
+    "Dispensing Assistant": "Auxiliar de dispensación",
+
 }
