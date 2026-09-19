@@ -61,4 +61,14 @@ key_value = {
     "View of": "Vista de",
     "When disabled (default), outbound movements that would leave stock negative are rejected.":
         "Quando desativado (padrão), movimentos de saída que deixariam o stock negativo são recusados.",
+
+    # group names (inventory)
+    "Inventory Controller": "Controlador de inventário",
+    "Inventory Manager": "Gestor de inventário",
+    "Receiving Clerk": "Responsável pela receção de mercadorias",
+    "Stock Clerk": "Auxiliar de stock",
+    "Storekeeper": "Fiel de armazém",
+    "Warehouse Manager": "Gestor de armazém",
+    "Warehouse Supervisor": "Supervisor de armazém",
+
 }

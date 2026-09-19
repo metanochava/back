@@ -192,6 +192,59 @@ class PatientMergeServiceTests(TestCase):
                 branch_id=self.tenant_a["branch"].id,
             )
 
+    def test_unused_automatic_users_do_not_block_a_merge_and_the_duplicates_is_removed(self):
+        """Every new Person gets an automatic User nobody ever used
+        (Person -> User): two such Persons must still be mergeable."""
+        survivor_user_id = self.survivor_person.user_id
+        duplicate_user_id = self.duplicate_person.user_id
+        self.assertTrue(survivor_user_id and duplicate_user_id)
+
+        PatientMergeService.merge(
+            survivor_person=self.survivor_person,
+            duplicate_person=self.duplicate_person,
+            performed_by=self.tenant_a["user"],
+            entity_id=self.tenant_a["entity"].id,
+            branch_id=self.tenant_a["branch"].id,
+        )
+
+        self.survivor_person.refresh_from_db()
+        self.duplicate_person.refresh_from_db()
+        self.assertEqual(self.survivor_person.user_id, survivor_user_id)
+        self.assertIsNone(self.duplicate_person.user_id)
+        self.assertFalse(User.objects.filter(id=duplicate_user_id).exists())
+
+    def test_a_real_survivor_account_is_kept_when_the_duplicate_only_has_an_automatic_one(self):
+        user = User.objects.create_user(username="real1", email="real1@example.com", password="x")
+        real_survivor = user.person
+
+        PatientMergeService.merge(
+            survivor_person=real_survivor,
+            duplicate_person=self.duplicate_person,
+            performed_by=self.tenant_a["user"],
+            entity_id=self.tenant_a["entity"].id,
+            branch_id=self.tenant_a["branch"].id,
+        )
+
+        real_survivor.refresh_from_db()
+        self.assertEqual(real_survivor.user_id, user.id)
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+
+    def test_the_survivors_automatic_user_is_replaced_by_the_duplicates_real_one(self):
+        real = User.objects.create_user(username="real2", email="real2@example.com", password="x")
+        placeholder_id = self.survivor_person.user_id
+
+        PatientMergeService.merge(
+            survivor_person=self.survivor_person,
+            duplicate_person=real.person,
+            performed_by=self.tenant_a["user"],
+            entity_id=self.tenant_a["entity"].id,
+            branch_id=self.tenant_a["branch"].id,
+        )
+
+        self.survivor_person.refresh_from_db()
+        self.assertEqual(self.survivor_person.user_id, real.id)
+        self.assertFalse(User.objects.filter(id=placeholder_id).exists())
+
     def test_moves_user_from_duplicate_to_survivor_when_only_duplicate_has_one(self):
         user = User.objects.create_user(username="u3", email="u3@example.com", password="x")
         duplicate_with_user = user.person

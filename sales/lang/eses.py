@@ -92,4 +92,9 @@ key_value = {
     "Walk-in Customer": "Cliente de Mostrador",
     "Warehouse": "Almacén",
     "Without a warehouse, the sale does not move stock": "Sin almacén, la venta no mueve existencias",
+
+    # group names (sales)
+    "Sales Manager": "Gerente de ventas",
+    "Sales Representative": "Representante de ventas",
+
 }
