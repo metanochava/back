@@ -506,4 +506,17 @@ key_value = {
     "Cashier": "Caissier",
     "Customer Service Representative": "Représentant du service client",
 
+    # add_medico / change_medico
+    "Add doctor": "Ajouter un médecin",
+    "Edit doctor": "Modifier le médecin",
+    "Save doctor": "Enregistrer le médecin",
+    "Doctor data": "Données du médecin",
+    "Signature and stamp": "Signature et cachet",
+    "Specialties": "Spécialités",
+    "Select an employee": "Sélectionnez un employé",
+    "Search an existing employee": "Rechercher un employé",
+    "Pick the employee who is this doctor.": "Choisissez l'employé qui est ce médecin.",
+    "The employee of an existing doctor cannot be changed.": "L'employé d'un médecin existant ne peut pas être modifié.",
+    "The doctor form has unsaved information. Are you sure you want to leave?": "Le formulaire du médecin contient des informations non enregistrées. Voulez-vous vraiment quitter ?",
+
 }
