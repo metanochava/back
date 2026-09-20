@@ -15,7 +15,16 @@ from saude.models.patient_merge import PatientMerge
 def _has_real_account(person):
     user = person.user if person.user_id else None
 
-    return bool(user and (user.has_usable_password() or user.last_login))
+    if not user:
+        return False
+
+    if user.last_login:
+        return True
+
+    # A usable password alone is not proof anymore: every new account starts
+    # with a TEMPORARY one (row UserTemporaryPassword) that nobody has chosen
+    # or used yet - that account is still a placeholder.
+    return user.has_usable_password() and not hasattr(user, "temporary_password")
 
 
 def _release_placeholder(person):
