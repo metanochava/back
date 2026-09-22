@@ -8,7 +8,7 @@ MANAGE := $(PY) manage.py
 PYPROJECT := pyproject.toml
 BACKUP_DIR := backups
 
-# Comandos Django expostos diretamente pelo Makefile.
+# Django commands exposed directly by the Makefile.
 AUTH_COMMANDS := changepassword
 AUTHTOKEN_COMMANDS := drf_create_token
 CONTENTTYPES_COMMANDS := remove_stale_contenttypes
@@ -34,7 +34,7 @@ MANAGE_COMMANDS := \
 
 
 # =========================================================
-# VERSÃO
+# VERSION
 # =========================================================
 
 define GET_VERSION
@@ -69,79 +69,79 @@ endef
 
 
 # =========================================================
-# AJUDA
+# HELP
 # =========================================================
 
 help:
-	@echo "Comandos disponíveis:"
+	@echo "Available commands:"
 	@echo ""
 	@echo "DJANGO"
-	@echo "  make check                    - Verificar o projecto Django"
-	@echo "  make migrations               - Criar migrations"
-	@echo "  make migrate                  - Executar migrations"
-	@echo "  make clean-migrations         - Eliminar migrations preservando __init__.py"
-	@echo "  make createsuperuser          - Criar superutilizador"
-	@echo "  make createuser               - Criar utilizador"
-	@echo "  make create_root              - Criar utilizador/root inicial"
-	@echo "  make create_entity            - Criar entidade"
-	@echo "  make sync_actions             - Sincronizar actions"
-	@echo "  make sync_language            - Sincronizar idiomas"
-	@echo "  make staticfiles              - Executar collectstatic"
-	@echo "  make django                   - Mostrar ajuda do manage.py"
+	@echo "  make check                    - Check the Django project"
+	@echo "  make migrations               - Create migrations"
+	@echo "  make migrate                  - Apply migrations"
+	@echo "  make clean-migrations         - Delete migrations while preserving __init__.py"
+	@echo "  make createsuperuser          - Create a superuser"
+	@echo "  make createuser               - Create a user"
+	@echo "  make create_root              - Create the initial/root user"
+	@echo "  make create_entity            - Create an entity"
+	@echo "  make sync_actions             - Synchronize actions"
+	@echo "  make sync_language            - Synchronize languages"
+	@echo "  make staticfiles              - Run collectstatic"
+	@echo "  make django                   - Show manage.py help"
 	@echo ""
-	@echo "SERVIDOR"
-	@echo "  make dev                      - Runserver em 0.0.0.0:7001"
-	@echo "  make pro                      - Runserver em 0.0.0.0:7000"
-	@echo "  make reload                   - Reiniciar gunicorn_pro_back"
-	@echo "  make kill                     - Terminar processo numa porta"
+	@echo "SERVER"
+	@echo "  make dev                      - Run server on 0.0.0.0:7001"
+	@echo "  make pro                      - Run server on 0.0.0.0:7000"
+	@echo "  make reload                   - Restart gunicorn_pro_back"
+	@echo "  make kill                     - Terminate a process on a port"
 	@echo ""
-	@echo "DEPENDÊNCIAS"
-	@echo "  make gitsaas                  - Reinstalar django_resaas do GitHub/main"
-	@echo "  make pipsaas                  - Actualizar django_resaas pelo PyPI"
-	@echo "  make libs                     - Instalar requirements.txt"
+	@echo "DEPENDENCIES"
+	@echo "  make gitsaas                  - Reinstall django_resaas from GitHub/main"
+	@echo "  make pipsaas                  - Upgrade django_resaas from PyPI"
+	@echo "  make libs                     - Install requirements.txt"
 	@echo ""
-	@echo "BASE DE DADOS"
-	@echo "  make dbreset                  - Eliminar todas as tabelas PostgreSQL"
-	@echo "  make dbreset-migrate          - Limpar BD, migrar e criar root"
-	@echo "  make dbbackup                 - Criar backup PostgreSQL"
-	@echo "  make dbrestore                - Restaurar backup PostgreSQL"
-	@echo "  make dbbackups                - Listar backups existentes"
+	@echo "DATABASE"
+	@echo "  make dbreset                  - Drop all PostgreSQL tables/data"
+	@echo "  make dbreset-migrate          - Reset DB, migrate, and create root"
+	@echo "  make dbbackup                 - Create a PostgreSQL backup"
+	@echo "  make dbrestore                - Restore a PostgreSQL backup"
+	@echo "  make dbbackups                - List existing backups"
 	@echo ""
 	@echo "GIT"
-	@echo "  make status                   - Mostrar estado do Git"
-	@echo "  make pull                     - Executar git pull"
-	@echo "  make push                     - Enviar main e develop"
-	@echo "  make gitback                  - Recuar último commit mantendo alterações"
-	@echo "  make gitrmc                   - Remover ficheiro/pasta do tracking Git"
+	@echo "  make status                   - Show Git status"
+	@echo "  make pull                     - Run git pull"
+	@echo "  make push                     - Push main and develop"
+	@echo "  make gitback                  - Undo the last commit while keeping changes"
+	@echo "  make gitrmc                   - Remove a file/directory from Git tracking"
 	@echo ""
 	@echo "GIT FLOW"
-	@echo "  make flow_init                - Inicializar Git Flow"
-	@echo "  make features                 - Iniciar feature"
-	@echo "  make featuref                 - Finalizar feature"
-	@echo "  make releases                 - Iniciar release"
-	@echo "  make releasef                 - Finalizar release"
-	@echo "  make hotfixs                  - Iniciar hotfix"
-	@echo "  make hotfixf                  - Finalizar hotfix"
+	@echo "  make flow_init                - Initialize Git Flow"
+	@echo "  make features                 - Start a feature"
+	@echo "  make featuref                 - Finish a feature"
+	@echo "  make releases                 - Start a release"
+	@echo "  make releasef                 - Finish a release"
+	@echo "  make hotfixs                  - Start a hotfix"
+	@echo "  make hotfixf                  - Finish a hotfix"
 	@echo ""
-	@echo "VERSÃO / PACOTE"
-	@echo "  make version                  - Mostrar versão actual"
-	@echo "  make bump_patch               - Incrementar versão patch"
-	@echo "  make bump_minor               - Incrementar versão minor"
-	@echo "  make bump_major               - Incrementar versão major"
-	@echo "  make build                    - Construir pacote"
-	@echo "  make upload                   - Publicar pacote no PyPI"
+	@echo "VERSION / PACKAGE"
+	@echo "  make version                  - Show current version"
+	@echo "  make bump_patch               - Increment patch version"
+	@echo "  make bump_minor               - Increment minor version"
+	@echo "  make bump_major               - Increment major version"
+	@echo "  make build                    - Build the package"
+	@echo "  make upload                   - Upload the package to PyPI"
 	@echo ""
-	@echo "AMBIENTE / LIMPEZA"
-	@echo "  make env                      - Mostrar comando para activar venv"
-	@echo "  make denv                     - Mostrar comando para sair da venv"
-	@echo "  make clean                    - Limpar cache Python"
+	@echo "ENVIRONMENT / CLEANUP"
+	@echo "  make env                      - Show the command to activate the virtual environment"
+	@echo "  make denv                     - Show the command to deactivate the virtual environment"
+	@echo "  make clean                    - Clean Python cache files"
 	@echo ""
-	@echo "COMANDOS DJANGO DIRECTOS"
-	@echo "  make <comando>                - Executar comando Django suportado"
-	@echo "  make <comando> ARGS=\"...\"   - Executar comando Django com argumentos"
+	@echo "DIRECT DJANGO COMMANDS"
+	@echo "  make <command>                - Run a supported Django command"
+	@echo "  make <command> ARGS=\"...\"   - Run a Django command with arguments"
 
 # =========================================================
-# DEPENDÊNCIAS
+# DEPENDENCIES
 # =========================================================
 
 gitsaas:
@@ -159,7 +159,7 @@ libs:
 
 
 # =========================================================
-# SERVIÇO
+# SERVICE
 # =========================================================
 
 reload:
@@ -176,38 +176,38 @@ clean:
 	find . -type d -name "__pycache__" -prune -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 	find . -type f -name "*.pyo" -delete
-	@echo "Cache Python removida."
+	@echo "Python cache removed."
 
 
 # =========================================================
-# LIMPAR MIGRATIONS
+# CLEAN MIGRATIONS
 # =========================================================
 
 clean-migrations:
 	@echo ""
 	@echo "========================================================="
-	@echo " ATENÇÃO: LIMPEZA DE MIGRATIONS"
+	@echo " WARNING: MIGRATION CLEANUP"
 	@echo "========================================================="
 	@echo ""
-	@echo "Serão eliminados:"
+	@echo "The following will be deleted:"
 	@echo "  - */migrations/*.py"
-	@echo "  - excepto */migrations/__init__.py"
+	@echo "  - except */migrations/__init__.py"
 	@echo "  - */migrations/*.pyc"
 	@echo "  - */migrations/__pycache__/"
 	@echo ""
-	@echo "A base de dados NÃO será alterada."
+	@echo "The database will NOT be modified."
 	@echo ""
 
-	read -p "Deseja continuar? Digite 'yes': " resposta
+	read -p "Continue? Type 'yes': " resposta
 
 	if [[ "$$resposta" != "yes" ]]; then
 		echo ""
-		echo "Operação cancelada."
+		echo "Operation cancelled."
 		exit 0
 	fi
 
 	echo ""
-	echo "A remover migrations..."
+	echo "Removing migrations..."
 
 	find . \
 		-type f \
@@ -231,8 +231,8 @@ clean-migrations:
 
 	echo ""
 	echo "========================================================="
-	echo " Migrations removidas com sucesso."
-	echo " __init__.py foi preservado em todas as apps."
+	echo " Migrations removed successfully."
+	echo " __init__.py was preserved in all apps."
 	echo "========================================================="
 	echo ""
 
@@ -276,8 +276,8 @@ sync_language:
 	$(MANAGE) sync_language
 
 
-# Encaminha os restantes alvos directamente para manage.py.
-# Exemplo:
+# Forward the remaining targets directly to manage.py.
+# Example:
 # make startapp ARGS=clientes
 
 $(MANAGE_COMMANDS):
@@ -285,7 +285,7 @@ $(MANAGE_COMMANDS):
 
 
 # =========================================================
-# SERVIDOR DJANGO
+# DJANGO SERVER
 # =========================================================
 
 dev:
@@ -299,41 +299,41 @@ staticfiles:
 
 
 # =========================================================
-# TESTES DE DEPENDÊNCIAS DO MAKE
+# MAKE DEPENDENCY TESTS
 # =========================================================
 
 teste1:
-	@echo "A apagar a base de dados...1"
+	@echo "Deleting the database...1"
 
 teste2:
-	@echo "A apagar a base de dados...2"
+	@echo "Deleting the database...2"
 
 teste: teste1 teste2
-	@echo "Teste concluído."
+	@echo "Test completed."
 
 
 # =========================================================
-# BASE DE DADOS POSTGRESQL
+# POSTGRESQL DATABASE
 # =========================================================
 
 dbreset:
 	@echo ""
 	@echo "========================================================="
-	@echo " ATENÇÃO: RESET DA BASE DE DADOS"
+	@echo " WARNING: DATABASE RESET"
 	@echo "========================================================="
 	@echo ""
-	@echo "Todas as tabelas e dados serão eliminados."
+	@echo "All tables and data will be deleted."
 	@echo ""
 
-	read -p "Deseja continuar? Digite 'yes': " resposta
+	read -p "Continue? Type 'yes': " resposta
 
 	if [[ "$$resposta" != "yes" ]]; then
-		echo "Operação cancelada."
+		echo "Operation cancelled."
 		exit 0
 	fi
 
 	echo ""
-	echo "A apagar a base de dados..."
+	echo "Deleting the database..."
 
 	echo "\
 	DROP SCHEMA public CASCADE; \
@@ -342,16 +342,16 @@ dbreset:
 	" | $(MANAGE) dbshell
 
 	echo ""
-	echo "Base de dados limpa."
+	echo "Database cleared."
 
 
 dbreset-migrate: dbreset
 	@echo ""
-	@echo "A executar migrations..."
+	@echo "Applying migrations..."
 	$(MANAGE) migrate
 
 	@echo ""
-	@echo "Base de dados reconstruída."
+	@echo "Database rebuilt."
 
 	$(MANAGE) create_root
 
@@ -360,7 +360,7 @@ dbreset-migrate: dbreset
 
 
 # =========================================================
-# AJUDA DJANGO
+# HELP DJANGO
 # =========================================================
 
 django:
@@ -369,7 +369,7 @@ django:
 
 
 # =========================================================
-# GIT BÁSICO
+# BASIC GIT
 # =========================================================
 
 pull:
@@ -382,10 +382,10 @@ gitback:
 	git reset --soft HEAD~1
 
 gitrmc:
-	read -p "Digite o caminho do ficheiro ou pasta: " caminho
+	read -p "Enter file or directory path: " caminho
 
 	if [[ -z "$$caminho" ]]; then
-		echo "Nenhum caminho fornecido."
+		echo "No path provided."
 		exit 1
 	fi
 
@@ -393,27 +393,27 @@ gitrmc:
 
 
 # =========================================================
-# BUMP VERSION SEM COMMIT NEM TAG
+# BUMP VERSION WITHOUT COMMIT OR TAG
 # =========================================================
 
 bump_patch:
 	bump2version patch --no-commit --no-tag
 	VERSION="$$( $(call GET_VERSION) )"
-	echo "Nova versão: $$VERSION"
+	echo "New version: $$VERSION"
 
 bump_minor:
 	bump2version minor --no-commit --no-tag
 	VERSION="$$( $(call GET_VERSION) )"
-	echo "Nova versão: $$VERSION"
+	echo "New version: $$VERSION"
 
 bump_major:
 	bump2version major --no-commit --no-tag
 	VERSION="$$( $(call GET_VERSION) )"
-	echo "Nova versão: $$VERSION"
+	echo "New version: $$VERSION"
 
 
 # =========================================================
-# BUILD E UPLOAD PARA PYPI
+# BUILD AND UPLOAD TO PYPI
 # =========================================================
 
 build:
@@ -437,10 +437,10 @@ flow_init:
 # =========================================================
 
 features:
-	read -p "Nome da feature: " nome
+	read -p "Feature name: " nome
 
 	if [[ -z "$$nome" ]]; then
-		echo "O nome da feature é obrigatório."
+		echo "Feature name is required."
 		exit 1
 	fi
 
@@ -450,10 +450,10 @@ features:
 
 
 featuref:
-	read -p "Nome da feature: " nome
+	read -p "Feature name: " nome
 
 	if [[ -z "$$nome" ]]; then
-		echo "O nome da feature é obrigatório."
+		echo "Feature name is required."
 		exit 1
 	fi
 
@@ -472,7 +472,7 @@ releases:
 	read -p "Bump (patch/minor/major): " bump
 
 	if [[ ! "$$bump" =~ ^(patch|minor|major)$$ ]]; then
-		echo "Bump inválido. Use patch, minor ou major."
+		echo "Invalid bump. Use patch, minor, or major."
 		exit 1
 	fi
 
@@ -483,7 +483,7 @@ releases:
 	git commit -m "bump version $$VERSION"
 	git flow release start "$$VERSION"
 
-	echo "Release $$VERSION iniciada."
+	echo "Release $$VERSION started."
 
 
 releasef:
@@ -491,11 +491,11 @@ releasef:
 
 	if ! git show-ref --verify --quiet \
 		"refs/heads/release/$$VERSION"; then
-		echo "A branch release/$$VERSION não existe."
+		echo "Branch release/$$VERSION does not exist."
 		exit 1
 	fi
 
-	read -p "Mensagem do release v$$VERSION: " mensagem
+	read -p "Release v$$VERSION message: " mensagem
 
 	git flow release finish \
 		-m "release: v$$VERSION - $$mensagem" \
@@ -503,7 +503,7 @@ releasef:
 
 	git push origin main develop --tags
 
-	echo "Release $$VERSION finalizada."
+	echo "Release $$VERSION finished."
 
 
 # =========================================================
@@ -511,10 +511,10 @@ releasef:
 # =========================================================
 
 hotfixs:
-	read -p "Nome do hotfix: " nome
+	read -p "Hotfix name: " nome
 
 	if [[ -z "$$nome" ]]; then
-		echo "O nome do hotfix é obrigatório."
+		echo "Hotfix name is required."
 		exit 1
 	fi
 
@@ -524,10 +524,10 @@ hotfixs:
 
 
 hotfixf:
-	read -p "Nome do hotfix: " nome
+	read -p "Hotfix name: " nome
 
 	if [[ -z "$$nome" ]]; then
-		echo "O nome do hotfix é obrigatório."
+		echo "Hotfix name is required."
 		exit 1
 	fi
 
@@ -536,27 +536,27 @@ hotfixf:
 
 
 # =========================================================
-# AMBIENTE VIRTUAL
+# VIRTUAL ENVIRONMENT
 # =========================================================
 
 env:
 	@echo ""
-	@echo "Execute o seguinte comando no terminal:"
-	@echo "source /var/www/dev/back/venv/bin/activate"
+	@echo "Run the following command in the terminal:"
+	@echo "source /var/www/dev/venv/bin/activate"
 
 
 denv:
 	@echo ""
-	@echo "Para sair do ambiente virtual execute:"
+	@echo "To leave the virtual environment, run:"
 	@echo "deactivate"
 
 
 # =========================================================
-# BACKUP E RESTORE — POSTGRESQL
+# BACKUP AND RESTORE — POSTGRESQL
 # =========================================================
 
 dbbackup:
-	@echo "A preparar backup da base de dados..."
+	@echo "Preparing database backup..."
 
 	mkdir -p "$(BACKUP_DIR)"
 
@@ -607,34 +607,34 @@ dbbackup:
 		"$$DB_NAME"
 
 	echo ""
-	echo "Backup criado com sucesso:"
+	echo "Backup created successfully:"
 	echo "$$BACKUP_FILE"
 
 
 dbrestore:
-	@echo "Backups disponíveis:"
+	@echo "Available backups:"
 	@echo ""
 
 	mkdir -p "$(BACKUP_DIR)"
 
 	ls -lh "$(BACKUP_DIR)"/*.dump 2>/dev/null || \
-		echo "Nenhum backup encontrado."
+		echo "No backups found."
 
 	echo ""
-	read -p "Caminho do backup: " BACKUP_FILE
+	read -p "Backup path: " BACKUP_FILE
 
 	if [[ ! -f "$$BACKUP_FILE" ]]; then
-		echo "O ficheiro não existe: $$BACKUP_FILE"
+		echo "File does not exist: $$BACKUP_FILE"
 		exit 1
 	fi
 
 	echo ""
-	echo "ATENÇÃO: os dados actuais serão substituídos."
+	echo "WARNING: current data will be replaced."
 
-	read -p "Digite 'yes' para continuar: " CONFIRMATION
+	read -p "Type 'yes' to continue: " CONFIRMATION
 
 	if [[ "$$CONFIRMATION" != "yes" ]]; then
-		echo "Restore cancelado."
+		echo "Restore cancelled."
 		exit 0
 	fi
 
@@ -672,7 +672,7 @@ dbrestore:
 		PG_ARGS+=(--username="$$DB_USER")
 	fi
 
-	echo "A restaurar a base de dados..."
+	echo "Restoring database..."
 
 	PGPASSWORD="$$DB_PASSWORD" pg_restore \
 		"$${PG_ARGS[@]}" \
@@ -685,26 +685,26 @@ dbrestore:
 		"$$BACKUP_FILE"
 
 	echo ""
-	echo "Base de dados restaurada com sucesso."
+	echo "Database restored successfully."
 
 
 dbbackups:
 	@mkdir -p "$(BACKUP_DIR)"
-	@echo "Backups disponíveis:"
+	@echo "Available backups:"
 	@ls -lh "$(BACKUP_DIR)"/*.dump 2>/dev/null || \
-		echo "Nenhum backup encontrado."
+		echo "No backups found."
 
 
 # =========================================================
-# PROCESSOS / PORTAS
+# PROCESSES / PORTS
 # =========================================================
 
 kill:
 	@read -p "Port: " port; \
 	pid=$$(sudo lsof -t -i:$$port); \
 	if [ -n "$$pid" ]; then \
-		echo "A terminar processo $$pid na porta $$port..."; \
+		echo "Terminating process $$pid on port $$port..."; \
 		sudo kill -9 $$pid; \
 	else \
-		echo "Nenhum processo encontrado na porta $$port."; \
+		echo "No process found on port $$port."; \
 	fi
