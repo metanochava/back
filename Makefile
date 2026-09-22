@@ -471,10 +471,23 @@ releases:
 		exit 1
 	fi
 
-	OPEN_RELEASES="$$(git for-each-ref --format='%(refname:short)' refs/heads/release/ 2>/dev/null || true)"
-	if [[ -n "$$OPEN_RELEASES" ]]; then
-		echo "An existing release branch must be finished or removed first:"
-		echo "$$OPEN_RELEASES"
+	mapfile -t OPEN_RELEASES < <(git for-each-ref \
+		--format='%(refname:short)' \
+		'refs/heads/release/*' 2>/dev/null || true)
+
+	if (( $${#OPEN_RELEASES[@]} > 0 )); then
+		echo ""
+		echo "Cannot start a new release."
+		echo "The following release branch is still open:"
+		printf '  %s\n' "$${OPEN_RELEASES[@]}"
+		echo ""
+		echo "Finish the active release with:"
+		echo "  make releasef"
+		echo ""
+		echo "If the release is obsolete, inspect it before removing it:"
+		echo "  git log develop..$${OPEN_RELEASES[0]} --oneline"
+		echo "  git branch -D $${OPEN_RELEASES[0]}"
+		echo ""
 		exit 1
 	fi
 
