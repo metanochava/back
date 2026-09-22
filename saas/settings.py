@@ -182,6 +182,8 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
     'DEFAULT_PERMISSION_CLASSES': (),
+    # RESAAS error contract: {"error": {code?, message, details}} (see CLAUDE.md, "ERRORS AND ALERTS")
+    'EXCEPTION_HANDLER': 'django_resaas.saas.core.exceptions.handler.resaas_exception_handler',
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
     'NON_FIELD_ERRORS_KEY': 'error',

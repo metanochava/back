@@ -70,5 +70,7 @@ key_value = {
     "Storekeeper": "Magasinier",
     "Warehouse Manager": "Responsable d'entrepôt",
     "Warehouse Supervisor": "Superviseur d'entrepôt",
+    "Categories": "Catégories",
+    "Movements": "Mouvements",
 
 }

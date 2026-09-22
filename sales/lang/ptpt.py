@@ -96,5 +96,8 @@ key_value = {
     # group names (sales)
     "Sales Manager": "Gestor de vendas",
     "Sales Representative": "Representante de vendas",
+    "Number of sales": "N.º de vendas",
+    "Revenue": "Receita",
+    "Average ticket": "Ticket médio",
 
 }
