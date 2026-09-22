@@ -932,4 +932,7 @@ key_value = {
     "Largest provider of healthcare finance": "Premier fournisseur de financement de santé",
     "Mounthly Payment options across private Healfcare": "Options de paiement mensuel dans la santé privée",
     "Testimonials": "Témoignages",
+    "Amal Clinic was created to offer modern, humanised medical care. We work with qualified specialists and advanced technology to ensure accurate diagnoses.": "La Clinique Amal a été créée pour offrir des soins médicaux modernes et humanisés. Nous travaillons avec des spécialistes qualifiés et une technologie avancée pour garantir des diagnostics précis.",
+    "Our commitment is to provide excellent care, always putting patient well-being and safety first.": "Notre engagement est de fournir des soins d'excellence, en plaçant toujours le bien-être et la sécurité du patient au premier plan.",
+    "Medical consultations, exams, specialised care and personalised follow-up.": "Consultations médicales, examens, soins spécialisés et suivi personnalisé.",
 }
