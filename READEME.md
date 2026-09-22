@@ -14,11 +14,11 @@ After=network.target
 [Service]
 User=root
 Group=root
-WorkingDirectory=/var/www/dev/back
+WorkingDirectory=/var/www/pro/back
 
-Environment="PATH=/var/www/pro/back/venv/bin"
+Environment="PATH=/var/www/pro/venv/bin"
 
-ExecStart=/var/www/pro/back/venv/bin/gunicorn \
+ExecStart=/var/www/pro/venv/bin/gunicorn \
     saas.wsgi:application \
     --bind 127.0.0.1:8000 \
     --workers 3 \

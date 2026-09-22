@@ -935,4 +935,6 @@ key_value = {
     "Amal Clinic was created to offer modern, humanised medical care. We work with qualified specialists and advanced technology to ensure accurate diagnoses.": "A Clínica Amal nasceu com o objetivo de oferecer cuidados médicos modernos e humanizados. Trabalhamos com especialistas qualificados e tecnologia avançada para garantir diagnósticos precisos.",
     "Our commitment is to provide excellent care, always putting patient well-being and safety first.": "Nosso compromisso é proporcionar atendimento de excelência, colocando sempre o bem-estar e a segurança do paciente em primeiro lugar.",
     "Medical consultations, exams, specialised care and personalised follow-up.": "Consultas médicas, exames, atendimento especializado e acompanhamento personalizado.",
+    "Degree in Medicine \u2014 Agostinho Neto University": "Licenciatura em Medicina — Universidade Agostinho Neto",
+    "Degree in Medicine \u2014 University of Porto": "Licenciatura em Medicina — Universidade do Porto",
 }
