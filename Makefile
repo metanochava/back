@@ -466,8 +466,20 @@ featuref:
 # =========================================================
 
 releases:
+	if [[ -n "$$(git status --porcelain)" ]]; then
+		echo "Working tree is not clean. Commit or stash your changes before starting a release."
+		exit 1
+	fi
+
+	OPEN_RELEASES="$$(git for-each-ref --format='%(refname:short)' refs/heads/release/ 2>/dev/null || true)"
+	if [[ -n "$$OPEN_RELEASES" ]]; then
+		echo "An existing release branch must be finished or removed first:"
+		echo "$$OPEN_RELEASES"
+		exit 1
+	fi
+
 	git checkout develop
-	git pull origin develop
+	git pull --ff-only origin develop
 
 	read -p "Bump (patch/minor/major): " bump
 
@@ -476,34 +488,88 @@ releases:
 		exit 1
 	fi
 
-	bump2version "$$bump" --no-commit --no-tag
-	VERSION="$$( $(call GET_VERSION) )"
+	CURRENT_VERSION="$$( $(call GET_VERSION) )"
+	NEXT_VERSION="$$(CURRENT_VERSION="$$CURRENT_VERSION" BUMP="$$bump" $(PY) -c "import os; p=[int(x) for x in os.environ['CURRENT_VERSION'].split('.')]; b=os.environ['BUMP']; i={'major':0,'minor':1,'patch':2}[b]; p[i]+=1; p[i+1:]=[0]*(2-i); print('.'.join(map(str,p)))")"
 
-	git add .
-	git commit -m "bump version $$VERSION"
-	git flow release start "$$VERSION"
-
-	echo "Release $$VERSION started."
-
-
-releasef:
-	VERSION="$$( $(call GET_VERSION) )"
-
-	if ! git show-ref --verify --quiet \
-		"refs/heads/release/$$VERSION"; then
-		echo "Branch release/$$VERSION does not exist."
+	if git show-ref --verify --quiet "refs/heads/release/$$NEXT_VERSION" || \
+	   git ls-remote --exit-code --heads origin "release/$$NEXT_VERSION" >/dev/null 2>&1; then
+		echo "Release branch release/$$NEXT_VERSION already exists."
 		exit 1
 	fi
 
-	read -p "Release v$$VERSION message: " mensagem
+	if git rev-parse -q --verify "refs/tags/$$NEXT_VERSION" >/dev/null || \
+	   git rev-parse -q --verify "refs/tags/v$$NEXT_VERSION" >/dev/null; then
+		echo "A tag for version $$NEXT_VERSION already exists."
+		exit 1
+	fi
+
+	git flow release start "$$NEXT_VERSION"
+	bump2version "$$bump" --no-commit --no-tag
+	VERSION="$$( $(call GET_VERSION) )"
+
+	if [[ "$$VERSION" != "$$NEXT_VERSION" ]]; then
+		echo "Version mismatch: expected $$NEXT_VERSION but pyproject.toml contains $$VERSION."
+		exit 1
+	fi
+
+	git add .bumpversion.cfg "$(PYPROJECT)"
+	git commit -m "bump version $$VERSION"
+
+	echo "Release $$VERSION started on branch release/$$VERSION."
+
+
+releasef:
+	CURRENT_BRANCH="$$(git branch --show-current)"
+
+	if [[ "$$CURRENT_BRANCH" == release/* ]]; then
+		RELEASE_BRANCH="$$CURRENT_BRANCH"
+	else
+		mapfile -t RELEASE_BRANCHES < <(git for-each-ref --format='%(refname:short)' refs/heads/release/)
+
+		if (( $${#RELEASE_BRANCHES[@]} == 0 )); then
+			echo "No local release branch exists."
+			echo "Start one with: make releases"
+			exit 1
+		fi
+
+		if (( $${#RELEASE_BRANCHES[@]} > 1 )); then
+			echo "Multiple release branches exist. Checkout the release you want to finish first:"
+			printf '  %s\n' "$${RELEASE_BRANCHES[@]}"
+			exit 1
+		fi
+
+		RELEASE_BRANCH="$${RELEASE_BRANCHES[0]}"
+		git checkout "$$RELEASE_BRANCH"
+	fi
+
+	VERSION="$${RELEASE_BRANCH#release/}"
+	FILE_VERSION="$$( $(call GET_VERSION) )"
+
+	if [[ "$$FILE_VERSION" != "$$VERSION" ]]; then
+		echo "Version mismatch: release branch is $$VERSION but pyproject.toml contains $$FILE_VERSION."
+		echo "Fix the version before finishing the release."
+		exit 1
+	fi
+
+	if [[ -n "$$(git status --porcelain)" ]]; then
+		echo "Working tree is not clean. Commit or stash your changes before finishing the release."
+		exit 1
+	fi
+
+	read -p "Release v$$VERSION message: " message
+
+	if [[ -z "$$message" ]]; then
+		echo "Release message is required."
+		exit 1
+	fi
 
 	git flow release finish \
-		-m "release: v$$VERSION - $$mensagem" \
+		-m "release: v$$VERSION - $$message" \
 		"$$VERSION"
 
 	git push origin main develop --tags
 
-	echo "Release $$VERSION finished."
+	echo "Release $$VERSION finished and pushed successfully."
 
 
 # =========================================================
