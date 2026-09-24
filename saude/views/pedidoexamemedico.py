@@ -14,10 +14,9 @@ from django.db.models import Prefetch
 import barcode
 import qrcode
 
-from saude.models.consulta import Consulta
-from django.utils import timezone
-from django_resaas.hr.models.employee import Employee
-from saude.models.paciente import Paciente
+from django.db import transaction
+from django_resaas.saas.core.decorators.action import resaas_action
+from saude.services import exam_request_service
 
 
 @registerView('pedidoexamemedicos')
@@ -25,55 +24,45 @@ class PedidoExameMedicoAPIView(BaseAPIView):
     queryset = PedidoExameMedico.objects.all()   
     serializer_class = PedidoExameMedicoSerializer
 
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
+        """Doctor request or exam only - see
+        saude/services/exam_request_service.py. The patient and the
+        consultation are resolved inside the current Entity; the client
+        never picks the tenant."""
 
-        employee = Employee.objects.get(
-            person=request.user.person
-        )
-
-        paciente = Paciente.objects.get(
-            id=request.data.get("paciente")
-        )
-
-        consulta, created = Consulta.objects.get_or_create(
-            paciente=paciente,
-            employee= employee,
-            data=timezone.now().date(),
-
-            entity_id= request.entity_id,
-            branch_id =  request.branch_id,
-            created_by = request.user,
-            updated_by  = request.user,   
-        )
-
-        if not created:
-            consulta.updated_by = request.user
-            consulta.save(update_fields=["updated_by"])
-
+        paciente, consulta, origin = exam_request_service.resolve_request_context(request, request.data)
 
         data = request.data.copy()
-        data['consulta'] = consulta.id
-        print(data['consulta'])
-        serializer = self.get_serializer(
-            data=data
-        )
+        data.pop("consulta", None)
+        data.pop("paciente", None)
+        data.pop("origin", None)
 
-        serializer.is_valid(
-            raise_exception=True
-        )
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
 
         pedidoexame = serializer.save(
+            paciente=paciente,
             consulta=consulta,
-            entity=consulta.entity,
-            branch=consulta.branch,
+            origin=origin,
+            entity_id=request.entity_id,
+            branch_id=request.branch_id,
             created_by=request.user,
-            updated_by=request.user
+            updated_by=request.user,
         )
 
-        return all(request, 
+        return all(request,
             data= self.get_serializer(pedidoexame).data,
             status=201
         )
+
+    @resaas_action(detail=True, methods=["post"], label="Check in", icon="login")
+    def check_in(self, request, *args, **kwargs):
+        """Patient arrived for these exams (laboratory waiting starts).
+        Idempotent: repeating it keeps the first time."""
+
+        pedido = exam_request_service.check_in(self.get_object())
+        return all(request, data=self.get_serializer(pedido).data)
 
    
     @action(
@@ -83,7 +72,7 @@ class PedidoExameMedicoAPIView(BaseAPIView):
     def pdf(self, request, *args, **kwargs):
         entity = Entity.objects.get(id=self.get_object().entity.id)
         pedido = self.get_object()
-        paciente = pedido.consulta.paciente
+        paciente = pedido.patient
 
         items = (
             pedido.items
@@ -186,7 +175,7 @@ class PedidoExameMedicoAPIView(BaseAPIView):
     def resultados(self, request, *args, **kwargs):
         entity = Entity.objects.get(id=self.get_object().entity.id)
         pedido = self.get_object()
-        paciente = pedido.consulta.paciente
+        paciente = pedido.patient
 
         resultados = ResultadoExameMedico.objects.filter(
             item_pedido__pedido=pedido

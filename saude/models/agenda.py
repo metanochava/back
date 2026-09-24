@@ -62,6 +62,15 @@ class Agenda(BaseModel):
         default="marcada"
     )
 
+    # Patient-flow timestamps, set by the SERVER on the state transition
+    # (saude/services/appointment_flow.py) - never sent by the client.
+    # They give waiting time (checked_in_at -> service_started_at) and
+    # appointment delay (data+hora_inicio -> service_started_at), two
+    # different metrics.
+    checked_in_at = models.DateTimeField(null=True, blank=True, editable=False)
+    service_started_at = models.DateTimeField(null=True, blank=True, editable=False)
+    completed_at = models.DateTimeField(null=True, blank=True, editable=False)
+
     class Meta:
         verbose_name = "Agenda"
         verbose_name_plural = "Agendas"

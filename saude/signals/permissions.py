@@ -11,6 +11,9 @@ ACTION_PERMISSIONS = [
     "end_emergencyaccess",
     "review_emergencyaccess",
     "merge_patients_paciente",
+    # laboratory flow (saude/services/exam_request_service.py)
+    "check_in_pedidoexamemedico",
+    "validate_resultadoexamemedico",
 ]
 
 
@@ -30,6 +33,12 @@ DASHBOARD_PERMISSIONS = [
     # 4 acima (dashboards por grupo do sidebar antigo), para não colidir
     # com nenhum dos dois.
     ("view_dashboard_saude_clinica", "Can view Clínica dashboard"),
+    # Operational dashboards per work area (saude/dashboard.py's
+    # DASHBOARDS) - granted to the matching profiles by saude/profiles.py
+    ("view_dashboard_saude_reception", "Can view Reception dashboard"),
+    ("view_dashboard_saude_nursing", "Can view Nursing dashboard"),
+    ("view_dashboard_saude_doctor", "Can view Doctor dashboard"),
+    ("view_dashboard_saude_laboratory", "Can view Laboratory dashboard"),
 ]
 
 

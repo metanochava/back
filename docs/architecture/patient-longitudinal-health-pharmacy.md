@@ -1,5 +1,7 @@
 # Patient Longitudinal Identity, Health & Pharmacy — Architecture Analysis
 
+> See also: [Health operational dashboards](health-operational-dashboards.md) (Reception, Nursing, Doctor; waiting time).
+
 > Status: **análise apenas — nenhuma implementação feita.** Aprovação
 > explícita necessária antes de qualquer Phase abaixo arrancar.
 >
