@@ -26,6 +26,11 @@ CLINICAL_PROFILES = [
         "permissions": [
             "view_paciente", "add_paciente", "list_paciente",
             "view_agenda", "add_agenda", "change_agenda", "list_agenda",
+            "view_dashboard_saude_reception",
+            # exam only: register the request and check the patient in
+            "view_pedidoexamemedico", "add_pedidoexamemedico",
+            "add_itempedidoexamemedico", "view_examemedico",
+            "check_in_pedidoexamemedico",
         ],
     },
     {
@@ -38,6 +43,9 @@ CLINICAL_PROFILES = [
             "view_receitamedica", "add_receitamedica",
             "view_atestadomedico", "add_atestadomedico",
             "view_pedidoexamemedico", "add_pedidoexamemedico",
+            "view_dadovital", "add_dadovital",
+            "view_resultadoexamemedico",
+            "view_dashboard_saude_doctor",
         ],
     },
     {
@@ -50,6 +58,9 @@ CLINICAL_PROFILES = [
             "view_receitamedica", "add_receitamedica",
             "view_pedidoexamemedico", "add_pedidoexamemedico",
             "view_relatoriomedico", "add_relatoriomedico",
+            "view_dadovital", "add_dadovital",
+            "view_resultadoexamemedico",
+            "view_dashboard_saude_doctor",
         ],
     },
     {
@@ -68,6 +79,7 @@ CLINICAL_PROFILES = [
             "view_observacaoclinica", "add_observacaoclinica",
             "view_medicacaocorrente", "add_medicacaocorrente",
             "view_vacina", "add_vacina",
+            "view_dashboard_saude_nursing",
         ],
     },
     {
@@ -78,6 +90,7 @@ CLINICAL_PROFILES = [
             "view_observacaoclinica", "add_observacaoclinica", "change_observacaoclinica",
             "view_medicacaocorrente", "add_medicacaocorrente", "change_medicacaocorrente",
             "view_internamento", "list_internamento",
+            "view_dashboard_saude_nursing",
         ],
     },
     {
@@ -143,6 +156,8 @@ DIAGNOSTIC_PROFILES = [
             "view_itempedidoexamemedico", "change_itempedidoexamemedico",
             "view_resultadoexamemedico", "add_resultadoexamemedico",
             "view_examemedico", "view_tipoexamemedico",
+            "check_in_pedidoexamemedico",
+            "view_dashboard_saude_laboratory",
         ],
     },
     {
@@ -151,6 +166,12 @@ DIAGNOSTIC_PROFILES = [
             "view_pedidoexamemedico", "list_pedidoexamemedico",
             "view_resultadoexamemedico", "add_resultadoexamemedico", "change_resultadoexamemedico",
             "view_paramentroresultadoexamemedico", "add_paramentroresultadoexamemedico",
+            "view_itempedidoexamemedico", "change_itempedidoexamemedico",
+            "check_in_pedidoexamemedico",
+            # clinical validation of results - technicians record, they
+            # don't validate
+            "validate_resultadoexamemedico",
+            "view_dashboard_saude_laboratory",
         ],
     },
     {
@@ -201,6 +222,11 @@ FRONT_OFFICE_PROFILES = [
             "view_paciente", "add_paciente",
             "view_agenda", "add_agenda", "change_agenda",
             "view_consulta", "list_consulta",
+            "view_dashboard_saude_reception",
+            # exam only: register the request and check the patient in
+            "view_pedidoexamemedico", "add_pedidoexamemedico",
+            "add_itempedidoexamemedico", "view_examemedico",
+            "check_in_pedidoexamemedico",
         ],
     },
     {
@@ -208,11 +234,19 @@ FRONT_OFFICE_PROFILES = [
         "permissions": [
             "view_paciente", "add_paciente", "change_paciente", "list_paciente",
             "view_agenda", "list_agenda",
+            "view_dashboard_saude_reception",
+            # exam only: register the request and check the patient in
+            "view_pedidoexamemedico", "add_pedidoexamemedico",
+            "add_itempedidoexamemedico", "view_examemedico",
+            "check_in_pedidoexamemedico",
         ],
     },
     {
         "name": "Triage Coordinator",
-        "permissions": ["view_paciente", "view_dadovital", "add_dadovital", "view_agenda"],
+        "permissions": [
+            "view_paciente", "view_dadovital", "add_dadovital", "view_agenda",
+            "view_dashboard_saude_nursing",
+        ],
     },
 ]
 

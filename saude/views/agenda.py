@@ -8,6 +8,7 @@ from django_resaas.saas.core.base.views import BaseAPIView, registerView
 from django_resaas.hr.models.employee import Employee
 
 from saude.models.agenda import Agenda
+from saude.services import appointment_flow
 from saude.serializers.agenda import AgendaSerializer
 
 DEFAULT_DURATION = timedelta(minutes=30)
@@ -101,6 +102,9 @@ class AgendaAPIView(BaseAPIView):
 
         super().perform_create(serializer)
 
+        # a walk-in created directly as "em_espera" is checked in now
+        self._stamp(serializer.instance, previous_estado=None)
+
     @transaction.atomic
     def perform_update(self, serializer):
         instance = serializer.instance
@@ -134,4 +138,16 @@ class AgendaAPIView(BaseAPIView):
                 except DjangoValidationError as exc:
                     raise DRFValidationError(exc.messages)
 
+        previous_estado = instance.estado
+
         super().perform_update(serializer)
+
+        self._stamp(serializer.instance, previous_estado=previous_estado)
+
+    def _stamp(self, agenda, *, previous_estado):
+        """Patient-flow timestamps (appointment_flow.stamp_transition) -
+        server-side, whatever path changed the state."""
+
+        fields = appointment_flow.stamp_transition(agenda, previous_estado)
+        if fields:
+            agenda.save(update_fields=fields)

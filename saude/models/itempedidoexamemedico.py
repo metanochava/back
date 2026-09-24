@@ -69,6 +69,7 @@ class ItemPedidoExameMedico(BaseModel):
         label_field = "exame.nome"
 
         search_fields = [
+            "pedido__paciente__person__full_name",
             "pedido__consulta__paciente__person__full_name",
             "pedido__consulta__employee__person__full_name",
             "exame__nome",
@@ -87,8 +88,9 @@ class ItemPedidoExameMedico(BaseModel):
 
     def __str__(self):
 
+        patient = self.pedido.patient
         paciente = getattr(
-            self.pedido.consulta.paciente.person,
+            patient.person if patient else None,
             "full_name",
             "Paciente"
         )

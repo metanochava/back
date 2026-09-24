@@ -77,7 +77,7 @@ class PatientTimelineService:
                     })
 
             if "lab_requests" in allowed_categories:
-                for pedido in PedidoExameMedico.objects.filter(consulta__paciente=paciente):
+                for pedido in PedidoExameMedico.objects.filter(PedidoExameMedico.patient_filter(paciente)):
                     events.append({
                         "type": "lab_request",
                         "date": pedido.data,

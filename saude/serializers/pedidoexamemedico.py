@@ -11,6 +11,9 @@ class PedidoExameMedicoSerializer(BaseSerializer):
     class Meta:
         model = PedidoExameMedico
         fields = "__all__"
+        # set by the server on create (exam_request_service): the patient
+        # comes from the current Entity, the origin from the entry flow
+        read_only_fields = ["paciente", "origin"]
     
 
     # =========================
@@ -19,7 +22,8 @@ class PedidoExameMedicoSerializer(BaseSerializer):
     medico = serializers.SerializerMethodField()
     def get_medico(self, obj):
 
-        if not obj.consulta.employee:
+        # a direct (exam-only) request has no consultation, so no doctor
+        if not obj.consulta_id or not obj.consulta.employee:
             return None
 
         # 🔥 user/profile

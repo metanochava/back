@@ -39,6 +39,9 @@ class ResultadoExameMedicoSerializer(BaseSerializer):
         model = ResultadoExameMedico
 
         fields = "__all__"
+        # validation metadata is set by the server
+        # (exam_request_service.enforce_result_write / validate_result)
+        read_only_fields = ["validado_por", "data_validacao"]
 
     ############################################################
     # FICHEIRO

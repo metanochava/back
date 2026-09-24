@@ -1,6 +1,10 @@
 from django.db.models import Q
 
 from rest_framework.decorators import action
+from rest_framework.response import Response
+
+from django_resaas.saas.core.decorators.action import resaas_action
+from saude.services import exam_request_service
 
 from django_resaas.saas.core.base.views import (
     BaseAPIView,
@@ -48,6 +52,10 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
 
     def perform_create(self, serializer):
 
+        # validating needs its own permission; validation metadata is the
+        # server's (exam_request_service.enforce_result_write)
+        exam_request_service.enforce_result_write(self.request, serializer.validated_data)
+
         serializer.save(
 
             entity_id=self.request.entity_id,
@@ -68,11 +76,28 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
 
     def perform_update(self, serializer):
 
+        # a validated result is never silently overwritten (409)
+        exam_request_service.enforce_result_write(
+            self.request, serializer.validated_data, instance=serializer.instance
+        )
+
         serializer.save(
 
             updated_by=self.request.user,
 
         )
+
+    ##########################################################
+    # VALIDATE
+    ##########################################################
+
+    @resaas_action(detail=True, methods=["post"], label="Validate", icon="verified")
+    def validate(self, request, *args, **kwargs):
+        """Clinical validation of a result - needs
+        validate_resultadoexamemedico (recording a result does not)."""
+
+        result = exam_request_service.validate_result(request, self.get_object())
+        return Response(self.get_serializer(result).data)
 
     ##########################################################
     # EXPLORER
