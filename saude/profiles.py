@@ -1,346 +1,351 @@
-"""Perfis (Group templates) do módulo saude - nomes técnicos em inglês
-(terminologia ocupacional internacional), com pacotes de permissões
-por omissão.
 
-Mapa de migração PT -> EN (SAUDE_RENAME_FROM) preserva Group.id e
-todas as relações existentes (BranchUserGroup/EntityGroup/
-permissions) - só o `name` muda, via group_creator()'s rename_from
-(engine/core/utils/group_creator.py). Group não tem campo `code`
-próprio (só `id` UUID + `name` único) - `id` já é o identificador
-estável, não foi necessário adicionar coluna nova.
+"""
+Perfis (Group templates) essenciais do módulo saude.
 
-IMPORTANTE (perfil != permissão, CLAUDE.md): nenhum destes nomes é lido
-em código de segurança em lado nenhum - servem só de conjunto de
-permissões por omissão ao criar o grupo. Um administrador pode
-renomear ou criar "Senior Clinical Supervisor" e continua a funcionar,
-desde que tenha as permissões certas.
+PRINCÍPIO
+---------
+Group representa um PERFIL DE ACESSO e não necessariamente uma profissão.
+
+Exemplos:
+    Doctor              -> perfil de acesso
+    Nurse               -> perfil de acesso
+    Surgeon             -> profissão/especialidade, não precisa de Group próprio
+    Cardiologist        -> especialidade, não precisa de Group próprio
+    Physiotherapist     -> profissão, criar Group específico apenas se as
+                           permissões realmente justificarem
+
+A autorização nunca deve depender do nome do Group.
+
+Os nomes servem apenas como templates de permissões por omissão.
+A segurança continua baseada nas permissions efectivas.
+
+Um administrador pode criar Groups adicionais conforme a necessidade
+da organização.
+
+IMPORTANTE:
+- Reutilizar Groups existentes.
+- Preservar Group.id.
+- Seeds devem ser idempotentes.
+- Não remover permissões personalizadas.
+- Não usar Group.name como controlo de segurança.
 """
 
+
 # ============================================================
-# CLÍNICA
+# CLINICAL
 # ============================================================
 
 CLINICAL_PROFILES = [
     {
-        "name": "Medical Receptionist",
+        "name": "Doctor",
         "permissions": [
-            "view_paciente", "add_paciente", "list_paciente",
-            "view_agenda", "add_agenda", "change_agenda", "list_agenda",
-            "view_dashboard_saude_reception",
-            # exam only: register the request and check the patient in
-            "view_pedidoexamemedico", "add_pedidoexamemedico",
-            "add_itempedidoexamemedico", "view_examemedico",
-            "check_in_pedidoexamemedico",
-        ],
-    },
-    {
-        "name": "General Practitioner",
-        "permissions": [
-            "view_paciente", "list_paciente",
-            "view_consulta", "add_consulta", "change_consulta", "list_consulta",
-            "view_agenda", "list_agenda",
-            "view_diagnostico", "add_diagnostico",
-            "view_receitamedica", "add_receitamedica",
-            "view_atestadomedico", "add_atestadomedico",
-            "view_pedidoexamemedico", "add_pedidoexamemedico",
-            "view_dadovital", "add_dadovital",
+            "view_paciente",
+            "list_paciente",
+
+            "view_consulta",
+            "add_consulta",
+            "change_consulta",
+            "list_consulta",
+
+            "view_agenda",
+            "list_agenda",
+
+            "view_diagnostico",
+            "add_diagnostico",
+
+            "view_receitamedica",
+            "add_receitamedica",
+
+            "view_atestadomedico",
+            "add_atestadomedico",
+
+            "view_pedidoexamemedico",
+            "add_pedidoexamemedico",
+
+            "view_dadovital",
+            "add_dadovital",
+
             "view_resultadoexamemedico",
+            "lab_evolution_paciente",
+
+            "view_relatoriomedico",
+            "add_relatoriomedico",
+
             "view_dashboard_saude_doctor",
         ],
     },
+
     {
-        "name": "Specialist Physician",
+        "name": "Nurse",
         "permissions": [
-            "view_paciente", "list_paciente",
-            "view_consulta", "add_consulta", "change_consulta", "list_consulta",
-            "view_agenda", "list_agenda",
-            "view_diagnostico", "add_diagnostico",
-            "view_receitamedica", "add_receitamedica",
-            "view_pedidoexamemedico", "add_pedidoexamemedico",
-            "view_relatoriomedico", "add_relatoriomedico",
-            "view_dadovital", "add_dadovital",
-            "view_resultadoexamemedico",
-            "view_dashboard_saude_doctor",
-        ],
-    },
-    {
-        "name": "Surgeon",
-        "permissions": [
-            "view_paciente", "view_consulta", "view_agenda",
-            "view_cirurgia", "add_cirurgia", "change_cirurgia", "list_cirurgia",
-            "view_internamento", "view_procedimento", "add_procedimento",
-        ],
-    },
-    {
-        "name": "Registered Nurse",
-        "permissions": [
-            "view_paciente", "list_paciente", "view_agenda",
-            "view_dadovital", "add_dadovital",
-            "view_observacaoclinica", "add_observacaoclinica",
-            "view_medicacaocorrente", "add_medicacaocorrente",
-            "view_vacina", "add_vacina",
+            "view_paciente",
+            "list_paciente",
+
+            "view_agenda",
+
+            "view_dadovital",
+            "add_dadovital",
+
+            "view_observacaoclinica",
+            "add_observacaoclinica",
+
+            "view_medicacaocorrente",
+            "add_medicacaocorrente",
+
+            "view_vacina",
+            "add_vacina",
+
             "view_dashboard_saude_nursing",
         ],
-    },
-    {
-        "name": "Nurse Manager",
-        "permissions": [
-            "view_paciente", "list_paciente", "view_agenda",
-            "view_dadovital", "add_dadovital", "change_dadovital",
-            "view_observacaoclinica", "add_observacaoclinica", "change_observacaoclinica",
-            "view_medicacaocorrente", "add_medicacaocorrente", "change_medicacaocorrente",
-            "view_internamento", "list_internamento",
-            "view_dashboard_saude_nursing",
-        ],
-    },
-    {
-        "name": "Midwife",
-        "permissions": [
-            "view_paciente", "view_consulta", "add_consulta",
-            "view_dadovital", "add_dadovital", "view_internamento",
-        ],
-    },
-    {
-        "name": "Physiotherapist",
-        "permissions": [
-            "view_paciente", "view_consulta", "add_consulta",
-            "view_procedimento", "add_procedimento",
-        ],
-    },
-    {
-        "name": "Psychologist",
-        "permissions": [
-            "view_paciente", "view_consulta", "add_consulta",
-            "view_observacaoclinica", "add_observacaoclinica",
-        ],
-    },
-    {
-        "name": "Dietitian and Nutritionist",
-        "permissions": ["view_paciente", "view_consulta", "add_consulta", "view_dadovital"],
     },
 ]
 
+
 # ============================================================
-# FARMÁCIA (perfil clínico - ver farmacia/profiles.py para o
-# módulo dedicado de dispensação)
+# RECEPTION / FRONT OFFICE
+# ============================================================
+
+FRONT_OFFICE_PROFILES = [
+    {
+        "name": "Medical Receptionist",
+        "permissions": [
+            "view_paciente",
+            "add_paciente",
+            "list_paciente",
+
+            "view_agenda",
+            "add_agenda",
+            "change_agenda",
+            "list_agenda",
+
+            "view_dashboard_saude_reception",
+
+            # Exam-only workflow
+            "view_pedidoexamemedico",
+            "add_pedidoexamemedico",
+            "add_itempedidoexamemedico",
+            "view_examemedico",
+            "check_in_pedidoexamemedico",
+
+            # Patient Portal
+            "grant_portal_access_paciente",
+        ],
+    },
+]
+
+
+# ============================================================
+# LABORATORY
+# ============================================================
+
+LABORATORY_PROFILES = [
+    {
+        "name": "Medical Laboratory Technician",
+        "permissions": [
+            "view_pedidoexamemedico",
+            "list_pedidoexamemedico",
+
+            "view_itempedidoexamemedico",
+            "change_itempedidoexamemedico",
+
+            "view_resultadoexamemedico",
+            "add_resultadoexamemedico",
+
+            "view_examemedico",
+            "view_tipoexamemedico",
+
+            "check_in_pedidoexamemedico",
+
+            "collect_itempedidoexamemedico",
+            "reject_sample_itempedidoexamemedico",
+            "record_result_itempedidoexamemedico",
+
+            "view_examparameter",
+
+            "view_dashboard_saude_laboratory",
+        ],
+    },
+
+    {
+        "name": "Medical Laboratory Scientist",
+        "permissions": [
+            "view_pedidoexamemedico",
+            "list_pedidoexamemedico",
+
+            "view_itempedidoexamemedico",
+            "change_itempedidoexamemedico",
+
+            "view_resultadoexamemedico",
+            "add_resultadoexamemedico",
+            "change_resultadoexamemedico",
+
+            "check_in_pedidoexamemedico",
+
+            "collect_itempedidoexamemedico",
+            "reject_sample_itempedidoexamemedico",
+            "record_result_itempedidoexamemedico",
+
+            "lab_evolution_paciente",
+
+            # Exam / parameter configuration
+            "view_examparameter",
+            "add_examparameter",
+            "change_examparameter",
+
+            "view_examreferencerange",
+            "add_examreferencerange",
+            "change_examreferencerange",
+
+            # Higher-level laboratory operations
+            "validate_resultadoexamemedico",
+            "release_resultadoexamemedico",
+            "amend_resultadoexamemedico",
+
+            "view_dashboard_saude_laboratory",
+        ],
+    },
+]
+
+
+# ============================================================
+# PHARMACY
 # ============================================================
 
 PHARMACY_PROFILES = [
     {
         "name": "Pharmacist",
         "permissions": [
-            "view_receitamedica", "list_receitamedica",
-            "view_itemreceita", "add_itemreceita",
-            "view_medicamento", "list_medicamento",
-            "view_medicacaocorrente", "view_alergiamedicamentosa",
-        ],
-    },
-    {
-        "name": "Pharmacy Technician",
-        "permissions": [
-            "view_receitamedica", "view_itemreceita",
-            "view_medicamento", "list_medicamento",
+            "view_receitamedica",
+            "list_receitamedica",
+
+            "view_itemreceita",
+            "add_itemreceita",
+
+            "view_medicamento",
+            "list_medicamento",
+
+            "view_medicacaocorrente",
+            "view_alergiamedicamentosa",
+
+            # Add pharmacy dashboard permission here when/if
+            # the real permission exists in the RESAAS permission sync.
         ],
     },
 ]
 
-# ============================================================
-# EXAMES / DIAGNÓSTICO
-# ============================================================
-
-DIAGNOSTIC_PROFILES = [
-    {
-        "name": "Medical Laboratory Technician",
-        "permissions": [
-            "view_pedidoexamemedico", "list_pedidoexamemedico",
-            "view_itempedidoexamemedico", "change_itempedidoexamemedico",
-            "view_resultadoexamemedico", "add_resultadoexamemedico",
-            "view_examemedico", "view_tipoexamemedico",
-            "check_in_pedidoexamemedico",
-            "view_dashboard_saude_laboratory",
-        ],
-    },
-    {
-        "name": "Medical Laboratory Scientist",
-        "permissions": [
-            "view_pedidoexamemedico", "list_pedidoexamemedico",
-            "view_resultadoexamemedico", "add_resultadoexamemedico", "change_resultadoexamemedico",
-            "view_paramentroresultadoexamemedico", "add_paramentroresultadoexamemedico",
-            "view_itempedidoexamemedico", "change_itempedidoexamemedico",
-            "check_in_pedidoexamemedico",
-            # clinical validation of results - technicians record, they
-            # don't validate
-            "validate_resultadoexamemedico",
-            "view_dashboard_saude_laboratory",
-        ],
-    },
-    {
-        "name": "Radiologic Technologist",
-        "permissions": [
-            "view_pedidoexamemedico", "view_itempedidoexamemedico", "change_itempedidoexamemedico",
-            "view_resultadoexamemedico", "add_resultadoexamemedico",
-        ],
-    },
-    {
-        "name": "Medical Imaging Technologist",
-        "permissions": [
-            "view_pedidoexamemedico", "view_itempedidoexamemedico", "change_itempedidoexamemedico",
-            "view_resultadoexamemedico", "add_resultadoexamemedico",
-        ],
-    },
-    {
-        "name": "Diagnostic Medical Sonographer",
-        "permissions": [
-            "view_pedidoexamemedico", "view_itempedidoexamemedico", "change_itempedidoexamemedico",
-            "view_resultadoexamemedico", "add_resultadoexamemedico",
-        ],
-    },
-    {
-        "name": "CT Technologist",
-        "permissions": [
-            "view_pedidoexamemedico", "view_itempedidoexamemedico", "change_itempedidoexamemedico",
-            "view_resultadoexamemedico", "add_resultadoexamemedico",
-        ],
-    },
-    {
-        "name": "MRI Technologist",
-        "permissions": [
-            "view_pedidoexamemedico", "view_itempedidoexamemedico", "change_itempedidoexamemedico",
-            "view_resultadoexamemedico", "add_resultadoexamemedico",
-        ],
-    },
-]
 
 # ============================================================
-# ATENDIMENTO
-# ============================================================
-
-FRONT_OFFICE_PROFILES = [
-    {
-        "name": "Medical Secretary",
-        "permissions": [
-            "view_paciente", "add_paciente",
-            "view_agenda", "add_agenda", "change_agenda",
-            "view_consulta", "list_consulta",
-            "view_dashboard_saude_reception",
-            # exam only: register the request and check the patient in
-            "view_pedidoexamemedico", "add_pedidoexamemedico",
-            "add_itempedidoexamemedico", "view_examemedico",
-            "check_in_pedidoexamemedico",
-        ],
-    },
-    {
-        "name": "Patient Services Coordinator",
-        "permissions": [
-            "view_paciente", "add_paciente", "change_paciente", "list_paciente",
-            "view_agenda", "list_agenda",
-            "view_dashboard_saude_reception",
-            # exam only: register the request and check the patient in
-            "view_pedidoexamemedico", "add_pedidoexamemedico",
-            "add_itempedidoexamemedico", "view_examemedico",
-            "check_in_pedidoexamemedico",
-        ],
-    },
-    {
-        "name": "Triage Coordinator",
-        "permissions": [
-            "view_paciente", "view_dadovital", "add_dadovital", "view_agenda",
-            "view_dashboard_saude_nursing",
-        ],
-    },
-]
-
-# ============================================================
-# FINANCEIRO
-#
-# Deliberadamente sem permissões de modelos clínicos (Consulta,
-# Diagnostico, etc.) - CLAUDE.md #51 (Health billing boundary): quem
-# trata de dinheiro em saude vê o mínimo clínico necessário para
-# contexto (paciente), nunca o registo clínico em si.
+# BILLING / CASHIER
 # ============================================================
 
 FINANCE_PROFILES = [
-    {"name": "Finance Manager", "permissions": ["view_paciente", "view_dashboard_saude_clinica"]},
-    {"name": "Accountant", "permissions": ["view_paciente", "view_dashboard_saude_clinica"]},
-    {"name": "Treasurer", "permissions": ["view_paciente"]},
-    {"name": "Billing Specialist", "permissions": ["view_paciente", "view_consulta"]},
-    {"name": "Auditor", "permissions": [
-        "view_paciente", "view_consulta", "view_agenda", "view_receitamedica",
-        "view_pedidoexamemedico", "view_resultadoexamemedico", "view_internamento",
-        "view_dashboard_saude_clinica",
-    ]},
+    {
+        "name": "Cashier",
+        "permissions": [
+            # Keep clinical access intentionally minimal.
+            "view_paciente",
+
+            # IMPORTANT:
+            # Add the REAL billing/payment/invoice permissions here
+            # after verifying the existing financial module.
+            #
+            # Do not invent health-specific financial permissions if
+            # they already exist in the finance/billing infrastructure.
+        ],
+    },
 ]
 
+
 # ============================================================
-# GESTÃO CLÍNICA
+# HEALTH MANAGEMENT
 # ============================================================
 
 MANAGEMENT_PROFILES = [
     {
         "name": "Healthcare Administrator",
         "permissions": [
-            "view_paciente", "view_consulta", "view_agenda", "view_medico",
-            "view_receitamedica", "view_internamento", "view_dashboard_saude_clinica",
-        ],
-    },
-    {
-        "name": "Medical Director",
-        "permissions": [
-            "view_paciente", "view_consulta", "view_agenda", "view_medico",
-            "view_diagnostico", "view_internamento", "view_cirurgia",
-            "view_dashboard_saude_clinica",
-        ],
-    },
-    {
-        "name": "Clinical Coordinator",
-        "permissions": [
-            "view_paciente", "view_consulta", "view_agenda", "view_medico",
+            "view_paciente",
+            "view_consulta",
+            "view_agenda",
+            "view_medico",
+            "view_receitamedica",
+            "view_internamento",
+
             "view_dashboard_saude_clinica",
         ],
     },
 ]
 
+
+# ============================================================
+# ALL DEFAULT HEALTH PROFILES
+# ============================================================
+
 SAUDE_PROFILES = (
     CLINICAL_PROFILES
-    + PHARMACY_PROFILES
-    + DIAGNOSTIC_PROFILES
     + FRONT_OFFICE_PROFILES
+    + LABORATORY_PROFILES
+    + PHARMACY_PROFILES
     + FINANCE_PROFILES
     + MANAGEMENT_PROFILES
 )
 
-# Nome antigo (PT, já em produção via group_creator()) -> nome novo
-# (EN) - ver group_creator()'s rename_from: só é usado se o grupo
-# antigo já existir; instalações novas criam directamente em inglês.
+
+# ============================================================
+# MIGRATION / RENAME MAP
+# ============================================================
+#
+# Existing installations may already contain the old Groups.
+#
+# group_creator(rename_from=...) must preserve:
+#
+#   Group.id
+#   BranchUserGroup
+#   EntityGroup
+#   permissions
+#
+# Only the name changes.
+#
+# Do NOT delete the old Group and create another one.
+# ============================================================
+
 SAUDE_RENAME_FROM = {
+    # --------------------------------------------------------
+    # Clinical
+    # --------------------------------------------------------
+
+    "Doctor": "Médico Geral",
+    "Nurse": "Enfermeiro",
+
+    # --------------------------------------------------------
+    # Reception
+    # --------------------------------------------------------
+
     "Medical Receptionist": "Recepcionista",
-    "General Practitioner": "Médico Geral",
-    "Specialist Physician": "Médico Especialista",
-    "Surgeon": "Cirurgião",
-    "Registered Nurse": "Enfermeiro",
-    "Nurse Manager": "Enfermeiro Chefe",
-    "Midwife": "Parteira",
-    "Physiotherapist": "Fisioterapeuta",
-    "Psychologist": "Psicólogo",
-    "Dietitian and Nutritionist": "Nutricionista",
-    "Pharmacist": "Farmacêutico",
-    "Pharmacy Technician": "Técnico de Farmácia",
+
+    # --------------------------------------------------------
+    # Laboratory
+    # --------------------------------------------------------
+
     "Medical Laboratory Technician": "Técnico de Laboratório",
-    "Radiologic Technologist": "Técnico de Radiologia",
-    "Medical Imaging Technologist": "Técnico de Imagiologia",
-    "Diagnostic Medical Sonographer": "Técnico de Ecografia",
-    "CT Technologist": "Técnico de Tomografia",
-    "MRI Technologist": "Técnico de Ressonância",
     "Medical Laboratory Scientist": "Analista Clínico",
-    "Medical Secretary": "Secretária Clínica",
-    "Patient Services Coordinator": "Gestor de Pacientes",
-    "Triage Coordinator": "Triagem",
+
+    # --------------------------------------------------------
+    # Pharmacy
+    # --------------------------------------------------------
+
+    "Pharmacist": "Farmacêutico",
+
+    # --------------------------------------------------------
+    # Finance
+    # --------------------------------------------------------
+
+    "Cashier": "Faturamento",
+
+    # --------------------------------------------------------
+    # Management
+    # --------------------------------------------------------
+
     "Healthcare Administrator": "Administrador",
-    "Finance Manager": "Gestor Financeiro",
-    "Accountant": "Contabilista",
-    "Treasurer": "Tesoureiro",
-    "Billing Specialist": "Faturamento",
-    "Auditor": "Auditor",
-    "Medical Director": "Diretor Clínico",
-    "Clinical Coordinator": "Coordenador Médico",
 }
+

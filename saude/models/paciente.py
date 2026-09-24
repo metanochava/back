@@ -37,6 +37,20 @@ class Paciente(BaseModel):
         blank=True
     )
 
+    # Patient portal (self-service area) of THIS Entity - granted/revoked by
+    # staff (grant_portal_access / revoke_portal_access), never by the
+    # client; see saude/services/patient_portal_service.py.
+    portal_access = models.BooleanField(default=False, editable=False)
+    portal_access_granted_at = models.DateTimeField(null=True, blank=True, editable=False)
+    portal_access_granted_by = models.ForeignKey(
+        "django_resaas.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        editable=False,
+    )
+
     class Meta:
         verbose_name="Paciente"
         verbose_name_plural="Pacientes"

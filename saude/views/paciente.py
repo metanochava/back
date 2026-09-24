@@ -11,6 +11,12 @@ from django_resaas.saas.core.base.views import BaseAPIView, registerView
 from django_resaas.saas.core.base.permissions import isPermited
 from django_resaas.saas.core.utils.translate import Translate
 from django_resaas.saas.core.decorators import resaas_action
+from django.utils.dateparse import parse_date
+from rest_framework.response import Response
+
+from saude.models.exam_parameter import ExamParameter
+from saude.models.result_parameter_value import ResultParameterValue
+from saude.services import lab_result_service, patient_portal_service
 from django_resaas.saas.core.utils import (
     PDF,
     all,
@@ -283,6 +289,83 @@ class PacienteAPIView(BaseAPIView):
         )
 
         return all(request, events=events)
+
+    # ------------------------------------------------------------------
+    # Patient portal access (saude/services/patient_portal_service.py)
+    # PROTECTED: grant_portal_access_paciente (both actions); the patient
+    # is get_object() - inside the current Entity/Branch.
+    # ------------------------------------------------------------------
+
+    @resaas_action(methods=["post"], detail=True, label="Grant portal access", icon="key")
+    def grant_portal_access(self, request, *args, **kwargs):
+        """Makes the patient's account a member of this Entity (no profile)
+        and returns the username - and, when the person has no permanent
+        password yet, a new temporary password, shown once."""
+        return Response(patient_portal_service.grant(request, self.get_object()))
+
+    @resaas_action(methods=["post"], detail=True, label="Revoke portal access", icon="key_off",
+                   permission="grant_portal_access_paciente")
+    def revoke_portal_access(self, request, *args, **kwargs):
+        patient_portal_service.revoke(request, self.get_object())
+        return Response({"portal_access": False})
+
+    # ------------------------------------------------------------------
+    # Structured laboratory history (saude/services/lab_result_service.py)
+    # PROTECTED: lab_evolution_paciente. The patient is get_object() -
+    # inside the current Entity/Branch - never a free patient id; values
+    # are limited to that patient and to the current Entity.
+    # ------------------------------------------------------------------
+
+    def _lab_values(self, request):
+        patient = self.get_object()
+        return ResultParameterValue.objects.filter(
+            result__paciente=patient, entity_id=request.entity_id
+        )
+
+    @resaas_action(methods=["get"], detail=True, label="Lab parameters", icon="query_stats",
+                   permission="lab_evolution_paciente", visible=False)
+    def lab_parameters(self, request, *args, **kwargs):
+        """Parameters this patient has validated values for (to pick one)."""
+        values = lab_result_service.current_revision_values(
+            self._lab_values(request).filter(result__validado=True, result__na_lixeira=False)
+        )
+        rows = (
+            values.values("parameter_code", "parameter_name", "unit", "data_type")
+            .order_by("parameter_code", "-recorded_at")
+        )
+        seen, parameters = set(), []
+        for row in rows:
+            if row["parameter_code"] in seen:
+                continue
+            seen.add(row["parameter_code"])
+            parameters.append({
+                "code": row["parameter_code"],
+                "name": row["parameter_name"],
+                "unit": row["unit"],
+                "graphable": row["data_type"] in ExamParameter.NUMERIC_TYPES,
+            })
+        return Response(parameters)
+
+    @resaas_action(methods=["get"], detail=True, label="Lab evolution", icon="show_chart",
+                   visible=False)
+    def lab_evolution(self, request, *args, **kwargs):
+        """?parameter=<code>&from=YYYY-MM-DD&to=YYYY-MM-DD - time series of
+        one parameter (validated results, latest revision of each exam),
+        plus current vs previous."""
+        code = request.query_params.get("parameter")
+        if not code:
+            return fail(request, "parameter is required.", status=400)
+
+        try:
+            date_from = parse_date(request.query_params.get("from") or "")
+            date_to = parse_date(request.query_params.get("to") or "")
+        except ValueError:
+            return fail(request, "Invalid date.", status=400)
+
+        values = self._lab_values(request)
+        data = lab_result_service.evolution(values, code, date_from=date_from, date_to=date_to)
+        data["comparison"] = lab_result_service.comparison(values, code)
+        return Response(data)
 
     @resaas_action(
         methods=["post"],

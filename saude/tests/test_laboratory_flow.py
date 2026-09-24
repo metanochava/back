@@ -292,7 +292,6 @@ class LaboratoryProfilesTests(TestCase):
                  "validate_resultadoexamemedico", "add_pedidoexamemedico", "add_itempedidoexamemedico"}
         for missing in report["permissions_missing"].values():
             self.assertFalse(added & set(missing), missing)
-        # ParamentroResultadoExameMedico is never imported (no table, no
-        # permissions): the seed reports it instead of skipping it silently
-        self.assertEqual(report["permissions_missing"].get("Medical Laboratory Scientist"),
-                         ["add_paramentroresultadoexamemedico", "view_paramentroresultadoexamemedico"])
+        # the dead ParamentroResultadoExameMedico codenames were replaced by
+        # the real ExamParameter / ExamReferenceRange ones
+        self.assertNotIn("Medical Laboratory Scientist", report["permissions_missing"])

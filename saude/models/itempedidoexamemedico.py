@@ -46,9 +46,27 @@ class ItemPedidoExameMedico(BaseModel):
             ("processamento", "Processing"),
             ("concluido", "Completed"),
             ("cancelado", "Cancelled"),
+            # the sample was rejected: a new collection is needed
+            ("recolha_necessaria", "Recollection Required"),
         ],
         default="pendente"
     )
+
+    # Collection / sample rejection, set by the server (collect /
+    # reject_sample actions). The last rejection stays on the item; every
+    # rejection and collection is also in the audit log.
+    collected_by = models.ForeignKey(
+        "django_resaas.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        editable=False,
+    )
+
+    rejected_at = models.DateTimeField(null=True, blank=True, editable=False)
+
+    rejection_reason = models.TextField(null=True, blank=True, editable=False)
 
     data_agendamento = models.DateTimeField(
         null=True,

@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django_resaas.saas.core.decorators.action import resaas_action
-from saude.services import exam_request_service
+from saude.services import exam_request_service, lab_result_service
 
 from django_resaas.saas.core.base.views import (
     BaseAPIView,
@@ -98,6 +98,20 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
 
         result = exam_request_service.validate_result(request, self.get_object())
         return Response(self.get_serializer(result).data)
+
+    @resaas_action(detail=True, methods=["post"], label="Release", icon="publish")
+    def release(self, request, *args, **kwargs):
+        """Makes a validated result available to the requester and the
+        patient - release_resultadoexamemedico (validating does not)."""
+        result = lab_result_service.release_result(request, self.get_object())
+        return Response(self.get_serializer(result).data)
+
+    @resaas_action(detail=True, methods=["post"], label="Amend", icon="history_edu")
+    def amend(self, request, *args, **kwargs):
+        """Correction of a validated result: a new revision ({"reason"}),
+        the validated one stays unchanged."""
+        revision = lab_result_service.amend_result(request, self.get_object(), request.data.get("reason"))
+        return Response(self.get_serializer(revision).data, status=201)
 
     ##########################################################
     # EXPLORER
