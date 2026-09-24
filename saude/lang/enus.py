@@ -181,4 +181,27 @@ key_value = {
     "Valor Referencia": "Reference Value",
     "Valor Resultado": "Result Value",
 
+    # doctor profile dialog
+    "Category": "Category",
+    "Could not load the doctor information.": "Could not load the doctor information.",
+    "Open doctor record": "Open doctor record",
+    "Order number": "Order number",
+    "Signature": "Signature",
+    "Stamp": "Stamp",
+
+    # history list actions (edit / reprint / delete)
+    "Reprint": "Reprint",
+    "Valid until": "Valid until",
+    "Are you sure you want to delete this record?": "Are you sure you want to delete this record?",
+    "Record deleted.": "Record deleted.",
+    "Could not save the changes.": "Could not save the changes.",
+    "Could not delete the record.": "Could not delete the record.",
+    "PDF": "PDF",
+
+    # patient card PDF modal title
+    "Patient card": "Patient card",
+
+    # "GERAL" specialty: no doctor chosen at scheduling time
+    "No need to choose a doctor - the patient will be seen by any available doctor at the health unit.": "No need to choose a doctor - the patient will be seen by any available doctor at the health unit.",
+    "Any available doctor": "Any available doctor",
 }

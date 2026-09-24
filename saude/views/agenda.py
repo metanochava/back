@@ -84,16 +84,20 @@ class AgendaAPIView(BaseAPIView):
     @transaction.atomic
     def perform_create(self, serializer):
         validated = serializer.validated_data
+        medico = validated.get("medico")
 
-        try:
-            _assert_no_overlap(
-                medico_id=validated["medico"].id,
-                data=validated["data"],
-                hora_inicio=validated["hora_inicio"],
-                hora_fim=validated.get("hora_fim"),
-            )
-        except DjangoValidationError as exc:
-            raise DRFValidationError(exc.messages)
+        # No doctor chosen yet (a "GERAL"-specialty booking, see Agenda.medico) -
+        # nothing to check for overlap against.
+        if medico:
+            try:
+                _assert_no_overlap(
+                    medico_id=medico.id,
+                    data=validated["data"],
+                    hora_inicio=validated["hora_inicio"],
+                    hora_fim=validated.get("hora_fim"),
+                )
+            except DjangoValidationError as exc:
+                raise DRFValidationError(exc.messages)
 
         super().perform_create(serializer)
 
@@ -118,15 +122,16 @@ class AgendaAPIView(BaseAPIView):
             hora_inicio = validated.get("hora_inicio", instance.hora_inicio)
             hora_fim = validated.get("hora_fim", instance.hora_fim)
 
-            try:
-                _assert_no_overlap(
-                    medico_id=medico.id,
-                    data=data,
-                    hora_inicio=hora_inicio,
-                    hora_fim=hora_fim,
-                    exclude_id=instance.id,
-                )
-            except DjangoValidationError as exc:
-                raise DRFValidationError(exc.messages)
+            if medico:
+                try:
+                    _assert_no_overlap(
+                        medico_id=medico.id,
+                        data=data,
+                        hora_inicio=hora_inicio,
+                        hora_fim=hora_fim,
+                        exclude_id=instance.id,
+                    )
+                except DjangoValidationError as exc:
+                    raise DRFValidationError(exc.messages)
 
         super().perform_update(serializer)

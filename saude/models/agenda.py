@@ -10,8 +10,14 @@ class Agenda(BaseModel):
         related_name="agendas"
     )
 
+    # null/blank: a "GERAL" (code="GERAL") specialty booking has no doctor
+    # chosen at scheduling time - the patient is seen by whichever doctor is
+    # available at the health unit when they arrive. Every other specialty
+    # still requires one (see AgendaAPIView.perform_create/update).
     medico = models.ForeignKey(
         "hr.Employee",
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
         related_name="agendas"
     )
