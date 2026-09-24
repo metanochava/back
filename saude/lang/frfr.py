@@ -1208,4 +1208,28 @@ key_value = {
     "Desktops": "Ordinateurs de bureau",
     "We don't only build technology. We teach it.": "Nous ne faisons pas que construire la technologie. Nous l'enseignons aussi.",
     "The page you're looking for doesn't exist or has moved.": "La page que vous recherchez n'existe pas ou a été déplacée.",
+
+    # doctor profile dialog
+    "Category": "Catégorie",
+    "Could not load the doctor information.": "Impossible de charger les informations du médecin.",
+    "Open doctor record": "Ouvrir la fiche du médecin",
+    "Order number": "Numéro d'ordre",
+    "Signature": "Signature",
+    "Stamp": "Cachet",
+
+    # history list actions (edit / reprint / delete)
+    "Reprint": "Réimprimer",
+    "Valid until": "Valable jusqu'au",
+    "Are you sure you want to delete this record?": "Voulez-vous vraiment supprimer cet enregistrement ?",
+    "Record deleted.": "Enregistrement supprimé.",
+    "Could not save the changes.": "Impossible d'enregistrer les modifications.",
+    "Could not delete the record.": "Impossible de supprimer l'enregistrement.",
+    "PDF": "PDF",
+
+    # patient card PDF modal title
+    "Patient card": "Carte du patient",
+
+    # "GERAL" specialty: no doctor chosen at scheduling time
+    "No need to choose a doctor - the patient will be seen by any available doctor at the health unit.": "Il n'est pas nécessaire de choisir un médecin - le patient sera vu par tout médecin disponible dans l'unité de santé.",
+    "Any available doctor": "Tout médecin disponible",
 }

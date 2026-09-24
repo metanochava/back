@@ -140,3 +140,62 @@ class AgendaOverlapTests(TestCase):
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 200, response.data)
+
+
+class AgendaWithoutDoctorTests(TestCase):
+    """"GERAL"-specialty bookings (see Agenda.medico) have no doctor chosen at
+    scheduling time - the patient is seen by whoever is available on site."""
+
+    def setUp(self):
+        self.tenant = bootstrap_tenant("agenda-geral", modules=("saude", "hr"))
+        self.paciente = _create_paciente(self.tenant, "PAC-2026-000070")
+
+    def _book_without_doctor(self, hora_inicio="09:00:00", hora_fim="09:30:00"):
+        return self.tenant["client"].post(
+            "/api/saude/agendas/",
+            {
+                "paciente": str(self.paciente.id),
+                "medico": None,
+                "data": "2026-10-01",
+                "hora_inicio": hora_inicio,
+                "hora_fim": hora_fim,
+            },
+            content_type="application/json",
+        )
+
+    def test_a_booking_can_be_created_with_no_doctor(self):
+        response = self._book_without_doctor()
+
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertIsNone(Agenda.objects.get(id=response.data["id"]).medico_id)
+
+    def test_two_doctor_less_bookings_at_the_same_time_do_not_conflict(self):
+        """There is nothing to check overlap against without a doctor."""
+        first = self._book_without_doctor()
+        self.assertEqual(first.status_code, 201, first.data)
+
+        second = self._book_without_doctor()
+        self.assertEqual(second.status_code, 201, second.data)
+
+    def test_assigning_a_doctor_later_is_then_checked_for_overlap(self):
+        medico = _create_employee(self.tenant)
+        other = self.tenant["client"].post(
+            "/api/saude/agendas/",
+            {
+                "paciente": str(self.paciente.id), "medico": str(medico.id),
+                "data": "2026-10-01", "hora_inicio": "09:00:00", "hora_fim": "09:30:00",
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(other.status_code, 201, other.data)
+
+        created = self._book_without_doctor(hora_inicio="09:15:00", hora_fim="09:45:00")
+        agenda_id = created.data["id"]
+
+        response = self.tenant["client"].patch(
+            f"/api/saude/agendas/{agenda_id}/",
+            {"medico": str(medico.id)},
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400, response.data)
+

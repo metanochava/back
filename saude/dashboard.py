@@ -113,7 +113,7 @@ DASHBOARD = {
             ],
 
             "visible": True,
-            "cols": {"xs": 12, "sm": 6, "md": 3, "lg": 3, "xl": 3},
+            "cols": {"xs": 12, "sm": 12, "md": 12, "lg": 12, "xl": 12},
             "order": 10,
 
             "accepts_filters": ["search"],
@@ -201,7 +201,7 @@ DASHBOARD = {
             ],
 
             "visible": True,
-            "cols": {"xs": 12, "sm": 12, "md": 8, "lg": 8, "xl": 8},
+            "cols": {"xs": 12, "sm": 6, "md": 8, "lg": 8, "xl": 8},
             "order": 50,
 
             "accepts_filters": ["status", "search", "medico"],
@@ -245,7 +245,7 @@ DASHBOARD = {
             },
 
             "visible": True,
-            "cols": {"xs": 12, "sm": 6, "md": 4, "lg": 4, "xl": 4},
+            "cols": {"xs": 12, "sm": 12, "md": 12, "lg": 12, "xl": 12},
             "order": 60,
 
             "accepts_filters": [],
