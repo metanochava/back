@@ -266,8 +266,11 @@ class PatientTimelineEndpointTests(TestCase):
         response = client.get(
             "/api/saude/pacientes/timeline/", {"person_id": str(self.person.id)}
         )
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data["detail"], "Unauthorized")
+        # a missing permission is 403 with the RESAAS error contract
+        # ({"error": {...}} only - no top-level "detail")
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(response.data["error"]["message"])
+        self.assertNotIn("detail", response.data)
 
     def test_returns_authorized_cross_entity_events(self):
         _create_consulta(self.tenant_a, self.paciente_a, self.employee_a)

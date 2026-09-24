@@ -26,6 +26,7 @@ from saude.models.agenda import Agenda
 from saude.models.dadovital import DadoVital
 from saude.models.itempedidoexamemedico import ItemPedidoExameMedico
 from saude.models.resultadoexamemedico import ResultadoExameMedico
+from saude.models.result_parameter_value import ResultParameterValue
 from saude.services import appointment_flow
 
 ESTADO_LABELS = dict(Agenda._meta.get_field("estado").choices)
@@ -303,18 +304,19 @@ class DoctorMyQueueProvider(FlowProvider):
 
 @register_provider("saude.doctor.recent_results")
 class DoctorRecentResultsProvider(FlowProvider):
-    """Validated results of exams the doctor requested, last 7 days.
-    Unvalidated results are never listed."""
+    """RELEASED results of exams the doctor requested, last 7 days
+    (released = made available to the requester; recorded or only
+    validated results are never listed)."""
 
     def resolve(self):
         since = timezone.now() - timedelta(days=RECENT_RESULTS_DAYS)
         qs = self.scoped_queryset(
             ResultadoExameMedico.objects.filter(
-                validado=True,
-                data_validacao__gte=since,
+                released=True,
+                released_at__gte=since,
                 item_pedido__pedido__consulta__employee__person__user=self.request.user,
             )
-        ).select_related("paciente__person").order_by("-data_validacao")[:10]
+        ).select_related("paciente__person").order_by("-released_at")[:10]
 
         return {
             "items": [
@@ -323,7 +325,7 @@ class DoctorRecentResultsProvider(FlowProvider):
                     "paciente_id": str(r.paciente_id) if r.paciente_id else None,
                     "title": r.paciente.person.full_name if r.paciente_id else "-",
                     "description": r.nome or "",
-                    "date": r.data_validacao.isoformat() if r.data_validacao else None,
+                    "date": r.released_at.isoformat() if r.released_at else None,
                     "icon": "science",
                 }
                 for r in qs
@@ -470,3 +472,109 @@ class LabResultsToValidateProvider(FlowProvider):
                 for r in qs
             ]
         }
+
+
+# ============================================================
+# LABORATORY - structured results, release, TAT, attention
+# ============================================================
+
+from saude.services import lab_result_service  # noqa: E402
+
+RESULT_STAGE = ("colhido", "processamento")
+
+
+@register_provider("saude.lab.results_to_record")
+class LabResultsToRecordProvider(FlowProvider):
+    """Collected / processing exam items without any result yet."""
+
+    def resolve(self):
+        return _stat(self.scoped_queryset(
+            ItemPedidoExameMedico.objects.filter(estado_exame__in=RESULT_STAGE, resultados__isnull=True)
+        ).count())
+
+
+def _to_release(provider):
+    newer = ResultadoExameMedico.objects.filter(
+        item_pedido_id=OuterRef("item_pedido_id"), numero_revisao__gt=OuterRef("numero_revisao"),
+    )
+    return provider.scoped_queryset(
+        ResultadoExameMedico.objects.filter(
+            validado=True, released=False, na_lixeira=False, item_pedido__isnull=False,
+        ).annotate(_superseded=Exists(newer)).filter(_superseded=False)
+    )
+
+
+@register_provider("saude.lab.results_to_release")
+class LabResultsToReleaseProvider(FlowProvider):
+
+    def resolve(self):
+        return _stat(_to_release(self).count())
+
+
+@register_provider("saude.lab.average_tat_today")
+class LabAverageTatTodayProvider(FlowProvider):
+    """Average collection -> release of results released today."""
+
+    def resolve(self):
+        released = self.scoped_queryset(
+            ResultadoExameMedico.objects.filter(released_at__date=_today(), item_pedido__data_colheita__isnull=False)
+        ).values_list("item_pedido__data_colheita", "released_at")
+        minutes = [m for m in (lab_result_service.turnaround_minutes(c, r) for c, r in released) if m is not None]
+        if not minutes:
+            return _stat(None)
+        average = round(sum(minutes) / len(minutes))
+        return {"value": average, "formatted_value": lab_result_service.format_duration(average)}
+
+
+@register_provider("saude.lab.recollection_required")
+class LabRecollectionRequiredProvider(FlowProvider):
+
+    def resolve(self):
+        return _stat(self.scoped_queryset(
+            ItemPedidoExameMedico.objects.filter(estado_exame="recolha_necessaria")
+        ).count())
+
+
+@register_provider("saude.lab.attention")
+class LabAttentionProvider(FlowProvider):
+    """Situations that need attention, from real data only: rejected
+    samples waiting for recollection, and results flagged critical by a
+    CONFIGURED critical range that are not released yet. No rule is
+    invented: without configured critical limits there are no critical
+    flags."""
+
+    def resolve(self):
+        items = []
+
+        for item in self.scoped_queryset(
+            ItemPedidoExameMedico.objects.filter(estado_exame="recolha_necessaria")
+        ).select_related("exame", "pedido__paciente__person", "pedido__consulta__paciente__person")[:10]:
+            patient = item.pedido.patient
+            items.append({
+                "id": str(item.id),
+                "title": patient.person.full_name if patient else "-",
+                "description": f"{item.exame.nome}: Recollection Required - {item.rejection_reason or ''}".strip(" -"),
+                "date": item.rejected_at.isoformat() if item.rejected_at else None,
+                "icon": "block",
+                "status": "Recollection Required",
+            })
+
+        critical = self.scoped_queryset(
+            ResultParameterValue.objects.filter(
+                flag__in=(ResultParameterValue.CRITICAL_LOW, ResultParameterValue.CRITICAL_HIGH),
+                result__released=False,
+            )
+        ).select_related("result__paciente__person")[:10]
+
+        for value in critical:
+            patient = value.result.paciente
+            items.append({
+                "id": str(value.result_id),
+                "title": patient.person.full_name if patient else "-",
+                "description": f"{value.parameter_name}: {value.display_value} {value.unit or ''}".strip(),
+                "date": value.recorded_at.isoformat(),
+                "icon": "priority_high",
+                "status": dict(ResultParameterValue.FLAG_CHOICES).get(value.flag, value.flag),
+            })
+
+        return {"items": items}

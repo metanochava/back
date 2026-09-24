@@ -165,8 +165,11 @@ class SearchCandidatesEndpointTests(TestCase):
             "/api/saude/pacientes/search_candidates/",
             {"email": "pedro.machel@example.com"},
         )
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data["detail"], "Unauthorized")
+        # a missing permission is 403 with the RESAAS error contract
+        # ({"error": {...}} only - no top-level "detail")
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(response.data["error"]["message"])
+        self.assertNotIn("detail", response.data)
 
     def test_requires_at_least_one_criterion(self):
         response = self.tenant_b["client"].get(

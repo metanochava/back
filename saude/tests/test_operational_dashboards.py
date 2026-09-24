@@ -327,12 +327,17 @@ class OperationalDashboardsTests(TestCase):
         self.assertEqual({r["patient"] for r in rows}, {"Maria Flow", "Carlos Flow"})
         self.assertEqual({r["vital_signs"] for r in rows}, {"Recorded", "Pending"})
 
-    def test_doctor_recent_results_are_only_validated_ones_of_their_requests(self):
+    def test_doctor_recent_results_are_only_released_ones_of_their_requests(self):
         consulta = Consulta.objects.create(paciente=self.maria, employee=self.me, **_audit(self.tenant))
         pedido = PedidoExameMedico.objects.create(consulta=consulta, **_audit(self.tenant))
         item = ItemPedidoExameMedico.objects.create(pedido=pedido, exame=_exame(self.tenant), **_audit(self.tenant))
-        ResultadoExameMedico.objects.create(
+        released = ResultadoExameMedico.objects.create(
             paciente=self.maria, item_pedido=item, nome="Hemoglobin", validado=True,
+            data_validacao=timezone.now(), **_audit(self.tenant))
+        # released is server-controlled (editable=False): set it like the service does
+        ResultadoExameMedico.objects.filter(pk=released.pk).update(released=True, released_at=timezone.now())
+        ResultadoExameMedico.objects.create(
+            paciente=self.maria, item_pedido=item, nome="Validated only", validado=True,
             data_validacao=timezone.now(), **_audit(self.tenant))
         ResultadoExameMedico.objects.create(
             paciente=self.maria, item_pedido=item, nome="Glucose", validado=False, **_audit(self.tenant))
@@ -354,10 +359,12 @@ class OperationalDashboardsTests(TestCase):
         self.assertEqual(_widget(client, "saude_nursing", "vitals_pending").data["data"]["value"], 0)
 
 
-def _exame(tenant):
-    tipo = TipoExameMedico.objects.create(nome="Laboratory", **_audit(tenant))
-    classe = ClasseExameMedico.objects.create(nome="Haematology", tipo_exame_medico=tipo, **_audit(tenant))
-    return ExameMedico.objects.create(nome="Blood count", classe_exame_medico=classe, **_audit(tenant))
+def _exame(tenant, nome="Blood count"):
+    # catalogue names are unique: a test may need several exams
+    suffix = uuid.uuid4().hex[:6]
+    tipo = TipoExameMedico.objects.create(nome=f"Laboratory {suffix}", **_audit(tenant))
+    classe = ClasseExameMedico.objects.create(nome=f"Haematology {suffix}", tipo_exame_medico=tipo, **_audit(tenant))
+    return ExameMedico.objects.create(nome=nome, classe_exame_medico=classe, **_audit(tenant))
 
 
 # ============================================================

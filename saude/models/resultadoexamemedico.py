@@ -143,6 +143,22 @@ class ResultadoExameMedico(BaseModel):
         blank=True
     )
 
+    # Release to the requester/patient - a separate, later step than
+    # validation (release_resultadoexamemedico). The patient only ever sees
+    # released results. Set by the server.
+    released = models.BooleanField(default=False, editable=False)
+
+    released_by = models.ForeignKey(
+        "django_resaas.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+        editable=False,
+    )
+
+    released_at = models.DateTimeField(null=True, blank=True, editable=False)
+
     assinado_digitalmente = models.BooleanField(
         default=False
     )

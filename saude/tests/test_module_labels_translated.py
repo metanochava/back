@@ -43,6 +43,19 @@ def _untranslated(text):
     return [code for code, words in DICTIONARIES.items() if text not in words]
 
 
+# The frontend's tdc() looks a key up as text.toLowerCase().trim()
+# (quasar_resaas services/translation.js - CLAUDE.md section 89), so for
+# tdc() literals a key that differs only in case IS the same translation.
+DICTIONARIES_FRONTEND = {
+    code: {key.lower().strip() for key in words} for code, words in DICTIONARIES.items()
+}
+
+
+def _untranslated_in_frontend(text):
+    key = text.lower().strip()
+    return [code for code, keys in DICTIONARIES_FRONTEND.items() if key not in keys]
+
+
 class SaudeLabelsAreTranslated(SimpleTestCase):
 
     def test_every_saude_model_and_field_label_is_translated(self):
@@ -110,7 +123,7 @@ class SaudeLabelsAreTranslated(SimpleTestCase):
         for path in list(pages.rglob("*.vue")) + list(pages.rglob("*.js")):
             for match in pattern.finditer(path.read_text()):
                 text = (match.group(1) or match.group(2) or "").replace("\\'", "'")
-                if text.strip() and _untranslated(text):
+                if text.strip() and _untranslated_in_frontend(text):
                     missing[text] = str(path.relative_to(pages))
 
         self.assertEqual(missing, {}, "Untranslated tdc() strings in the saude frontend")

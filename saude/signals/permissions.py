@@ -14,6 +14,13 @@ ACTION_PERMISSIONS = [
     # laboratory flow (saude/services/exam_request_service.py)
     "check_in_pedidoexamemedico",
     "validate_resultadoexamemedico",
+    "collect_itempedidoexamemedico",
+    "reject_sample_itempedidoexamemedico",
+    "release_resultadoexamemedico",
+    "amend_resultadoexamemedico",
+    "record_result_itempedidoexamemedico",
+    "lab_evolution_paciente",
+    "grant_portal_access_paciente",
 ]
 
 

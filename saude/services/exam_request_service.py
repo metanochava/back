@@ -26,6 +26,7 @@ from rest_framework import status
 from django_resaas.hr.models.employee import Employee
 from django_resaas.saas.core.base.permissions import isPermited
 from django_resaas.saas.core.exceptions import ConflictError, ResaasAPIException
+from django_resaas.saas.core.services import audit_service
 
 from saude.models.consulta import Consulta
 from saude.models.paciente import Paciente
@@ -33,6 +34,9 @@ from saude.models.pedidoexamemedico import PedidoExameMedico
 
 VALIDATE_PERMISSION = "validate_resultadoexamemedico"
 COLLECTED = "colhido"
+RECOLLECTION_REQUIRED = "recolha_necessaria"
+COLLECTABLE = ("pendente", "agendado", RECOLLECTION_REQUIRED)
+REJECTABLE = (COLLECTED, "processamento")
 
 
 def _not_found(message, code):
@@ -120,6 +124,39 @@ def stamp_collection(item, previous_state, now=None):
         item.save(update_fields=["data_colheita"])
 
 
+def collect(request, item, now=None):
+    """Sample collected (again, after a rejection): who and when are set by
+    the server."""
+    if item.estado_exame not in COLLECTABLE:
+        raise ConflictError("This exam cannot be collected in its current state.", code="invalid_exam_state")
+
+    item.estado_exame = COLLECTED
+    item.data_colheita = now or timezone.now()
+    item.collected_by = request.user
+    item.save(update_fields=["estado_exame", "data_colheita", "collected_by", "updated_at"])
+    audit_service.record(action="LAB_SAMPLE_COLLECTED", target=item, actor=request.user,
+                         request=request, entity_id=request.entity_id)
+    return item
+
+
+def reject_sample(request, item, reason, now=None):
+    """Sample not usable: the item goes to 'recolha_necessaria' and keeps
+    the rejection (time and reason); the audit log keeps every rejection."""
+    if not reason or not str(reason).strip():
+        raise ResaasAPIException("A reason is required to reject a sample.", code="rejection_reason_required",
+                                 details={"reason": ["This field is required."]})
+    if item.estado_exame not in REJECTABLE:
+        raise ConflictError("Only a collected sample can be rejected.", code="invalid_exam_state")
+
+    item.estado_exame = RECOLLECTION_REQUIRED
+    item.rejected_at = now or timezone.now()
+    item.rejection_reason = str(reason).strip()
+    item.save(update_fields=["estado_exame", "rejected_at", "rejection_reason", "updated_at"])
+    audit_service.record(action="LAB_SAMPLE_REJECTED", target=item, actor=request.user,
+                         request=request, entity_id=request.entity_id)
+    return item
+
+
 def lab_waiting_minutes(pedido, first_collection=None, now=None):
     """Laboratory waiting time: check-in -> first collection (or now while
     nothing is collected yet). None without a check-in."""
@@ -176,5 +213,7 @@ def validate_result(request, result):
     result.validado_por = request.user
     result.data_validacao = timezone.now()
     result.save(update_fields=["validado", "validado_por", "data_validacao", "updated_at"])
+    audit_service.record(action="LAB_RESULT_VALIDATED", target=result, actor=request.user,
+                         request=request, entity_id=request.entity_id)
     return result
 
