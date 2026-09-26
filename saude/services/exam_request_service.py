@@ -60,6 +60,19 @@ def current_employee(request):
     ).first()
 
 
+def require_professional(request):
+    """current_employee() or a 400: clinical records (vital signs, a
+    consultation) are written by the professional signed in."""
+    employee = current_employee(request)
+    if employee is None:
+        raise ResaasAPIException(
+            "Your user has no employee record in this branch: clinical records are written by a professional.",
+            code="professional_required",
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+    return employee
+
+
 def resolve_request_context(request, data):
     """Returns (paciente, consulta, origin) for a new exam request."""
 
@@ -97,13 +110,17 @@ def resolve_request_context(request, data):
     # 3) legacy behaviour kept for the existing screens: a clinician's
     # request without an explicit consultation is attached to their
     # consultation of the day with this patient.
-    consulta, _ = Consulta.objects.get_or_create(
+    # (reuses today's consultation - of the appointment first - so two of
+    # them no longer break it; one is created only when there is none)
+    from saude.services.consultation_service import todays_consultation
+
+    consulta = todays_consultation(request, patient, employee) or Consulta.objects.create(
         paciente=patient,
         employee=employee,
-        data=timezone.now().date(),
         entity_id=request.entity_id,
         branch_id=request.branch_id,
-        defaults={"created_by": request.user, "updated_by": request.user},
+        created_by=request.user,
+        updated_by=request.user,
     )
     return patient, consulta, PedidoExameMedico.ORIGIN_CONSULTATION
 

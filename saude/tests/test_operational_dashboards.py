@@ -383,14 +383,14 @@ class OperationalProfilesSeedTests(TestCase):
             return set(Group.objects.get(name=name).permissions.values_list("codename", flat=True))
 
         self.assertIn("view_dashboard_saude_reception", codenames("Medical Receptionist"))
-        self.assertIn("view_dashboard_saude_nursing", codenames("Registered Nurse"))
-        self.assertTrue({"view_dashboard_saude_doctor", "add_dadovital"} <= codenames("General Practitioner"))
-        self.assertNotIn("view_dashboard_saude_doctor", codenames("Registered Nurse"))
-        self.assertFalse(Group.objects.filter(name__in=["Doctor", "Nurse", "Receptionist"]).exists())
+        self.assertIn("view_dashboard_saude_nursing", codenames("Nurse"))
+        self.assertTrue({"view_dashboard_saude_doctor", "add_dadovital"} <= codenames("Doctor"))
+        self.assertNotIn("view_dashboard_saude_doctor", codenames("Nurse"))
+        self.assertFalse(Group.objects.filter(name__in=["General Practitioner", "Registered Nurse", "Receptionist"]).exists())
 
     def test_seed_is_idempotent_and_keeps_custom_permissions(self):
         group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
-        nurse = Group.objects.get(name="Registered Nurse")
+        nurse = Group.objects.get(name="Nurse")
         custom = Permission.objects.get(codename="view_consulta")
         nurse.permissions.add(custom)
         count = Group.objects.count()
@@ -399,8 +399,8 @@ class OperationalProfilesSeedTests(TestCase):
 
         self.assertEqual(Group.objects.count(), count)
         self.assertIn(custom, nurse.permissions.all())
-        self.assertIn("Registered Nurse", report["groups_reused"])
-        self.assertEqual(report["permissions_assigned"]["Registered Nurse"], [])
+        self.assertIn("Nurse", report["groups_reused"])
+        self.assertEqual(report["permissions_assigned"]["Nurse"], [])
 
     def test_a_missing_codename_is_reported_and_never_created(self):
         report = group_creator([{"name": "Seed Probe", "permissions": ["view_paciente", "does_not_exist_xyz"]}])

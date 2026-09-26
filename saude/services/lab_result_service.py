@@ -499,3 +499,63 @@ def _result_summary(result):
         "validated": result.validado,
         "released": result.released,
     }
+
+
+# ------------------------------------------------------------------
+# PDF of a result (saude/templates/saude/resultadopedidoexamemedico.html):
+# the exam, the structured values with their reference and flag (the
+# snapshot kept when they were recorded), observation, report and who
+# validated / released it. Texts translated in the requester's language.
+# ------------------------------------------------------------------
+
+_FLAG_LEVEL = {
+    "normal": "normal", "low": "attention", "high": "attention",
+    "critical_low": "critical", "critical_high": "critical",
+}
+
+
+def _person_of_user(user):
+    person = getattr(user, "person", None) if user else None
+    return (person.full_name if person else None) or (user.username if user else None)
+
+
+def pdf_context(request, resultado):
+    from django_resaas.saas.core.utils.translate import Translate
+
+    t = lambda text: Translate.tdc(request, text) if text else ""  # noqa: E731
+    item = resultado.item_pedido
+    pedido = item.pedido if item else None
+    requester = pedido.consulta.employee.person.full_name if pedido and pedido.consulta_id and pedido.consulta.employee_id else None
+
+    values = []
+    for v in resultado.parameter_values.all():
+        low, high = _dec(v.reference_low), _dec(v.reference_high)
+        reference = v.reference_label or (f"{low} – {high}" if low is not None and high is not None
+                                          else f"≥ {low}" if low is not None else f"≤ {high}" if high is not None else "")
+        values.append({
+            "name": t(v.parameter_name),
+            "value": t(v.display_value) if v.value_boolean is not None else v.display_value,
+            "unit": v.unit or "",
+            "reference": reference,
+            "flag": t(v.get_flag_display()) if v.flag else "",
+            "level": _FLAG_LEVEL.get(v.flag, "none"),
+        })
+
+    return {
+        "resultado": resultado,
+        "paciente": resultado.paciente,
+        "exam": item.exame.nome if item else resultado.nome,
+        "requester": requester,
+        "values": values,
+        "validated_by": _person_of_user(resultado.validado_por),
+        "labels": {key: t(text) for key, text in {
+            "title": "Exam result",
+            "patient": "Patient", "name": "Name", "nid": "NID", "contact": "Contact",
+            "exam": "Exam", "requested_by": "Requested by", "collected": "Collected",
+            "result_date": "Result", "validated": "Validated", "revision": "Revision",
+            "parameter": "Parameter", "value": "Value", "unit": "Unit", "reference": "Reference",
+            "flag": "Flag", "result": "Result", "observation": "Observation", "report": "Report",
+            "validated_by": "Validated by", "not_validated": "Not validated",
+            "amended": "This result replaces an earlier revision.",
+        }.items()},
+    }

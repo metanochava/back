@@ -17,29 +17,83 @@ from testutils.tenant import bootstrap_tenant
 
 class SaudeProfilesTests(TestCase):
 
-    def test_english_profiles_are_created(self):
+    OFFICIAL = {
+        "Doctor", "Nurse", "Medical Receptionist",
+        "Medical Laboratory Technician", "Medical Laboratory Scientist",
+        "Pharmacist", "Cashier", "Healthcare Administrator", "Patient",
+    }
+
+    def test_the_nine_official_profiles_exist_once(self):
         # Garante que as Permission (view_paciente, etc.) já existem -
         # create_model_permissions só corre com uma EntityType já
-        # criada, o que bootstrap_tenant() já garante (mesma nota em
-        # testutils/tenant.py's _ensure_crud_permissions()).
+        # criada, o que bootstrap_tenant() já garante.
         bootstrap_tenant("profile-create")
 
         group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
 
-        self.assertTrue(Group.objects.filter(name="General Practitioner").exists())
-        self.assertTrue(Group.objects.filter(name="Registered Nurse").exists())
-        self.assertTrue(Group.objects.filter(name="Medical Director").exists())
+        names = [p["name"] for p in SAUDE_PROFILES]
+        self.assertEqual(set(names), self.OFFICIAL)
+        self.assertEqual(len(names), len(set(names)))
+        for name in self.OFFICIAL:
+            self.assertEqual(Group.objects.filter(name=name).count(), 1, name)
 
-    def test_general_practitioner_gets_default_permissions(self):
+    def test_every_default_permission_exists(self):
+        """group_creator() never creates a permission: a codename that
+        doesn't exist would be silently useless - the report lists it."""
+        bootstrap_tenant("profile-perms-exist", modules=("saude", "hr"))  # list_/pdf_ permissions of saude
+
+        report = group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+
+        self.maxDiff = None
+        self.assertEqual(report["permissions_missing"], {})
+
+    def test_doctor_gets_default_permissions(self):
         bootstrap_tenant("profile-perms")
 
         group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
 
-        group = Group.objects.get(name="General Practitioner")
+        group = Group.objects.get(name="Doctor")
         codenames = set(group.permissions.values_list("codename", flat=True))
 
         self.assertIn("view_paciente", codenames)
         self.assertIn("add_consulta", codenames)
+
+    def test_patient_has_only_portal_capabilities(self):
+        """No clinical model permission: those would open clinical
+        resources in general, not only the patient's own."""
+        bootstrap_tenant("profile-patient")
+
+        group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+
+        codenames = set(Group.objects.get(name="Patient").permissions.values_list("codename", flat=True))
+        self.assertEqual(codenames, {
+            "view_patient_portal", "view_own_appointments", "view_own_exams", "view_own_results",
+            "view_own_trends", "view_own_prescriptions", "view_own_vitals",
+        })
+        self.assertNotIn("grant_portal_access_paciente", codenames)
+
+    def test_custom_permissions_are_preserved(self):
+        bootstrap_tenant("profile-custom-perm", modules=("saude", "hr"))  # list_/pdf_ permissions of saude
+        group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+        nurse = Group.objects.get(name="Nurse")
+        custom = Permission.objects.get(codename="pdf_consulta")  # not a Nurse default
+        nurse.permissions.add(custom)
+
+        group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+
+        self.assertTrue(nurse.permissions.filter(pk=custom.pk).exists())
+
+    def test_the_english_name_of_an_older_release_is_renamed_too(self):
+        """An installation already on "General Practitioner" (English
+        name before the 9 official profiles) keeps its Group.id."""
+        old_group = Group.objects.create(name="General Practitioner")
+        bootstrap_tenant("profile-rename-en")
+
+        group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+
+        old_group.refresh_from_db()
+        self.assertEqual(old_group.name, "Doctor")
+        self.assertEqual(Group.objects.filter(name="Doctor").count(), 1)
 
     def test_creating_profiles_twice_is_idempotent(self):
         group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
@@ -79,7 +133,7 @@ class SaudeProfilesTests(TestCase):
 
         old_group.refresh_from_db()
 
-        self.assertEqual(old_group.name, "General Practitioner")
+        self.assertEqual(old_group.name, "Doctor")
         self.assertFalse(Group.objects.filter(name="Médico Geral").exists())
 
         # A permissão antiga (nunca fazia parte do pacote por omissão)

@@ -206,7 +206,7 @@
       </td>
 
       <td class="title">
-        <h1> Consulta Médica</h1>
+        <h1>{{ labels.title }}</h1>
         <div class="subtitle">
           {{ entity.name }}
         </div>
@@ -228,28 +228,28 @@
     <table class="dados">
       <tr>
         <td class="label">
-          Nome: {{ consulta.paciente.person.full_name }}
+          {{ labels.name }}: {{ consulta.paciente.person.full_name }}
         </td>
       </tr>
 
       <tr>
         <td class="label">
-          NID: {{ consulta.paciente.nid }}
+          {{ labels.nid }}: {{ consulta.paciente.nid }}
         </td>
 
         <td class="label">
-          Profissão: {{ consulta.paciente.person.occupation }}
+          {{ labels.occupation }}: {{ consulta.paciente.person.occupation|default:"-" }}
         </td>
 
         <td class="label">
-          Contacto: {{ consulta.paciente.emergency_contact.phone }}
+          {{ labels.contact }}: {{ consulta.paciente.person.phone|default:"-" }}
         </td>
       </tr>
     </table>
   </div>
 
   <div class="box">
-    {% include "saude/consultamedicabody.html" with consulta=consulta request=request %}
+    {% include "saude/consultamedicabody.html" %}
   </div>
 
 </div>

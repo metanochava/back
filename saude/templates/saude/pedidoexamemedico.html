@@ -14,7 +14,7 @@
     @bottom-right {
       content: " " counter(page) " - " counter(pages);
       font-size: 10px;
-      color: #2563eb;
+      color: #0f766e;
       font-family: Arial, sans-serif;
       font-weight: bold;
       margin-right: 5px;
@@ -66,7 +66,7 @@
 
   .title h1 {
     margin: 0;
-    color: #2563eb;
+    color: #0f766e;
     font-size: 13px;
     text-transform: uppercase;
   }
@@ -106,21 +106,22 @@
   .content { width: 100%; }
 
   .box {
-    border: 1px solid #ddd;
-    border-radius: 2px;
-    padding: 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 8px 10px;
     margin-bottom: 7px;
     page-break-inside: avoid;
   }
 
   .box-title {
     font-weight: bold;
-    color: #2563eb;
+    color: #0f766e;
     margin-bottom: 4px;
     text-transform: uppercase;
     font-size: 9px;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 2px;
+    border-left: 3px solid #0f766e;
+    padding-left: 5px;
+    letter-spacing: .04em;
   }
 
   .line { margin-bottom: 2px; }
@@ -136,7 +137,7 @@
   }
 
   .patient-table .label {
-    color: #2563eb;
+    color: #0f766e;
     font-weight: bold;
     width: 54px;
   }
@@ -147,7 +148,7 @@
   }
 
   .tipo-title {
-    background: #2563eb;
+    background: #0f766e;
     color: white;
     padding: 4px 5px;
     font-weight: bold;
@@ -157,7 +158,7 @@
   }
 
   .classe-title {
-    color: #2563eb;
+    color: #0f766e;
     font-weight: bold;
     font-size: 8px;
     margin-top: 5px;
@@ -173,11 +174,11 @@
   }
 
   .items th {
-    background: #eef4ff;
-    color: #1d4ed8;
+    background: #f0fdfa;
+    color: #0f766e;
     padding: 4px;
     text-align: left;
-    border-bottom: 1px solid #c7d2fe;
+    border-bottom: 1px solid #99f6e4;
   }
 
   .items td {
@@ -207,7 +208,8 @@
   .signature-line {
     display: inline-block;
     width: 135px;
-    border-top: 1px solid #333;
+    border-top: 1px solid #0f766e;
+    color: #0f766e;
     padding-top: 3px;
     text-align: center;
     font-size: 8px;
@@ -252,7 +254,7 @@
     margin-top:8px;
     padding:4px 8px;
 
-    background:#2563eb;
+    background:#0f766e;
     color:#fff;
 
     font-size:9px;
@@ -268,27 +270,37 @@
     margin-top:8px;
     margin-bottom:4px;
 
-    color:#2563eb;
+    color:#0f766e;
 
     font-size:8px;
     font-weight:bold;
 
-    border-bottom:1px solid #dbeafe;
+    border-bottom:1px solid #ccfbf1;
 
     padding-bottom:2px;
 
 }
 
 .exam-item{
-
-    margin-left:8px;
-
     margin-bottom:5px;
-
-    padding:4px 0;
-
-    border-bottom:1px dotted #d9d9d9;
-
+    padding:5px 8px;
+    background:#f8fafc;
+    border-left:3px solid #0f766e;
+    border-radius:0 6px 6px 0;
+    page-break-inside:avoid;
+}
+.exam-num{
+    display:inline-block;
+    min-width:13px;
+    height:13px;
+    line-height:13px;
+    text-align:center;
+    border-radius:7px;
+    background:#ccfbf1;
+    color:#0f766e;
+    font-size:7px;
+    font-weight:bold;
+    margin-right:4px;
 }
 
 .exam-header{
@@ -307,23 +319,19 @@
 
 .exam-code{
 
-    color:#2563eb;
+    color:#0f766e;
 
     font-weight:bold;
 
 }
 
 .exam-priority{
-
     display:inline-block;
-
     margin-top:2px;
-
-    padding:1px 5px;
-
+    padding:1px 6px;
     border:1px solid #d97706;
-
-    border-radius:3px;
+    border-radius:8px;
+    background:#fffbeb;
 
     color:#d97706;
 
@@ -402,18 +410,18 @@
         <td>{{ paciente.nid }}</td>
 
         <td class="label">Contacto:</td>
-        <td>{{ paciente.emergency_contact.phone }}</td>
+        <td>{{ paciente.person.phone|default:"-" }}</td>
       </tr>
 
       <tr>
         <td class="label">Profissão:</td>
-        <td>{{ paciente.person.occupation }}</td>
+        <td>{{ paciente.person.occupation|default:"-" }}</td>
 
         <td class="label">Data:</td>
         <td>
 
           {% if pedido.data %}
-            {{ pedido.data }}
+            {{ pedido.data|date:"d/m/Y" }}
           {% else %}
             -
           {% endif %}
@@ -448,7 +456,7 @@
 
                 <div class="exam-name">
 
-                    {% if item.exame.codigo %}
+                    <span class="exam-num">{{ forloop.counter }}</span>{% if item.exame.codigo %}
                         <span class="exam-code">
                             {{ item.exame.codigo }}
                         </span>
@@ -541,7 +549,7 @@
 
     <tr>
       <td colspan="3" class="footer-center" style="width:100%; font-size: 10px;">
-        {{ entity.rodape }}
+        {{ entity.rodape|default:"" }}
       </td>
     </tr>
   </table>

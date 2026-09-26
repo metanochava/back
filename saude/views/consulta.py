@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
 from django_resaas.saas.core.base.views import BaseAPIView, registerView
+from saude.services.document_edit_policy import DocumentEditWindowMixin
 from django_resaas.saas.models.entity import Entity
 from django_resaas.saas.core.utils import (
     make_qr_b64,
@@ -14,13 +15,35 @@ from django_resaas.saas.core.utils import (
 from saude.models.consulta import Consulta
 from saude.models.agenda import Agenda
 from saude.serializers.consulta import ConsultaSerializer
+from saude.services.exam_request_service import require_professional, resolve_patient
+from saude.services import consultation_service, prescription_service
+from django_resaas.saas.core.decorators.action import resaas_action
 
 
 @registerView("consultas")
-class ConsultaAPIView(BaseAPIView):
+# edited only by its author, within 24 h (document_edit_policy)
+class ConsultaAPIView(DocumentEditWindowMixin, BaseAPIView):
 
     queryset = Consulta.objects.all()
     serializer_class = ConsultaSerializer
+
+    # POST consultas/ (add_consulta): the professional is the caller's
+    # Employee in this Branch (never the client's value) and the patient must
+    # be of this Entity.
+    def perform_create(self, serializer):
+        patient = serializer.validated_data.get("paciente")
+        resolve_patient(self.request, patient.id if patient else None)
+        serializer.validated_data["employee"] = require_professional(self.request)
+        super().perform_create(serializer)
+        # the consultation of today's appointment with this doctor
+        prescription_service.link_to_todays_appointment(serializer.instance)
+
+    # What the consultation form shows: the professional signing it and the
+    # patient (tenant scoped). Read only; needs add_consulta.
+    @resaas_action(detail=False, methods=["get"], label="Consultation form", icon="medical_services",
+                   permission="add_consulta", visible=False)
+    def intake(self, request, *args, **kwargs):
+        return Response(consultation_service.intake_context(request, request.query_params.get("paciente")))
 
 
     @action(detail=True, methods=["GET"])
@@ -80,7 +103,9 @@ class ConsultaAPIView(BaseAPIView):
             logo_b64=logo_b64,
             qr_b64=qr_b64,
             barcode_b64=barcode_b64,
-            consulta=consulta
+            consulta=consulta,
+            # same content and order as the consultation form (ConsultaSEPage)
+            **consultation_service.pdf_context(request, consulta),
         )
 
     # ==========================================

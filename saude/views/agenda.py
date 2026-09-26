@@ -3,6 +3,9 @@ from datetime import datetime, timedelta
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.response import Response
+
+from django_resaas.saas.core.decorators.action import resaas_action
 
 from django_resaas.saas.core.base.views import BaseAPIView, registerView
 from django_resaas.hr.models.employee import Employee
@@ -151,3 +154,27 @@ class AgendaAPIView(BaseAPIView):
         fields = appointment_flow.stamp_transition(agenda, previous_estado)
         if fields:
             agenda.save(update_fields=fields)
+
+    # ------------------------------------------------------------------
+    # Reception (PROTECTED: check_in_agenda / check_out_agenda, checked by
+    # BaseAPIView per action; get_object() keeps the appointment inside the
+    # current Entity/Branch). The row is locked, so a double click moves it
+    # once and the second one gets 409.
+    # ------------------------------------------------------------------
+
+    def _locked(self):
+        agenda = self.get_object()
+        return Agenda.objects.select_for_update().get(pk=agenda.pk)
+
+    @resaas_action(detail=True, methods=["post"], label="Check in", icon="login")
+    @transaction.atomic
+    def check_in(self, request, *args, **kwargs):
+        agenda = appointment_flow.check_in(self._locked())
+        return Response(self.get_serializer(agenda).data)
+
+    @resaas_action(detail=True, methods=["post"], label="Check out", icon="logout")
+    @transaction.atomic
+    def check_out(self, request, *args, **kwargs):
+        agenda = appointment_flow.check_out(self._locked())
+        return Response(self.get_serializer(agenda).data)
+

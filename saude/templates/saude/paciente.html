@@ -1,467 +1,260 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html>
 <head>
 <meta charset="UTF-8">
-
 <style>
-@page {
-  size: 85.60mm 53.98mm;
-  margin: 0;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  color: #1f2937;
-}
+@page { size: 85.60mm 53.98mm; margin: 0; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Helvetica Neue", Arial, Helvetica, sans-serif; color: #0f172a; }
 
 .card {
-  width: 85.60mm;
-  height: 53.98mm;
-  position: relative;
-  overflow: hidden;
+  width: 85.60mm; height: 53.98mm;
+  position: relative; overflow: hidden;
   page-break-after: always;
-  background: #f8fbff;
 }
+.card:last-child { page-break-after: auto; }
 
-/* ================= FRENTE ================= */
+/* ================= FRONT ================= */
 
-.front {
-  background: linear-gradient(135deg, #073b7a 0%, #0f5fb8 55%, #38bdf8 100%);
-  color: white;
+.front { background: linear-gradient(140deg, #0b4f4a 0%, #0f766e 48%, #14b8a6 100%); color: #ffffff; }
+
+/* soft decorative shapes */
+.front .ring {
+  position: absolute; border-radius: 50%;
+  border: 3mm solid rgba(255,255,255,.07);
 }
-
-.front::before {
-  content: "";
-  position: absolute;
-  width: 70mm;
-  height: 70mm;
-  border-radius: 50%;
-  left: -32mm;
-  top: -30mm;
-  background: rgba(255,255,255,.12);
-}
-
-.front::after {
-  content: "";
-  position: absolute;
-  width: 48mm;
-  height: 48mm;
-  border-radius: 50%;
-  right: -18mm;
-  bottom: -18mm;
-  background: rgba(255,255,255,.10);
-}
+.front .ring.a { width: 62mm; height: 62mm; right: -26mm; top: -30mm; }
+.front .ring.b { width: 40mm; height: 40mm; right: -14mm; bottom: -22mm; border-width: 2mm; }
 
 .top-strip {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 13mm;
-  background: rgba(0,0,0,.18);
+  position: absolute; left: 0; top: 0; width: 100%; height: 13mm;
+  background: rgba(0,0,0,.14);
+  border-bottom: .25mm solid rgba(255,255,255,.18);
 }
 
 .logo-box {
-  position: absolute;
-  top: 3mm;
-  left: 5mm;
-  width: 10mm;
-  height: 10mm;
-  background: white;
-  border-radius: 2mm;
-  padding: 1mm;
+  position: absolute; top: 2.2mm; left: 4.5mm;
+  width: 8.6mm; height: 8.6mm;
+  background: #ffffff; border-radius: 2mm; padding: .8mm;
 }
-
-.logo-box img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
+.logo-box img { width: 100%; height: 100%; object-fit: contain; }
+.logo-box .cross { color: #0f766e; font-size: 13px; font-weight: bold; text-align: center; line-height: 7mm; }
 
 .org-name {
-  position: absolute;
-  top: 3.5mm;
-  left: 18mm;
-  right: 6mm;
-  font-size: 8px;
-  font-weight: bold;
-  letter-spacing: .3px;
+  position: absolute; top: 2.9mm; left: 15.5mm; right: 4.5mm;
+  font-size: 7.6px; font-weight: bold; letter-spacing: .2px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-
-.org-sub {
-  position: absolute;
-  top: 8mm;
-  left: 18mm;
-  font-size: 5.5px;
-  opacity: .9;
-}
+.org-sub { position: absolute; top: 7.2mm; left: 15.5mm; right: 4.5mm; font-size: 5.4px; opacity: .85; }
 
 .card-title {
-  position: absolute;
-  top: 16mm;
-  left: 5mm;
-  font-size: 8px;
-  font-weight: bold;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
+  position: absolute; top: 15.2mm; left: 4.5mm;
+  font-size: 5.6px; font-weight: bold; letter-spacing: 1.4px; text-transform: uppercase;
+  background: rgba(255,255,255,.16); border-radius: 1.2mm; padding: .6mm 1.6mm;
 }
 
 .photo {
-  position: absolute;
-  left: 5mm;
-  top: 22mm;
-  width: 20mm;
-  height: 24mm;
-  background: white;
-  border: 1.2mm solid rgba(255,255,255,.9);
-  border-radius: 3mm;
-  overflow: hidden;
+  position: absolute; left: 4.5mm; top: 21mm;
+  width: 19mm; height: 23mm;
+  background: #ffffff; border: .7mm solid rgba(255,255,255,.95);
+  border-radius: 2.6mm; overflow: hidden;
 }
-
-.photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.no-photo {
-  width: 100%;
-  height: 100%;
-  color: #64748b;
-  font-size: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.photo img { width: 100%; height: 100%; object-fit: cover; }
+.no-photo { width: 100%; height: 100%; display: table; background: #ecfdf5; }
+.no-photo span {
+  display: table-cell; vertical-align: middle; text-align: center;
+  color: #0f766e; font-size: 5px; font-weight: bold; letter-spacing: .4px; text-transform: uppercase;
 }
 
 .patient-name {
-  position: absolute;
-  left: 28mm;
-  top: 22mm;
-  right: 6mm;
-  font-size: 10px;
-  font-weight: bold;
-  line-height: 1.2;
+  position: absolute; left: 26.5mm; top: 20.6mm; right: 4.5mm;
+  font-size: 9.6px; font-weight: bold; line-height: 1.15;
+  max-height: 7.4mm; overflow: hidden;
 }
 
-.patient-info {
-  position: absolute;
-  left: 28mm;
-  top: 30mm;
-  width: 36mm;
-  font-size: 6px;
-  line-height: 1.55;
-}
-
-.patient-info table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.patient-info td {
-  padding: .5mm 0;
-}
-
-.label {
-  color: #dbeafe;
-  font-weight: bold;
-  width: 15mm;
-}
+.patient-info { position: absolute; left: 26.5mm; top: 28.8mm; width: 36mm; font-size: 5.8px; }
+.patient-info table { width: 100%; border-collapse: collapse; }
+.patient-info td { padding: .35mm 0; vertical-align: top; }
+.label { color: #ccfbf1; width: 13.5mm; font-size: 4.9px; text-transform: uppercase; letter-spacing: .3px; padding-top: .55mm !important; }
+.value { font-weight: bold; }
 
 .qr-box {
-  position: absolute;
-  right: 5mm;
-  bottom: 5mm;
-  width: 15mm;
-  height: 15mm;
-  background: white;
-  border-radius: 2mm;
-  padding: 1mm;
+  position: absolute; right: 4.5mm; bottom: 4.5mm;
+  width: 15mm; height: 15mm;
+  background: #ffffff; border-radius: 2mm; padding: .9mm;
 }
+.qr-box img { width: 100%; height: 100%; }
 
-.qr-box img {
-  width: 100%;
-  height: 100%;
-}
+.card-number { position: absolute; left: 4.5mm; bottom: 3.2mm; }
+.card-number .small { font-size: 4.6px; letter-spacing: .8px; text-transform: uppercase; opacity: .85; }
+.card-number .number { font-size: 8.6px; font-weight: bold; letter-spacing: 1.2px; font-family: "Courier New", monospace; }
 
-.card-number {
-  position: absolute;
-  left: 5mm;
-  bottom: 4mm;
-}
+/* ================= BACK ================= */
 
-.card-number .small {
-  font-size: 5px;
-  opacity: .9;
-}
-
-.card-number .number {
-  font-size: 9px;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-.medical-cross {
-  position: absolute;
-  right: 25mm;
-  bottom: 7mm;
-  font-size: 18px;
-  opacity: .18;
-  font-weight: bold;
-}
-
-/* ================= VERSO ================= */
-
-.back {
-  background: #ffffff;
-}
+.back { background: #ffffff; }
 
 .back-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 14mm;
-  width: 100%;
-  background: linear-gradient(90deg, #073b7a, #0f5fb8);
-  color: white;
-  padding: 3.5mm 5mm;
+  position: absolute; top: 0; left: 0; width: 100%; height: 12.5mm;
+  background: linear-gradient(90deg, #0b4f4a, #0f766e 60%, #14b8a6);
+  color: #ffffff; padding: 3mm 4.5mm;
 }
-
-.back-header-title {
-  font-size: 9px;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-.back-header-sub {
-  font-size: 5.5px;
-  margin-top: 1mm;
-  opacity: .9;
-}
-
-.back-body {
-  position: absolute;
-  top: 17mm;
-  left: 5mm;
-  right: 5mm;
-  bottom: 12mm;
-  font-size: 6px;
-  color: #1f2937;
-}
-
-.col {
-  float: left;
-  width: 48%;
-}
-
-.col-right {
-  float: right;
-  width: 48%;
-}
-
-.section {
-  margin-bottom: 2.5mm;
-}
-
-.section-title {
-  font-size: 6.5px;
-  color: #0f5fb8;
-  font-weight: bold;
-  text-transform: uppercase;
-  border-bottom: .3mm solid #bfdbfe;
-  padding-bottom: .7mm;
-  margin-bottom: 1mm;
-}
-
-.line {
-  line-height: 1.35;
-}
+.back-header-title { font-size: 7.6px; font-weight: bold; letter-spacing: 1.1px; text-transform: uppercase; }
+.back-header-sub { font-size: 5.1px; margin-top: .9mm; opacity: .9; }
 
 .back-qr {
-  position: absolute;
-  right: 5mm;
-  top: 3mm;
-  width: 10mm;
-  height: 10mm;
-  background: white;
-  padding: .8mm;
-  border-radius: 1.5mm;
+  position: absolute; right: 4.5mm; top: 1.8mm;
+  width: 9mm; height: 9mm;
+  background: #ffffff; padding: .7mm; border-radius: 1.4mm;
 }
+.back-qr img { width: 100%; height: 100%; }
 
-.back-qr img {
-  width: 100%;
-  height: 100%;
-}
+.back-body { position: absolute; top: 14.6mm; left: 4.5mm; right: 4.5mm; bottom: 14mm; font-size: 5.6px; }
 
-.barcode {
-  position: absolute;
-  left: 5mm;
-  right: 5mm;
-  bottom: 7mm;
-  height: 7mm;
-  text-align: center;
-}
+.col { float: left; width: 48.5%; }
+.col-right { float: right; width: 48.5%; }
 
-.barcode img {
-  width: 55mm;
-  height: 7mm;
-  object-fit: contain;
+.section {
+  border: .25mm solid #d1e7e4; border-radius: 1.6mm;
+  padding: .9mm 1.4mm 1mm; margin-bottom: 1.3mm; background: #f8fbfa;
 }
+.section.alert { border-color: #fecaca; background: #fef2f2; }
+.section-title {
+  font-size: 4.9px; color: #0f766e; font-weight: bold;
+  text-transform: uppercase; letter-spacing: .5px; margin-bottom: .5mm;
+}
+.section.alert .section-title { color: #b91c1c; }
+.line { line-height: 1.3; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.muted { color: #64748b; }
+
+.barcode { position: absolute; left: 4.5mm; right: 4.5mm; bottom: 6.3mm; height: 6.6mm; text-align: center; }
+.barcode img { width: 52mm; height: 6.6mm; object-fit: contain; }
 
 .back-footer {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 6mm;
-  background: #073b7a;
-  color: white;
-  font-size: 4.8px;
-  padding: 1.2mm 5mm;
+  position: absolute; left: 0; right: 0; bottom: 0; height: 5.4mm;
+  background: #0b4f4a; color: #ffffff; font-size: 4.6px; padding: 1.4mm 4.5mm;
 }
-
-.footer-left {
-  float: left;
-  width: 60%;
-}
-
-.footer-right {
-  float: right;
-  width: 40%;
-  text-align: right;
-}
+.footer-left { float: left; width: 62%; }
+.footer-right { float: right; width: 38%; text-align: right; }
 </style>
 </head>
 
 <body>
 
-<!-- FRENTE -->
+<!-- FRONT -->
 <div class="card front">
+  <div class="ring a"></div>
+  <div class="ring b"></div>
   <div class="top-strip"></div>
 
   <div class="logo-box">
-    {% if logo_b64 %}
-      <img src="data:image/png;base64,{{ logo_b64 }}">
-    {% endif %}
+    {% if logo_b64 %}<img src="data:image/png;base64,{{ logo_b64 }}">{% else %}<div class="cross">✚</div>{% endif %}
   </div>
 
   <div class="org-name">{{ entity.name }}</div>
-  <div class="org-sub">Unidade de Saúde · Sistema Clínico</div>
+  <div class="org-sub">{{ branch.name|default:labels.health_unit }}</div>
 
-  <div class="card-title">Cartão do Paciente</div>
+  <div class="card-title">{{ labels.title }}</div>
 
   <div class="photo">
     {% if profile_b64 %}
       <img src="data:image/png;base64,{{ profile_b64 }}">
     {% else %}
-      <div class="no-photo">SEM FOTO</div>
+      <div class="no-photo"><span>{{ labels.no_photo }}</span></div>
     {% endif %}
   </div>
 
-  <div class="patient-name">
-    {{ paciente.person.full_name|default:"Paciente" }}
-  </div>
+  <div class="patient-name">{{ person.full_name|default:"-" }}</div>
 
   <div class="patient-info">
     <table>
       <tr>
-        <td class="label">NID</td>
-        <td>{{ paciente.nid|default:"-" }}</td>
+        <td class="label">{{ labels.date_of_birth }}</td>
+        <td class="value">
+          {{ person.date_of_birth|date:"d/m/Y"|default:"-" }}{% if person.age is not None %} · {{ person.age }} {{ labels.years }}{% endif %}
+        </td>
       </tr>
       <tr>
-        <td class="label">Nascimento</td>
-        <td>{{ paciente.person.date_of_birth|default:"-" }}</td>
+        <td class="label">{{ labels.blood_type }}</td>
+        <td class="value">{{ person.blood_type|default:"-" }}{% if gender %} · {{ gender }}{% endif %}</td>
       </tr>
       <tr>
-        <td class="label">Contacto</td>
-        <td>{{ paciente.emergency_contact.phone|default:"-" }}</td>
-      </tr>
-      <tr>
-        <td class="label">Profissão</td>
-        <td>{{ paciente.person.occupation|default:"-" }}</td>
+        <td class="label">{{ labels.contact }}</td>
+        <td class="value">{{ person.phone|default:"-" }}</td>
       </tr>
     </table>
   </div>
 
-  <div class="medical-cross">✚</div>
-
   <div class="card-number">
-    <div class="small">NÚMERO DO CARTÃO</div>
+    <div class="small">{{ labels.card_number }} · {{ labels.nid }}</div>
     <div class="number">{{ paciente.nid|default:paciente.id }}</div>
   </div>
 
   <div class="qr-box">
-    {% if qr_b64 %}
-      <img src="data:image/png;base64,{{ qr_b64 }}">
-    {% endif %}
+    {% if qr_b64 %}<img src="data:image/png;base64,{{ qr_b64 }}">{% endif %}
   </div>
 </div>
 
-<!-- VERSO -->
+<!-- BACK -->
 <div class="card back">
   <div class="back-header">
-    <div class="back-header-title">INFORMAÇÕES MÉDICAS</div>
-    <div class="back-header-sub">Apresente este cartão em qualquer atendimento clínico.</div>
+    <div class="back-header-title">{{ labels.medical_information }}</div>
+    <div class="back-header-sub">{{ labels.present_card }}</div>
   </div>
 
   <div class="back-qr">
-    {% if qr_b64 %}
-      <img src="data:image/png;base64,{{ qr_b64 }}">
-    {% endif %}
+    {% if qr_b64 %}<img src="data:image/png;base64,{{ qr_b64 }}">{% endif %}
   </div>
 
   <div class="back-body">
     <div class="col">
-      <div class="section">
-        <div class="section-title">Alergias</div>
-        <div class="line">{{ paciente.alergias|default:"Não registado" }}</div>
+      <div class="section{% if allergies %} alert{% endif %}">
+        <div class="section-title">{{ labels.allergies }}</div>
+        <div class="line">{% if allergies %}{{ allergies|join:", " }}{% else %}<span class="muted">{{ labels.none }}</span>{% endif %}</div>
       </div>
 
       <div class="section">
-        <div class="section-title">Doenças crónicas</div>
-        <div class="line">{{ paciente.doencas_cronicas|default:"Não registado" }}</div>
+        <div class="section-title">{{ labels.diseases }}</div>
+        <div class="line">{% if diseases %}{{ diseases|join:", " }}{% else %}<span class="muted">{{ labels.none }}</span>{% endif %}</div>
       </div>
 
       <div class="section">
-        <div class="section-title">Medicação habitual</div>
-        <div class="line">{{ paciente.medicacao_usual|default:"Não registado" }}</div>
+        <div class="section-title">{{ labels.medication }}</div>
+        <div class="line">{% if medications %}{{ medications|join:", " }}{% else %}<span class="muted">{{ labels.none }}</span>{% endif %}</div>
       </div>
     </div>
 
     <div class="col-right">
       <div class="section">
-        <div class="section-title">Emergência</div>
-        <div class="line"><strong>Nome:</strong> {{ paciente.nome_contacto_emergencia|default:"-" }}</div>
-        <div class="line"><strong>Telefone:</strong> {{ paciente.contacto_emergencia|default:"-" }}</div>
+        <div class="section-title">{{ labels.emergency }}</div>
+        {% if emergency %}
+          <div class="line"><strong>{{ emergency.name }}</strong>{% if emergency.relationship %} <span class="muted">({{ emergency.relationship }})</span>{% endif %}</div>
+          <div class="line">{{ emergency.phone|default:emergency.alternative_phone|default:"-" }}</div>
+        {% else %}
+          <div class="line muted">{{ labels.none }}</div>
+        {% endif %}
       </div>
 
+      {% if paciente.clinical_alert %}
+      <div class="section alert">
+        <div class="section-title">{{ labels.clinical_alert }}</div>
+        <div class="line">{{ paciente.clinical_alert }}</div>
+      </div>
+      {% endif %}
+
       <div class="section">
-        <div class="section-title">Unidade sanitária</div>
-        <div class="line"><strong>{{ entity.name }}</strong></div>
-        <div class="line">{{ entity.address|default:"" }}</div>
-        <div class="line">{{ entity.telefone|default:"" }}</div>
+        <div class="section-title">{{ labels.health_unit }}</div>
+        <div class="line"><strong>{{ entity.name }}</strong>{% if branch.name %} · {{ branch.name }}{% endif %}</div>
       </div>
     </div>
   </div>
 
   <div class="barcode">
-    {% if barcode_b64 %}
-      <img src="data:image/png;base64,{{ barcode_b64 }}">
-    {% endif %}
+    {% if barcode_b64 %}<img src="data:image/png;base64,{{ barcode_b64 }}">{% endif %}
   </div>
 
   <div class="back-footer">
-    <div class="footer-left">
-      Este cartão é pessoal e intransmissível.
-    </div>
-    <div class="footer-right">
-      Emissão: {{ data_emissao }}
-    </div>
+    <div class="footer-left">{{ labels.personal }}</div>
+    <div class="footer-right">{{ labels.issued }}: {{ data_emissao|date:"d/m/Y" }}</div>
   </div>
 </div>
 

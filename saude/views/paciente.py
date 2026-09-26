@@ -1,7 +1,6 @@
 import json
 
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.utils import timezone
 from rest_framework import status as http_status
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError as DRFValidationError
@@ -16,7 +15,7 @@ from rest_framework.response import Response
 
 from saude.models.exam_parameter import ExamParameter
 from saude.models.result_parameter_value import ResultParameterValue
-from saude.services import lab_result_service, patient_portal_service
+from saude.services import lab_result_service, patient_card_service, patient_portal_service
 from django_resaas.saas.core.utils import (
     PDF,
     all,
@@ -25,7 +24,6 @@ from django_resaas.saas.core.utils import (
     make_qr_b64,
     png_bytes_to_b64,
 )
-from django_resaas.saas.data.user.serializers.user import UserSerializer
 from django_resaas.saas.models.entity import Entity
 from django_resaas.saas.models.person import Person
 
@@ -155,42 +153,22 @@ class PacienteAPIView(BaseAPIView):
     @action(detail=True, methods=["get"])
     def pdf(self, request, *args, **kwargs):
         paciente = self.get_object()
-        entity = paciente.entity
+        person = paciente.person
+        user = getattr(person, "user", None)
 
-        logo_b64 = self.file_to_b64(
-            getattr(entity, "logo", None)
+        # the Person's photo; the user's profile picture as a fallback
+        profile_b64 = self.file_to_b64(getattr(person, "photo", None)) or (
+            self.file_to_b64(getattr(user, "profile", None)) if user else None
         )
-
-        user = getattr(paciente.person, "user", None)
-        profile = None
-        profile_b64 = None
-
-        if user:
-            profile = UserSerializer(
-                user,
-                context={
-                    "request": request,
-                    "include_fields": ["profile"],
-                },
-            ).data.get("profile")
-
-            profile_b64 = self.file_to_b64(
-                getattr(user, "profile", None)
-            )
 
         return PDF(
             "saude/paciente.html",
             request,
-            entity=entity,
-            paciente=paciente,
-            logo_b64=logo_b64,
-            profile=profile,
+            **patient_card_service.pdf_context(request, paciente),
+            logo_b64=self.file_to_b64(getattr(paciente.entity, "logo", None)),
             profile_b64=profile_b64,
             qr_b64=make_qr_b64(str(paciente.id)),
-            barcode_b64=make_barcode_b64(
-                str(paciente.nid or paciente.id)
-            ),
-            data_emissao=timezone.now().date(),
+            barcode_b64=make_barcode_b64(str(paciente.nid or paciente.id)),
         )
 
     @staticmethod
@@ -298,8 +276,8 @@ class PacienteAPIView(BaseAPIView):
 
     @resaas_action(methods=["post"], detail=True, label="Grant portal access", icon="key")
     def grant_portal_access(self, request, *args, **kwargs):
-        """Makes the patient's account a member of this Entity (no profile)
-        and returns the username - and, when the person has no permanent
+        """Gives the patient's account the Patient profile at the patient's
+        Branch and returns the username - and, when the person has no permanent
         password yet, a new temporary password, shown once."""
         return Response(patient_portal_service.grant(request, self.get_object()))
 

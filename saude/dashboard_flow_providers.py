@@ -46,9 +46,12 @@ def _stat(value, suffix=""):
 
 
 def _with_vitals(qs):
-    """Annotates has_vitals: a DadoVital of the patient taken after the
-    check-in (or on the appointment day when there was no check-in)."""
+    """Annotates has_vitals: a DadoVital recorded for this appointment
+    (DadoVital.agenda), or - for records without that link - one of the
+    patient taken after the check-in (or on the appointment day when there
+    was no check-in)."""
 
+    linked = DadoVital.objects.filter(agenda_id=OuterRef("pk"))
     after_check_in = DadoVital.objects.filter(
         paciente_id=OuterRef("paciente_id"),
         created_at__gte=OuterRef("checked_in_at"),
@@ -59,12 +62,15 @@ def _with_vitals(qs):
     )
 
     return qs.annotate(
+        _vitals_linked=Exists(linked),
         _vitals_after_check_in=Exists(after_check_in),
         _vitals_same_day=Exists(same_day),
     )
 
 
 def _has_vitals(agenda):
+    if getattr(agenda, "_vitals_linked", False):
+        return True
     if agenda.checked_in_at:
         return agenda._vitals_after_check_in
     return agenda._vitals_same_day
@@ -114,6 +120,8 @@ class FlowProvider(BaseDashboardProvider):
                 "waiting": waiting if waiting is not None else "-",
                 "waiting_band": BAND_LABELS.get(appointment_flow.waiting_band(waiting), "-"),
                 "status": ESTADO_LABELS.get(a.estado, a.estado),
+                # machine value (not a column): decides which row actions apply
+                "estado": a.estado,
             }
             if vitals:
                 row["vital_signs"] = "Recorded" if _has_vitals(a) else "Pending"

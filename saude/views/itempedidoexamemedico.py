@@ -37,8 +37,9 @@ class ItemPedidoExameMedicoAPIView(BaseAPIView):
     # item inside the current Entity/Branch.
     # ------------------------------------------------------------------
 
+    # data for the result dialog, not a menu entry (visible=False)
     @resaas_action(detail=True, methods=["get"], label="Result form", icon="science",
-                   permission="view_itempedidoexamemedico")
+                   permission="view_itempedidoexamemedico", visible=False)
     def result_form(self, request, *args, **kwargs):
         """The exam's active parameters (+ applicable reference, current
         values) the dynamic result form is built from."""
@@ -55,7 +56,7 @@ class ItemPedidoExameMedicoAPIView(BaseAPIView):
         )
         return Response(lab_result_service.form_schema(item))
 
-    @resaas_action(detail=True, methods=["post"], label="Collect", icon="colorize")
+    @resaas_action(detail=True, methods=["post"], label="Collect", icon="colorize", autorequest=True)
     def collect(self, request, *args, **kwargs):
         item = exam_request_service.collect(request, self.get_object())
         return Response(self.get_serializer(item).data)

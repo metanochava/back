@@ -1,5 +1,6 @@
 
 from django_resaas.saas.core.base.views import BaseAPIView
+from saude.services.document_edit_policy import DocumentEditWindowMixin
 from django_resaas.saas.core.base.views import registerView
 from saude.models.receitamedica import ReceitaMedica
 from saude.models.itemreceita import ItemReceita
@@ -11,10 +12,7 @@ from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_byt
 import barcode
 import qrcode
 
-from saude.models.consulta import Consulta
-from django.utils import timezone
-from django_resaas.hr.models.employee import Employee
-from saude.models.paciente import Paciente
+from saude.services import prescription_service
 
 
 
@@ -22,40 +20,23 @@ from saude.models.paciente import Paciente
 
  
 @registerView('receitamedicas')
-class ReceitaMedicaAPIView(BaseAPIView):
+# edited only by its author, within 24 h (document_edit_policy)
+class ReceitaMedicaAPIView(DocumentEditWindowMixin, BaseAPIView):
     queryset = ReceitaMedica.objects.all()   
     serializer_class = ReceitaMedicaSerializer
     
 
+    # POST receitamedicas/ {paciente, consulta?}: the prescription belongs to a
+    # consultation of TODAY of this patient (prescription_service): never a
+    # consultation created here, never a patient of another Entity.
     def create(self, request, *args, **kwargs):
 
-        employee = Employee.objects.get(
-            person=request.user.person
+        _patient, _professional, consulta = prescription_service.resolve_consultation(
+            request, request.data.get("paciente"), request.data.get("consulta")
         )
-
-        paciente = Paciente.objects.get(
-            id=request.data.get("paciente")
-        )
-
-        consulta, created = Consulta.objects.get_or_create(
-            paciente=paciente,
-            employee= employee,
-            data=timezone.now().date(),
-
-            entity_id= request.entity_id,
-            branch_id =  request.branch_id,
-            created_by = request.user,
-            updated_by  = request.user,   
-        )
-
-        if not created:
-            consulta.updated_by = request.user
-            consulta.save(update_fields=["updated_by"])
-
 
         data = request.data.copy()
         data['consulta'] = consulta.id
-        print(data['consulta'])
         serializer = self.get_serializer(
             data=data
         )
@@ -85,8 +66,6 @@ class ReceitaMedicaAPIView(BaseAPIView):
     def pdf(self, request, *args, **kwargs):
         entity = Entity.objects.get(id=self.get_object().entity.id)
         receita = self.get_object()
-        items = ItemReceita.objects.filter(receita__id=receita.id)
-        paciente = receita.consulta.paciente
 
         logo_b64 = None
         try:
@@ -97,7 +76,12 @@ class ReceitaMedicaAPIView(BaseAPIView):
         except FileNotFoundError:
             logo_b64 = None
 
-        qr_b64 = make_qr_b64(f"{entity.id}")
-        barcode_b64 = make_barcode_b64(f"{entity.id}")
-        
-        return PDF("saude/receitamedica.html", request,entity=entity, logo_b64=logo_b64, qr_b64=qr_b64, barcode_b64=barcode_b64, paciente=paciente, items=items)
+        # the codes identify THIS prescription (they used to carry the Entity id)
+        qr_b64 = make_qr_b64(f"receita:{receita.id}")
+        barcode_b64 = make_barcode_b64(str(receita.id).split("-")[0].upper())
+
+        return PDF(
+            "saude/receitamedica.html", request,
+            entity=entity, logo_b64=logo_b64, qr_b64=qr_b64, barcode_b64=barcode_b64,
+            **prescription_service.pdf_context(request, receita),
+        )

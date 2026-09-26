@@ -9,6 +9,8 @@ class ConsultaSerializer(BaseSerializer):
     class Meta:
         model = Consulta
         fields = "__all__"
+        # the professional signed in (ConsultaAPIView.perform_create)
+        read_only_fields = ["employee"]
     
 
     # =========================

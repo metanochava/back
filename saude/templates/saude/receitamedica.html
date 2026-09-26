@@ -15,7 +15,7 @@
       content: " " counter(page) " - " counter(pages);
 
       font-size: 10px;
-      color: #2563eb;
+      color: #0f766e;
       font-family: Arial, sans-serif;
       font-weight: bold;
 
@@ -86,8 +86,9 @@
 
   .title h1 {
     margin: 0;
-    color: #2563eb;
+    color: #0f766e;
     font-size: 13px;
+    letter-spacing: .03em;
   }
 
   .title .subtitle {
@@ -127,8 +128,8 @@
   }
 
   .box {
-    border: 1px solid #ddd;
-    border-radius: 2px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
     padding: 6px;
     margin-bottom: 8px;
     page-break-inside: avoid;
@@ -136,7 +137,9 @@
 
   .box-title {
     font-weight: bold;
-    color: #2563eb;
+    color: #0f766e;
+    border-left: 3px solid #0f766e;
+    padding-left: 5px;
     margin-bottom: 4px;
     text-transform: uppercase;
     font-size: 11px;
@@ -157,16 +160,62 @@
     font-size: 10px;
   }
 
+  /* header row: no filled bar - small caps text over an accent rule */
   .items th {
-    background: #2563eb;
-    color: white;
-    padding: 5px;
+    background: transparent;
+    color: #0f766e;
+    font-size: 8px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: 3px 4px 4px;
     text-align: left;
+    border-bottom: 2px solid #0f766e;
   }
 
   .items td {
-    padding: 4px;
-    border-bottom: 1px solid #eee;
+    padding: 5px 4px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+  }
+
+  .items tbody tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  .item-num {
+    display: inline-block;
+    min-width: 14px;
+    height: 14px;
+    line-height: 14px;
+    text-align: center;
+    border-radius: 7px;
+    background: #ccfbf1;
+    color: #0f766e;
+    font-size: 8px;
+    font-weight: bold;
+    margin-right: 4px;
+  }
+
+  .item-name {
+    font-weight: bold;
+    color: #111827;
+  }
+
+  .item-dose {
+    color: #6b7280;
+    font-size: 9px;
+    margin-left: 18px;
+  }
+
+  .item-qty {
+    display: inline-block;
+    border: 1px solid #0f766e;
+    color: #0f766e;
+    border-radius: 8px;
+    padding: 1px 6px;
+    font-weight: bold;
+    white-space: nowrap;
   }
 
   .footer {
@@ -219,7 +268,7 @@
       </td>
 
       <td class="title">
-        <h1>Receita Médica</h1>
+        <h1>{{ labels.title }}</h1>
         <div class="subtitle">
           {{ entity.name }}
         </div>
@@ -240,23 +289,23 @@
   <div class="box">
   
       <div class="row2">
-        <strong>Nome:</strong>
+        <strong>{{ labels.name }}:</strong>
         {{ paciente.person.full_name }}
       </div>
 
       <div class="row2">
-        <strong>NID:</strong>
+        <strong>{{ labels.nid }}:</strong>
         {{ paciente.nid }}
       </div>
 
       <div class="row2">
-        <strong>Profissão:</strong>
-        {{ paciente.person.occupation }}
+        <strong>{{ labels.occupation }}:</strong>
+        {{ paciente.person.occupation|default:"-" }}
       </div>
 
       <div class="row2">
-        <strong>Contacto:</strong>
-        {{ paciente.emergency_contact.phone }}
+        <strong>{{ labels.contact }}:</strong>
+        {{ paciente.person.phone|default:"-" }}
       </div>
       <div style="margin-top:-10px;">.</div>
   </div>
@@ -265,8 +314,8 @@
     <table class="items">
       <thead>
         <tr>
-          <th>Medicamento</th>
-          <th style="text-align: right;">Quantidade</th>
+          <th>{{ labels.medication }}</th>
+          <th style="text-align: right;">{{ labels.quantity }}</th>
         </tr>
       </thead>
 
@@ -274,11 +323,11 @@
 
         {% for item in items %}
         <tr>
-          <td>  
-            {% if item.code %} ({{ item.code }}) ->  {% endif %} 
-            {{ item.medicamento }} <br> {{ item.dosagem }}
+          <td>
+            <span class="item-num">{{ forloop.counter }}</span><span class="item-name">{{ item.medicamento.descricao|default:item.medicamento }}</span>
+            {% if item.dosagem %}<div class="item-dose">{{ item.dosagem }}</div>{% endif %}
           </td>
-          <td style="text-align: right;">{{ item.quantidade }}</td>
+          <td style="text-align: right;">{% if item.quantidade %}<span class="item-qty">{{ item.quantidade }}</span>{% endif %}</td>
         </tr>
         {% endfor %}   
       </tbody>
@@ -286,12 +335,12 @@
   </div>
 
   <div class="box">
-    <div class="box-title">Observações</div>
+    <div class="box-title">{{ labels.notes }}</div>
 
     {% for item in items %}
       {% if item.observacao %}
         <div class="line">
-          {{ item.observacao }}
+          {{ item.observacao|safe }}
         </div>
       {% endif %}
     {% endfor %}
@@ -313,13 +362,13 @@
       </td>
 
       <td class="footer-right">
-        Receita médica 
+        {{ labels.title }}
       </td>
     </tr>
     <tr>
       
       <td colspan="3" class="footer-center" style="width:100%; font-size: 10px;" >
-        {{ entity.rodape }} 
+        {{ entity.rodape|default:"" }}
       </td>
         
     </tr>

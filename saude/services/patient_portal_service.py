@@ -3,9 +3,13 @@ ONE Entity (the Entity of the signed context).
 
 Access
 - Granted explicitly by staff (grant_portal_access_paciente): the patient's
-  User becomes a member of the Entity (EntityUser, no Branch, no profile)
-  and Paciente.portal_access is set. Revoking clears it and removes the
-  membership unless the person also works there.
+  User gets the "Patient" profile at the patient's Branch (EntityUser +
+  BranchUser + BranchUserGroup) and Paciente.portal_access is set.
+  Revoking removes only that profile; memberships go only when nothing else
+  (another profile, entity admin) keeps them - a patient who is also staff
+  keeps the professional access.
+- Two barriers: the section permission of the active profile (the Patient
+  profile has view_patient_portal / view_own_*) AND ownership below.
 - The patient is ALWAYS derived from request.user + the context Entity +
   portal_access. No patient id is ever read from the request, so a patient
   cannot even ask for another patient's data.
@@ -25,7 +29,9 @@ from django_resaas.saas.core.exceptions import ResaasAPIException
 from django_resaas.saas.core.services import audit_service, temporary_password_service
 from django_resaas.saas.models.branch_user import BranchUser
 from django_resaas.saas.models.branch_user_group import BranchUserGroup
+from django_resaas.saas.models.entity_group import EntityGroup
 from django_resaas.saas.models.entity_user import EntityUser
+from django_resaas.saas.models.group import Group
 
 from saude.models.agenda import Agenda
 from saude.models.dadovital import DadoVital
@@ -49,29 +55,50 @@ PATIENT_EXAM_STATES = {
 }
 NEW_RESULT_DAYS = 30
 
+# the profile granted by the portal (saude/profiles.py PATIENT_PROFILES)
+PATIENT_PROFILE_NAME = "Patient"
+
 
 # ============================================================
 # ACCESS
 # ============================================================
 
+def patient_profile():
+    """The "Patient" profile, seeded by group_creator() with the other saude
+    profiles (saude/profiles.py) - looked up, never created here. Its name
+    only FINDS the configured profile; authorization never reads it."""
+    group = Group.objects.filter(name=PATIENT_PROFILE_NAME).first()
+    if group is None:
+        raise ResaasAPIException(
+            "The Patient profile is not configured. Run the saude setup (migrate).",
+            code="patient_profile_missing",
+            status_code=status.HTTP_409_CONFLICT,
+        )
+    return group
+
+
 @transaction.atomic
 def grant(request, paciente):
-    """Returns {"username", "temporary_password"?, "expires_at"?}. A new
+    """Gives the patient's User the Patient profile at the patient's Branch
+    (EntityUser + BranchUser + BranchUserGroup, all idempotent - nothing
+    else the user has is touched) and sets portal_access.
+
+    Returns {"username", "temporary_password"?, "expires_at"?}. A new
     temporary password is issued (and returned once) only when the person
     has no permanent password yet - never overwrites one they chose."""
+
+    profile = patient_profile()
 
     user = paciente.person.user if paciente.person_id else None
     if user is None:
         from django_resaas.saas.core.services.person_user_service import create_user_for_person
         user = create_user_for_person(paciente.person)
 
-    # all_objects: a membership soft-deleted by a previous revoke is restored
-    membership = EntityUser.all_objects.filter(entity_id=paciente.entity_id, user=user).first()
-    if membership is None:
-        EntityUser.objects.create(entity_id=paciente.entity_id, user=user, state="Active")
-    elif membership.deleted_at:
-        membership.deleted_at = None
-        membership.save(update_fields=["deleted_at"])
+    _restore_or_create(EntityUser, entity_id=paciente.entity_id, user=user)
+    _restore_or_create(BranchUser, branch_id=paciente.branch_id, user=user)
+    _restore_or_create(BranchUserGroup, user=user, branch_id=paciente.branch_id, group=profile)
+    # the Entity lists the profile among its groups (like any seeded one)
+    EntityGroup.objects.get_or_create(entity_id=paciente.entity_id, group=profile, defaults={"state": "Active"})
 
     paciente.portal_access = True
     paciente.portal_access_granted_at = timezone.now()
@@ -90,21 +117,51 @@ def grant(request, paciente):
     return response
 
 
+def _restore_or_create(model, **lookup):
+    # all_objects: the unique constraints include soft-deleted rows, so a
+    # membership / profile removed by a previous revoke is restored
+    row = model.all_objects.filter(**lookup).first()
+    if row is None:
+        return model.objects.create(state="Active", **lookup)
+    if row.deleted_at:
+        row.deleted_at = None
+        row.save(update_fields=["deleted_at"])
+    return row
+
+
 @transaction.atomic
 def revoke(request, paciente):
+    """Removes ONLY the Patient profile of this Entity and clears
+    portal_access. A Patient association is not a working relationship:
+    memberships are removed only where nothing else (another profile,
+    entity admin) keeps them - a patient who is also staff keeps their
+    professional access untouched."""
+
     paciente.portal_access = False
     paciente.save(update_fields=["portal_access", "updated_at"])
 
     user = paciente.person.user if paciente.person_id else None
+    group = Group.objects.filter(name=PATIENT_PROFILE_NAME).first()
+
     if user is not None:
-        works_here = (
-            BranchUser.objects.filter(user=user, branch__entity_id=paciente.entity_id, deleted_at__isnull=True).exists()
-            or BranchUserGroup.objects.filter(user=user, branch__entity_id=paciente.entity_id).exists()
-            or paciente.entity.admins.filter(id=user.id).exists()
-        )
-        if not works_here:
+        if group is not None:
+            # soft delete, like UserAPIView.removeGroup (restored by a new grant)
+            for assignment in BranchUserGroup.objects.filter(
+                user=user, group=group, branch__entity_id=paciente.entity_id,
+            ):
+                assignment.delete()
+
+        other_profiles = BranchUserGroup.objects.filter(user=user, branch__entity_id=paciente.entity_id)
+        is_admin = paciente.entity.admins.filter(id=user.id).exists()
+
+        # branch memberships left without any profile
+        for membership in BranchUser.objects.filter(user=user, branch__entity_id=paciente.entity_id):
+            if not is_admin and not other_profiles.filter(branch_id=membership.branch_id).exists():
+                membership.delete()
+
+        if not is_admin and not other_profiles.exists():
             # soft delete: the context can no longer be issued for this Entity
-            for membership in EntityUser.objects.filter(entity_id=paciente.entity_id, user=user, deleted_at__isnull=True):
+            for membership in EntityUser.objects.filter(entity_id=paciente.entity_id, user=user):
                 membership.delete()
 
     audit_service.record(action="PATIENT_PORTAL_REVOKED", target=paciente, actor=request.user,
@@ -323,10 +380,12 @@ def summary(paciente):
     return {
         "patient": paciente.person.full_name,
         "next_appointment": upcoming[0] if upcoming else None,
+        # an exam whose result was released is not pending any more (exams()
+        # shows it as "Result available"), whatever its item state
         "pending_exams": ItemPedidoExameMedico.objects.filter(
             pedido__in=_own_requests(paciente),
             estado_exame__in=("pendente", "agendado", "colhido", "processamento", "recolha_necessaria"),
-        ).count(),
+        ).exclude(id__in=_released_results(paciente).values("item_pedido_id")).count(),
         "new_results": _released_results(paciente).filter(released_at__gte=since).count(),
         "prescriptions": ReceitaMedica.objects.filter(consulta__paciente=paciente, entity_id=paciente.entity_id).count(),
     }

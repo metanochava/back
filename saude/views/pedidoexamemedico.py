@@ -1,5 +1,6 @@
 
 from django_resaas.saas.core.base.views import BaseAPIView
+from saude.services.document_edit_policy import DocumentEditWindowMixin
 from django_resaas.saas.core.base.views import registerView
 from saude.models.pedidoexamemedico import PedidoExameMedico
 from saude.serializers.pedidoexamemedico import PedidoExameMedicoSerializer
@@ -20,7 +21,8 @@ from saude.services import exam_request_service
 
 
 @registerView('pedidoexamemedicos')
-class PedidoExameMedicoAPIView(BaseAPIView):
+# edited only by its author, within 24 h (document_edit_policy)
+class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
     queryset = PedidoExameMedico.objects.all()   
     serializer_class = PedidoExameMedicoSerializer
 
@@ -56,7 +58,7 @@ class PedidoExameMedicoAPIView(BaseAPIView):
             status=201
         )
 
-    @resaas_action(detail=True, methods=["post"], label="Check in", icon="login")
+    @resaas_action(detail=True, methods=["post"], label="Check in", icon="login", autorequest=True)
     def check_in(self, request, *args, **kwargs):
         """Patient arrived for these exams (laboratory waiting starts).
         Idempotent: repeating it keeps the first time."""

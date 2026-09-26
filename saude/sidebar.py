@@ -21,6 +21,15 @@ ALL = [{
         "route": "dashboard_saude_clinica",
     },
 
+    # ❤️ PORTAL DO PACIENTE (only profiles with view_patient_portal - the
+    # Patient profile has no other saude permission, so this is its menu)
+    {
+        "icon": "favorite",
+        "menu": "My Health",
+        "role": "view_patient_portal",
+        "route": "my_health",
+    },
+
     # 👤 PACIENTE
     {
         "add_role": "add_paciente",

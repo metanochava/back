@@ -14,7 +14,7 @@
     @bottom-right {
       content: counter(page) " - " counter(pages);
       font-size: 14px;
-      color: #2563eb;
+      color: #0f766e;
       font-family: Arial, sans-serif;
       font-weight: bold;
       margin-right: 5px;
@@ -70,8 +70,9 @@
 
   .title h1 {
     margin: 0;
-    color: #2563eb;
+    color: #0f766e;
     font-size: 16px;
+    letter-spacing: .03em;
   }
 
   .title .subtitle {
@@ -111,8 +112,8 @@
   }
 
   .box {
-    border: 1px solid #fff;
-    border-radius: 2px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
     padding: 6px;
     margin-bottom: 8px;
     page-break-inside: avoid;
@@ -120,7 +121,9 @@
 
   .box-title {
     font-weight: bold;
-    color: #2563eb;
+    color: #0f766e;
+    border-left: 3px solid #0f766e;
+    padding-left: 5px;
     margin-bottom: 4px;
     text-transform: uppercase;
     font-size: 14px;
@@ -159,7 +162,11 @@
   .linha-assinatura {
     display: inline-block;
     margin-top: 22px;
-    border-top: 1px solid #333;
+    border-top: 1px solid #0f766e;
+    color: #0f766e;
+    font-size: 11px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
     width: 170px;
     text-align: center;
     padding-top: 3px;
@@ -199,6 +206,12 @@
   .footer-center {
     text-align: center;
   }
+
+  /* each clinical part of the referral: a soft block with its title */
+  .campo { margin-top: 8px; padding: 6px 8px; background: #f8fafc; border-radius: 4px; border-left: 3px solid #99f6e4; }
+  .campo-titulo { font-size: 10px; font-weight: bold; color: #0f766e; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+  .campo.destino { background: #f0fdfa; border-left-color: #0f766e; }
+  .campo.destino .valor { font-weight: bold; font-size: 15px; color: #111827; }
 </style>
 </head>
 
@@ -236,7 +249,7 @@
   <div class="box">
 
     <div class="box-title">
-      {% comment %} Dados do Paciente {% endcomment %}
+      Dados do Paciente
     </div>
 
     <table class="dados">
@@ -246,8 +259,8 @@
 
       <tr>
         <td class="label">NID: {{ guiatransferencia.consulta.paciente.nid }}</td>
-        <td class="label">Profissão: {{ guiatransferencia.consulta.paciente.person.occupation }}</td>
-        <td class="label">Contacto: {{ guiatransferencia.consulta.paciente.emergency_contact.phone }}</td>
+        <td class="label">Profissão: {{ guiatransferencia.consulta.paciente.person.occupation|default:"-" }}</td>
+        <td class="label">Contacto: {{ guiatransferencia.consulta.paciente.person.phone|default:"-" }}</td>
       </tr>
     </table>
 
@@ -256,7 +269,7 @@
   <div class="box">
 
     <div class="box-title">
-      {% comment %} Informação da Transferência {% endcomment %}
+      Informação da Transferência
     </div>
 
     <div class="guia-text">
@@ -278,26 +291,27 @@
 
       <br><br>
 
-      <b>Motivo da transferência:</b>
-      <br>
-      {{ guiatransferencia.motivo|safe }}
+      <div class="campo destino">
+        <div class="campo-titulo">Unidade de destino</div>
+        <div class="valor">{{ guiatransferencia.destino|default:"-" }}</div>
+      </div>
 
-      <br><br>
+      <div class="campo">
+        <div class="campo-titulo">Motivo da transferência</div>
+        {{ guiatransferencia.motivo|default:"-"|safe }}
+      </div>
 
-      <b>Diagnóstico / Informação Clínica:</b>
-      <br>
-      {{ guiatransferencia.diagnostico|safe }}
+      <div class="campo">
+        <div class="campo-titulo">Diagnóstico / Informação Clínica</div>
+        {{ guiatransferencia.diagnostico|default:"-"|safe }}
+      </div>
 
-      <br><br>
-
-      <b>Unidade de destino:</b>
-      {{ guiatransferencia.destino }}
-
-      <br><br>
-
-      <b>Observações:</b>
-      <br>
-      {{ guiatransferencia.observacao|safe }}
+      {% if guiatransferencia.observacao %}
+      <div class="campo">
+        <div class="campo-titulo">Observações</div>
+        {{ guiatransferencia.observacao|safe }}
+      </div>
+      {% endif %}
 
     </div>
 
@@ -338,7 +352,7 @@
 
     <tr>
       <td colspan="2" class="footer-center" style="width:100%; font-size: 12px;">
-        {{ entity.rodape|safe }}
+        {{ entity.rodape|default:""|safe }}
       </td>
     </tr>
   </table>

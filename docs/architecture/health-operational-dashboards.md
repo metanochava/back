@@ -27,42 +27,39 @@ Authenticated user
 | Cashier / billing | Blocked: no invoice, receipt or cash register exists, and `saude` does not generate charges. Needs a decision on where they live (`sales` or a finance module). |
 | Patient portal (self-service area) | Implemented and tested (see *Patient portal*) |
 
-## Profiles (reused, never duplicated)
+## Profiles (the 9 official saude profiles)
 
-The existing profiles in `saude/profiles.py` are reused. No `Doctor`, `Nurse`
-or `Receptionist` group was created. A profile only gets **default
-permissions**. Which dashboard a user sees depends on the **permissions** of
-their active group, never on the group's name. A custom group with the same
-permissions gets the same dashboard.
+`saude/profiles.py` defines nine access profiles, seeded by `group_creator()`
+(idempotent, additive: custom permissions are preserved, and missing codenames are
+reported, never created):
 
-| Dashboard | Dashboard permission | Profiles that get it by default |
+| Profile | Purpose | Operational dashboard |
 |---|---|---|
-| Reception (`saude_reception`) | `view_dashboard_saude_reception` | Medical Receptionist, Medical Secretary, Patient Services Coordinator |
-| Nursing (`saude_nursing`) | `view_dashboard_saude_nursing` | Registered Nurse, Nurse Manager, Triage Coordinator |
-| My Patients (`saude_doctor`) | `view_dashboard_saude_doctor` | General Practitioner, Specialist Physician |
-| Laboratory (`saude_laboratory`) | `view_dashboard_saude_laboratory` | Medical Laboratory Technician, Medical Laboratory Scientist |
+| Doctor | consultations, diagnoses, prescriptions, exam requests, vital signs, own lab results and evolution | My Patients (`view_dashboard_saude_doctor`) |
+| Nurse | vital signs, clinical observations, current medication, vaccination | Nursing (`view_dashboard_saude_nursing`) |
+| Medical Receptionist | patient registration, appointments, exam-only requests, lab check-in, **patient portal grant** | Reception (`view_dashboard_saude_reception`) |
+| Medical Laboratory Technician | collect / reject samples, record results | Laboratory (`view_dashboard_saude_laboratory`) |
+| Medical Laboratory Scientist | Technician + validate, release, amend results, configure exam parameters and reference ranges | Laboratory |
+| Pharmacist | prescriptions and medicines (the `farmacia` module adds dispensing to the same Group) | - |
+| Cashier | the patient only (`view_paciente`); billing permissions come from the `sales` module, which seeds the same Group | - |
+| Healthcare Administrator | read-only supervision of clinical activity | Clinic (`view_dashboard_saude_clinica`) |
+| Patient | the patient portal only (see *Patient portal*) | My Health (`saude_patient`, `view_patient_portal`) |
 
-The dashboard permissions are created by `saude/signals/permissions.py`
-(`DASHBOARD_PERMISSIONS`) and granted to Root. They are then assigned to the
-profiles above by the idempotent, additive profile seed (`group_creator`: it
-never removes custom permissions, and reports codenames that don't exist
-instead of creating them). General Practitioner and Specialist Physician also
-received `view_dadovital`, `add_dadovital` (a doctor can record vital signs)
-and `view_resultadoexamemedico`.
+Which dashboard a user sees depends on the **permissions** of their active
+profile, never on its name. A custom group with the same permissions gets the
+same screens.
 
-Laboratory: both laboratory profiles received `check_in_pedidoexamemedico`,
-and the Scientist also received `view_itempedidoexamemedico`,
-`change_itempedidoexamemedico` and **`validate_resultadoexamemedico`**. Only
-the Scientist validates; the Technician records. Reception profiles
-(Medical Receptionist, Medical Secretary, Patient Services Coordinator)
-received `view_pedidoexamemedico`, `add_pedidoexamemedico`,
-`add_itempedidoexamemedico`, `view_examemedico` and
-`check_in_pedidoexamemedico`, to register exam-only patients.
+`Pharmacist` and `Cashier` are also profiles of `farmacia` and `sales`. Group names
+are global, so each module adds its own permissions to the **same** Group: one
+pharmacist or cashier profile across modules.
 
-The dead model `ParamentroResultadoExameMedico` (never imported, no table)
-was replaced by `ExamParameter` / `ExamReferenceRange`. Its codenames were
-replaced in the profiles by the real ones, and the seed no longer reports
-missing codenames for the laboratory profiles.
+**Renaming.** Existing groups are renamed in place (same `Group.id`, users and
+permissions kept) by `SAUDE_RENAME_FROM`, which accepts a list of old names:
+`Doctor` <- `General Practitioner` / `Médico Geral`, `Nurse` <- `Registered Nurse` /
+`Enfermeiro`, and the Portuguese names of the others. Groups of the previous
+catalogue that are not in the nine (e.g. Specialist Physician, Nurse Manager,
+Medical Secretary) are **not deleted**. They keep working with the permissions they
+have, but are no longer seeded.
 
 > Profiles are global Groups. Changing their permissions changes them for
 > every Entity that uses them, and is a platform-level operation (see
@@ -82,12 +79,12 @@ even listed). Providers: `saude/dashboard_flow_providers.py`.
 | | `checked_in_today` | stat | `view_agenda` | today's appointments with `checked_in_at` |
 | | `waiting_now` | stat | `view_agenda` | today's appointments in `em_espera` |
 | | `average_waiting` | stat | `view_agenda` | average check-in -> service start, today (minutes) |
-| | `reception_queue` | table | `view_agenda` | today's appointments by scheduled time; actions: open patient (`view_paciente`), register patient (`add_paciente`) |
+| | `reception_queue` | table | `view_agenda` | today's appointments by scheduled time; row actions: check in (`check_in_agenda`, scheduled/confirmed rows), check out (`check_out_agenda`, waiting/in-progress rows), open patient (`view_paciente`); toolbar: register patient (`add_paciente`) |
 | Nursing | `waiting_now` | stat | `view_agenda` | as above |
 | | `vitals_pending` | stat | `view_agenda` + `view_dadovital` | waiting, no vital signs since check-in |
 | | `ready_for_doctor` | stat | `view_agenda` + `view_dadovital` | waiting, vital signs recorded |
 | | `vitals_recorded_today` | stat | `view_dadovital` | `DadoVital` records dated today |
-| | `nursing_queue` | table | `view_agenda` + `view_dadovital` | waiting patients, vital signs pending first; actions: open patient, record vital signs (`add_dadovital`) |
+| | `nursing_queue` | table | `view_agenda` + `view_dadovital` | waiting patients, vital signs pending first; row actions: record vital signs (dialog, `add_dadovital`), open patient |
 | My Patients | `my_appointments_today` | stat | `view_agenda` | the user's appointments today (`Agenda.medico.person.user`) |
 | | `waiting_for_me` | stat | `view_agenda` | the user's appointments in `em_espera` |
 | | `completed_today` | stat | `view_agenda` | the user's appointments `concluida` today |
@@ -136,6 +133,28 @@ They are set only once: a repeated transition never overwrites the first time.
 They are `editable=False`, so read-only in the API and the schema, and a
 client that sends them is ignored. A walk-in created directly as `em_espera`
 is checked in at creation.
+
+### Check-in and check-out (reception)
+
+The reception moves an appointment with two explicit actions instead of
+editing its state:
+
+| Action | Permission | From | To | Rule |
+|---|---|---|---|---|
+| `POST /api/saude/agendas/{id}/check_in/` | `check_in_agenda` | `marcada`, `confirmada` | `em_espera` (`checked_in_at`) | only on the appointment day (`409 not_appointment_day`) |
+| `POST /api/saude/agendas/{id}/check_out/` | `check_out_agenda` | `em_espera`, `em_atendimento` | `concluida` (`completed_at`) | a waiting patient may leave too (the doctor may not have pressed "start") |
+
+- Any other state gives `409 invalid_appointment_state` and nothing changes.
+  The row is locked (`select_for_update`), so a double click moves it once.
+- `get_object()` keeps the appointment inside the current Entity/Branch
+  (another tenant's id → 404). The `Medical Receptionist` profile gets both
+  permissions (`saude/profiles.py`, additive seed).
+- Where: **Reception Queue** row buttons, each shown only on the rows whose
+  `estado` allows it (dashboard action `type: "request"` + `when`), and the
+  **Upcoming Appointments** list of the patient record (`PacienteVPage`,
+  check-in only for today's appointments, check-out after a confirmation).
+- A free `PATCH` of `estado` (edit appointment dialog) still works as before.
+  It is not limited to these transitions yet.
 
 Metrics (`saude/services/appointment_flow.py`):
 
@@ -298,6 +317,23 @@ appear in evolution charts.
 - There is no separate Sample model. Collection is per exam item; sharing one
   sample between several exams needs a domain decision first.
 
+### Frontend (dev/front)
+
+The actions come from the schema (`@resaas_action`) and each one only appears
+when the user has its permission (UX only). The backend still checks the permission
+(`403`) and the state (`409`).
+
+| Where | Action | How |
+|---|---|---|
+| Exam request list (`PedidoexamemedicoLPage`, AutoCrud) | Check in | `autorequest=True`: AutoCrud posts and reloads |
+| Exam item list (`ItemPedidoexamemedicoLPage`, AutoCrud) | Collect | `autorequest=True` |
+| | Reject sample | `sDialog` prompt for the reason -> `reject_sample` -> list reload |
+| | Record result | opens `ExamResultDialog` (also opened from `AddResultadoModal`) |
+| `ExamResultDialog` footer | Validate / Release / Amend | shown by the state in `result_form.result` (`validated`, `released`) and `User.can('<action>_resultadoexamemedico')`. Amend asks for the reason and then shows the new revision |
+
+`result_form` is a data endpoint for the dialog. It is declared `visible=False`, so
+it is not a menu entry.
+
 ### Waiting time vs turnaround time
 
 - **Laboratory waiting** = laboratory check-in -> first collection (e.g.
@@ -341,7 +377,7 @@ appear in evolution charts.
 | `validate_resultadoexamemedico`, `release_resultadoexamemedico`, `amend_resultadoexamemedico` | - | yes |
 | `add/change_examparameter`, `view/add/change_examreferencerange`, `lab_evolution_paciente` | - | yes |
 
-Doctors (General Practitioner, Specialist Physician) received `lab_evolution_paciente`.
+The Doctor profile has `lab_evolution_paciente`.
 
 ### Known limitations
 
@@ -363,30 +399,55 @@ Code: `saude/services/patient_portal_service.py`, `saude/views/patient_portal.py
 
 - `POST /api/saude/pacientes/{id}/grant_portal_access/` and
   `.../revoke_portal_access/`. **PROTECTED** by `grant_portal_access_paciente`
-  (default: Medical Receptionist, Medical Secretary, Patient Services
-  Coordinator). The patient is `get_object()`, so another Entity's patient is
-  `404`.
-- Granting makes the person's User (every `Person` already has one) a member of
-  the Entity (`EntityUser`, **no Branch, no profile**) and sets
-  `Paciente.portal_access`, with who and when (server-controlled, read-only).
+  (default: Medical Receptionist; never the Patient profile). The patient is
+  `get_object()`, so another Entity's patient is `404`.
+- Granting gives the person's User (every `Person` already has one) the
+  **Patient profile at the patient's Branch**: `EntityUser` + `BranchUser` +
+  `BranchUserGroup(user, Paciente.branch, Patient)`, plus the Entity's
+  `EntityGroup` link to the profile. All of it is idempotent: repeating the grant,
+  or granting again after a revoke, restores the same rows and creates no duplicate.
+  Nothing else the user has is changed. It also sets `Paciente.portal_access`,
+  with who and when (server-controlled, read-only). The Patient Group is the one
+  seeded by `group_creator()`. If it is missing, the grant fails with
+  `409 patient_profile_missing` instead of creating a partial configuration.
   When the person has no permanent password yet, a new **temporary password**
   is issued (the existing `temporary_password_service`) and returned **once**,
   to hand to the patient. It must be changed at first login. A password the
   person chose is never overwritten.
-- Revoking clears the flag and soft-deletes the membership, unless the person
-  also works in that Entity. The signed context is re-validated on every
-  request, so access ends immediately.
+- Revoking clears the flag and soft-deletes **only the Patient profile** of that
+  Entity. The Patient profile never counts as a working relationship. A
+  `BranchUser` is removed only where no other profile is left on that Branch,
+  and the `EntityUser` only when no other profile is left in the Entity and the
+  person is not its admin. **A patient who is also staff** (e.g. Nurse +
+  Patient) keeps the professional profile, membership and login. The signed
+  context is re-validated on every request, so access ends immediately.
 - Both are audited (`PATIENT_PORTAL_GRANTED`, `PATIENT_PORTAL_REVOKED`).
 - There is no self-registration.
 
 ### Self-service API
 
-`GET /api/saude/me/<section>/`, read only, **PROTECTED**:
-authentication -> signed context (Entity only) re-validated for the user ->
-`saude` active -> **the user's own `Paciente` of that Entity with
-`portal_access`** -> that patient's data. **No endpoint takes a patient id**.
-Anything in the query string or body is ignored, so patient A cannot even ask
-for patient B's data (tested with `?paciente=<B>`).
+`GET /api/saude/me/<section>/`, read only, **PROTECTED**, two barriers:
+
+```
+authentication -> signed context re-validated for the user -> saude active
+  -> PERMISSION of the section in the active profile      (ActionPermissionMixin)
+  -> OWNERSHIP: the user's own Paciente of that Entity with portal_access
+  -> that patient's data only
+```
+
+| Section | Permission (Patient profile) |
+|---|---|
+| `status` | none - always `200 {portal, patient}`; `portal` is false without `view_patient_portal` |
+| `summary` | `view_patient_portal` |
+| `appointments` / `exams` / `results` / `trends` / `prescriptions` / `vitals` | `view_own_appointments` / `view_own_exams` / `view_own_results` / `view_own_trends` / `view_own_prescriptions` / `view_own_vitals` |
+
+These are portal capabilities (created in `saude/signals/permissions.py`, on the
+`Paciente` ContentType), not clinical model permissions. `view_own_results` lets
+the profile **use** the results section; it never means "any
+`ResultadoExameMedico`", because every query starts from the caller's own
+`Paciente`. **No endpoint takes a patient id**. Anything in the query string or
+body is ignored, so patient A cannot even ask for patient B's data (tested with
+`?paciente=`, `?patient_id=`, `?id=`).
 
 | Section | Content |
 |---|---|
@@ -404,14 +465,52 @@ patient in two Entities sees, in each, only that Entity's data, and only where
 access was granted. Validation metadata, internal notes and non-visible
 parameters are not returned. Unreleased or superseded results never appear.
 
+### Patient dashboard (`saude_patient`)
+
+The Patient profile's home, declared in `saude/dashboard.py` (`DASHBOARDS`) and
+served by the dashboard engine like the others. The dashboard permission is
+`view_patient_portal`; each widget needs its portal capability, so a profile
+missing one doesn't get that widget (not listed, `403` if asked). No operational
+dashboard permission is involved.
+
+| Widget | Type | Permission | Data |
+|---|---|---|---|
+| `next_appointment` | stat | `view_own_appointments` | next appointment (date, time; doctor as caption) |
+| `pending_exams` | stat | `view_own_exams` | own exams in an open state **without** a released result |
+| `new_results` | stat | `view_own_results` | results released in the last 30 days |
+| `prescriptions` | stat | `view_own_prescriptions` | own prescriptions |
+| `upcoming_appointments` | table | `view_own_appointments` | next 10 appointments |
+| `recent_results` | list | `view_own_results` | last 5 **released** results, first values |
+| `latest_vitals` | list | `view_own_vitals` | latest vital-sign record |
+
+**Ownership, not tenant scope.** The providers
+(`saude/dashboard_patient_providers.py`) resolve the caller's own `Paciente`
+(`patient_portal_service.resolve_self`) and reuse the portal's data functions. The
+engine's `scoped_queryset` (Entity + Branch) is not used, because it would still
+cover every patient of the Branch. Without portal access the widgets are empty,
+including for a staff profile given the same permissions (tested). The same rules
+as the portal apply: released results only, patient-visible parameters.
+
+`MyHealthPage` shows it at the top (`<s-dashboard-renderer name="saude_patient" />`),
+followed by the detail tabs. On the home page it is the first tab (`order: 0`)
+for a profile that has it.
+
 ### Frontend
 
-- After login, a user with no Branch lands on the welcome page. It calls
-  `me/status/` and shows **My Health** when the portal is available.
-- `/my_health` (`MyHealthPage.vue`, no `requiredRole`: the backend enforces
-  access) shows a header with the next appointment, KPIs, and tabs for
-  appointments, exams, results, trends (the engine's `LineChartWidget`, from 2
-  points), prescriptions and vital signs.
+- **Login**: the normal RESAAS login (username/password, temporary password
+  change, 2FA policies) -> Entity -> the patient's Branch -> the Patient profile.
+  There is no separate patient authentication.
+- The welcome page calls `me/status/`. When the portal is available **and** the
+  active profile has `view_patient_portal`, it goes straight to `/my_health`.
+  This is decided by capability, never by the profile's name, so a Nurse +
+  Patient acting as Nurse is not redirected.
+- The saude menu shows **My Health** only with `view_patient_portal`. Every
+  other saude item needs a clinical permission the Patient profile doesn't have,
+  so the patient sees only the portal. The backend enforces the same.
+- `/my_health` (`MyHealthPage.vue`, `requiredRole: view_patient_portal`) shows the
+  Patient dashboard and **only the tabs whose `view_own_*` permission the
+  profile has**: appointments, exams, results, trends (the
+  engine's `LineChartWidget`, from 2 points), prescriptions, vital signs.
 - Patient record (`PacienteVPage`, personal tab): the portal status badge and
   grant/revoke buttons (shown with `grant_portal_access_paciente`). The
   temporary password is displayed once, in a dialog (values HTML-escaped).
@@ -423,11 +522,218 @@ Billing is not in the portal: invoices, receipts and payments do not exist yet
 
 The existing `DadoVital` model is reused (`paciente`, `consulta`, `employee`
 = recorded by, `data`/`hora`, `created_at`; history is kept, one record per
-measurement). For a queue, an appointment's vital signs count as
-**recorded** when the patient has a `DadoVital` created **after the
-check-in** (or dated on the appointment day when there was no check-in).
-Measurements from before the check-in don't count. Nurses and, with
-`add_dadovital`, doctors record them.
+measurement). Migration `0007` adds three nullable fields: `agenda` (the
+visit), `temperatura_local` (axillary/oral/tympanic/rectal) and
+`glicemia_momento` (fasting/postprandial/random). Existing rows are
+unchanged.
+
+For a queue, an appointment's vital signs count as **recorded** when a
+`DadoVital` is linked to it (`agenda`). Older records without that link fall
+back to the previous rule: a record of the patient created **after the
+check-in**, or dated on the appointment day when there was no check-in.
+Nurses and, with `add_dadovital`, doctors record them.
+
+### Recording from a dashboard queue
+
+Nursing Queue and My Queue (doctor) have a **Record vital signs** row action
+(`type: "dialog"`, `dialog: "saude.record_vital_signs"`, `add_dadovital`). It
+opens `VitalSignsDialog.vue` (dev/front) for the appointment of the row:
+
+| Step | API | Rule |
+|---|---|---|
+| Context | `GET /api/saude/dadovitals/intake/?agenda=<id>` (`add_dadovital`) | patient (name, age, gender, NID, photo), appointment, doctor, the professional signed in, the previous record, the limits. The appointment must be in the current Entity + Branch (`404 appointment_not_found`). A user without an Employee in this Branch gets `400 professional_required`. |
+| Save | `POST /api/saude/dadovitals/` (`add_dadovital`) | only the vital signs, `agenda` and `tipo` are sent. The server sets `employee` = the caller's Employee (a client value is ignored: `employee` is read only), `paciente` and `consulta` from the appointment (a different patient → `400 patient_mismatch`), entity/branch from the context. |
+| Limits | both | physiologically possible values (e.g. temperature 30–45 °C, SpO₂ 50–100 %, diastolic < systolic). Outside them → `400` with one message per field (`error.details`). These catch typing errors; they are not clinical ranges. |
+
+The dialog shows the context read only and one tile per measurement (unit,
+min/max, previous value and difference). Each tile has a colour: normal,
+attention, warning or critical, using adult reference values. A side panel
+calculates live: BMI and class, ideal weight (BMI 22), mean arterial
+pressure, pulse pressure, shock index (HR/SBP) and waist-to-height ratio. It
+also lists the alerts. These are decision support: the dialog says so, and
+nothing is stored besides the measurements. After saving, the dashboard's
+widgets reload, so the counters and the queue update.
+
+### Recording from the patient header
+
+`PacienteHeaderPage.vue` has a **Record vital signs** icon (`monitor_heart`).
+It is shown only with `add_dadovital`; the backend checks the same permission.
+It opens the same `VitalSignsDialog.vue` with `patient-id` instead of a
+dashboard row:
+
+- `GET /api/saude/dadovitals/intake/?paciente=<id>` (`add_dadovital`) returns
+  the same context. The server uses the patient's latest open appointment of
+  today in this Branch (not `cancelada` / `faltou`) when there is one; the
+  dialog then saves with `agenda`, exactly like the queue. Without one,
+  `agenda` and `doctor` are `null`, the dialog shows "No appointment today"
+  and saves with `paciente`. That is the existing record without appointment
+  (`prepare_create`: the patient must be of this Entity).
+- A patient of another Entity → `404 patient_not_found`. `?agenda=` wins when
+  both are sent.
+
+
+## Consultation form (`add_consulta` / `change_consulta`)
+
+A professional form (`ConsultaSEPage.vue`), not the generic CRUD form:
+
+- **Top:** the patient header and **Latest vital signs**
+  (`LatestVitalSigns.vue`). It shows the last `DadoVital` of the patient
+  (`GET dadovitals/?paciente=&ordering=-created_at&page_size=1`), each value
+  with the same adult reference bands as the recording dialog, BMI / MAP /
+  pulse pressure / shock index, the alerts, when and by whom it was recorded,
+  and a badge when it is older than 24 h.
+- **Form:** chief complaint and history (required), diagnosis, plan, bound to
+  the `Consulta` store form, each an `s-editor` (rich text, like the other
+  clinical documents). They are stored as HTML and the PDF renders them as
+  HTML (`consultamedicabody.html`). The required check reads the text without
+  the HTML, because `q-form` does not validate `s-editor`. The patient comes from the context (the patient
+  open in the header, or the consultation being edited); without one the
+  page asks to open a patient first.
+- **Professional:** the one signed in, shown from
+  `GET /api/saude/consultas/intake/?paciente=<id>` (`add_consulta`: the
+  professional, the patient scoped to the tenant, and today's appointment of
+  this patient with this doctor). `POST consultas/` sets it again on the
+  server: `employee` is read only and a client value is ignored. A user
+  without an Employee in the Branch gets `400 professional_required`. A
+  patient of another Entity gets 404.
+- Vital-sign bands and calculations live in one place,
+  `pages/saude/components/vitalSigns.js`, used by the recording dialog and by
+  this card.
+- `PacienteHeaderPage` accepts `patient-id`, for pages whose route `:id` is
+  not the patient (`change_consulta/:id` is the consultation).
+
+### Consultation PDF
+
+`GET /api/saude/consultas/{id}/pdf/` (`pdf_consulta`, which the Doctor profile
+has, like the PDF of every document it can view) follows the form, in the same
+order:
+
+1. the patient header (name, NID, occupation, contact);
+2. the professional, the date and the appointment time;
+3. the vital signs of the visit: the record linked to the consultation, or the
+   patient's last one taken before it, with each value's status, the same
+   calculations and the alerts;
+4. chief complaint and history (full width), then diagnosis and plan side by
+   side.
+
+Every text is translated in the requester's language
+(`consultation_service.pdf_context`, `Translate.tdc`). The status bands and
+calculations are the frontend's (`vitalSigns.js`) mirrored in
+`vital_signs_service` (`RULES`, `calculations`). Change both together:
+`test_consultation_pdf.py` pins the shared cases.
+
+## Prescriptions and the other documents of a visit
+
+The same rule applies to prescriptions (`receitamedicas`), medical
+certificates (`atestadomedicos`), referrals (`guiatransferencias`) and medical
+reports (`relatoriomedicos`): `consultation_service.resolve_for_document`.
+All four used to `get_or_create` a consultation. Exam requests from a
+clinician keep attaching to the consultation of the day, now through
+`todays_consultation()`, and create one only when there is none. Two
+consultations on the same day no longer break them either.
+
+- **A prescription belongs to a consultation of today** of the patient
+  (`consultation_service.resolve_for_document`). The server picks the
+  consultation of today's appointment with this doctor first, then this
+  doctor's latest consultation of the patient today. With none:
+  `409 consultation_required` ("start the consultation first"). No
+  consultation is ever created by `POST receitamedicas/` (it used to
+  `get_or_create` one and failed with `MultipleObjectsReturned` when there
+  were two). A `consulta` sent by the client must be of this patient, Branch
+  and day (`400 invalid_consultation`). A patient of another Entity gets 404.
+- **Consultation ↔ appointment:** `POST consultas/` links the new
+  consultation to today's appointment of the patient with this doctor (the
+  first not closed and still without one: `Agenda.consulta`).
+- **Prefill:** choosing a medication calls
+  `GET /api/saude/medicamentos/{id}/prescription_defaults/` (`view_medicamento`).
+  It returns the dosage and quantity of the last prescription of that
+  medication in the Entity (this doctor's first, then anyone's), else the
+  catalogue dosage (`source`: `last_prescription` | `catalogue` | null). The
+  page never replaces what the doctor typed, and says where the values came
+  from. Without history the catalogue's own `dosagem` and `quantidade` are
+  used. `Medicamento.quantidade` (text, nullable) is new: migration
+  `0008_medicamento_quantidade`, and existing rows keep `null`. The "New
+  medication" dialog of the prescription page asks for it.
+
+### Editing a clinical document: author only, within 24 h
+
+Consultations, prescriptions and their items, certificates, referrals,
+medical reports and exam requests can be changed only by **the user who
+created them** (`created_by`), and only **within 24 hours of `created_at`**
+(`saude/services/document_edit_policy.py`, `DocumentEditWindowMixin` on those
+views' `perform_update`: `PATCH` and `PUT`).
+
+| Case | Answer |
+|---|---|
+| Author, within the window | normal update |
+| Another user, even with `change_<model>` | `403 not_document_author` |
+| After the window, even the author | `409 edit_window_expired` |
+
+- The rule comes on top of the permission (`change_<model>`) and of the tenant
+  scope (`get_object()` on the scoped queryset). It does not replace them.
+- The window is `settings.SAUDE_DOCUMENT_EDIT_WINDOW_HOURS` (default 24).
+- Exam request **items** (`itempedidoexamemedicos`) are not restricted: the
+  laboratory updates them (collection, results) through its own actions and
+  permissions.
+- Frontend (UX only): `pages/saude/components/documentEditPolicy.js`
+  (`canEditDocument`). The history list hides **Edit** / **Reprint** for
+  documents that can no longer be edited. `ConsultaSEPage` shows a read-only
+  banner and disables saving.
+- Tests: `saude/tests/test_document_edit_policy.py`.
+
+### Patient card PDF
+
+`GET /api/saude/pacientes/{id}/pdf/` (`pdf_paciente`) renders a CR80 card
+(85.6 × 54 mm, front and back, `saude/paciente.html`) from
+`patient_card_service.pdf_context`:
+
+- **Front:** logo, Entity and Branch, the photo (`Person.photo`, else the
+  user's profile picture), the name, date of birth and age, blood type and
+  gender, the phone, and the NID as the card number. The QR code holds the
+  patient id.
+- **Back:** allergies (`alergias_correntes` + `alergias_medicamentosas`,
+  highlighted in red when present), chronic diseases (`doencas_correntes`),
+  usual medication (`medicacoes_correntes`), the emergency contact
+  (`Person.contacts` with `is_emergency`, the primary one first), the
+  clinical alert when there is one, the health unit, and a barcode of the
+  NID.
+- Each list shows at most 3 entries, then `+N`. Labels are translated with
+  the requester's language (`Translate.tdc`).
+
+## Demo data (`seed_saude_demo`)
+
+Creates demo patients and one doctor's appointments around today, so the
+dashboards and the reception / nursing / doctor flows can be tried on a fresh
+database. Run it after the base bootstrap (`create_entity` or `resaas_setup`),
+which creates the Entity, the Branch and the users.
+
+```bash
+python manage.py seed_saude_demo --entity Amal --doctor-user cassia            # 2 days before .. 3 after
+python manage.py seed_saude_demo --entity Amal --branch Sede --doctor-user cassia \
+    --days-before 7 --days-after 7 --patients 20 --min-per-day 6 --max-per-day 10
+python manage.py seed_saude_demo --entity Amal --doctor-user cassia --reset    # rebuild the demo days
+python manage.py seed_saude_demo --entity Amal --doctor-user cassia --dry-run  # show, write nothing
+```
+
+| What | How |
+|---|---|
+| Patients | at least `--patients` (default 12) demo patients in the Branch, NID `DEMO-<branch>-NNN`, reused on every run |
+| Doctor | the Person of `--doctor-user` (username or email). An Employee record in the Branch is created when missing. No user or password is ever created. |
+| Appointments | 30-min slots 08:00–16:30, `--min/--max-per-day` (9–12), never over the doctor's existing appointments, one per patient per day, tagged `[demo-seed]` in `observacao` |
+| States | past days: completed / no-show / cancelled; today: 3 completed, 2 waiting, 1 in progress, the rest scheduled/confirmed (to try check-in); future days: scheduled/confirmed |
+| Flow times | `checked_in_at` / `service_started_at` / `completed_at` coherent with the state, so waiting and delay metrics have values |
+
+Rules:
+- `--entity` is required. `--branch` is required when the Entity has more
+  than one: nothing is ever picked as "the first".
+- Running it again skips the days that already have demo appointments.
+  `--reset` deletes only this doctor's demo appointments in the range and
+  creates them again. Real appointments are never touched. The appointments
+  created by hand before the command existed (`[seed] test data for Dr.
+  Cassia`) are treated as demo.
+- `--seed N` makes the data reproducible. `--dry-run` rolls everything back.
+- With `DEBUG` off it refuses to run without `--allow-production`, because
+  demo patients are not real data.
 
 ## Frontend
 

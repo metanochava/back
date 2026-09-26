@@ -1,156 +1,101 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-<meta charset="UTF-8">
-
+{# Consultation body: the same content and order as the consultation form  #}
+{# (dev/front ConsultaSEPage.vue). Texts come translated in `labels`        #}
+{# (consultation_service.pdf_context); vital-sign status and calculations  #}
+{# use the same adult references as the form (vital_signs_service).        #}
 <style>
-
-  * {
-    box-sizing: border-box;
+  .c-meta { font-size: 12px; margin-bottom: 8px; }
+  .c-section { margin-bottom: 8px; page-break-inside: avoid; }
+  .c-title {
+    font-size: 11px; font-weight: bold; letter-spacing: .04em; text-transform: uppercase;
+    color: #075da3; border-bottom: 1px solid #cfe0f0; padding-bottom: 2px; margin-bottom: 4px;
   }
-
-  .content {
-    width: 100%;
-  }
-
-  .box {
-    border: 1px solid #fff;
-    border-radius: 2px;
-    padding: 2px;
-    margin-bottom: 1px;
-    page-break-inside: avoid;
-  }
-
+  .c-sub { font-size: 10px; color: #666; margin-bottom: 4px; }
+  .v-grid { width: 100%; border-collapse: separate; border-spacing: 3px; }
+  .v-tile { border: 1px solid #ddd; border-left: 3px solid #bbb; padding: 3px 4px; vertical-align: top; width: 16.6%; }
+  .v-tile.normal { border-left-color: #21ba45; }
+  .v-tile.attention { border-left-color: #f9a825; background: #fffaf0; }
+  .v-tile.warning { border-left-color: #ef6c00; background: #fff4ec; }
+  .v-tile.critical { border-left-color: #c10015; background: #fdeeee; }
+  .v-label { font-size: 9px; color: #555; }
+  .v-value { font-size: 12px; font-weight: bold; }
+  .v-status { font-size: 8px; float: right; margin-top: 2px; }
+  .v-status.attention { color: #b07800; } .v-status.warning { color: #c05600; } .v-status.critical { color: #c10015; }
+  .v-summary { text-align: center; font-size: 10px; margin-top: 3px; }
+  .v-chip { display: inline-block; border: 1px solid #ccc; border-radius: 3px; padding: 1px 4px; margin: 1px; }
+  .v-chip.warning, .v-alert.warning { border-color: #ef6c00; color: #c05600; }
+  .v-chip.critical, .v-alert.critical { border-color: #c10015; color: #c10015; }
+  .v-chip.attention, .v-alert.attention { border-color: #f9a825; color: #b07800; }
+  .v-alert { display: inline-block; border: 1px solid; border-radius: 3px; padding: 1px 4px; margin: 1px; font-weight: bold; }
+  .v-notes { font-size: 9px; color: #555; text-align: left; margin-top: 3px; }
+  .c-text { border: 1px solid #cdcdcd; padding: 4px; min-height: 30px; }
+  .c-text.main { border-color: #075da3; background: #f8fbff; }
+  .c-cols { width: 100%; border-collapse: separate; border-spacing: 0; }
+  .c-cols td { width: 50%; vertical-align: top; }
+  .c-disclaimer { font-size: 8px; color: #888; margin-top: 2px; }
 </style>
-</head>
 
-<body>
-
-<div class="content">
-
-  {{ request.lang_id }}
-  
-    <div class="box">
-
-        <div style="font-size:14px; margin-bottom:10px;">
-
-            <b>{{ consulta.created_at|date:"d/m/Y H:i" }}</b>
-
-            por
-
-            <b>{{ consulta.employee.person.full_name }}</b>
-
-        </div>
-
-    </div>
-
-    {% if consulta.dados_vitais %}
-    <div class="box">
-
-        <div class="box-title">
-            Sinais Vitais
-        </div>
-
-        <table class="dados">
-
-            <tr>
-                <td><strong>Peso:</strong> {{ consulta.dados_vitais.peso }} Kg</td>
-                <td><strong>Altura:</strong> {{ consulta.dados_vitais.altura }} m</td>
-                <td><strong>IMC:</strong> {{ consulta.dados_vitais.imc }}</td>
-            </tr>
-
-            <tr>
-                <td><strong>FC:</strong> {{ consulta.dados_vitais.fc }}</td>
-                <td><strong>FR:</strong> {{ consulta.dados_vitais.fr }}</td>
-                <td><strong>SpO₂:</strong> {{ consulta.dados_vitais.sato2 }}</td>
-            </tr>
-
-            <tr>
-                <td><strong>Pulso:</strong> {{ consulta.dados_vitais.pulso }}</td>
-                <td><strong>Temperatura:</strong> {{ consulta.dados_vitais.temperatura }}</td>
-                <td><strong>Glicemia:</strong> {{ consulta.dados_vitais.glicemia }}</td>
-            </tr>
-
-            <tr>
-                <td colspan="3">
-                    <strong>TA:</strong>
-                    {{ consulta.dados_vitais.ta_sistolica }}/{{ consulta.dados_vitais.ta_diastolica }}
-                </td>
-            </tr>
-
-        </table>
-
-    </div>
-    {% endif %}
-
-    <div class="box">
-
-        <div class="box-title">
-            Diário Clínico
-        </div>
-
-        <table style="width:100%; border-collapse:collapse;">
-
-            <tr>
-                <td style="
-                    border:1px solid #075da3;
-                    padding:4px;
-                    background:#f8fbff;
-                ">
-                    <b style="color:#075da3;">
-                        {{ consulta.dc|safe|linebreaks }}
-                    </b>
-                </td>
-            </tr>
-
-        </table>
-
-    </div>
-
-    <div class="box">
-
-        <table style="width:100%; border-collapse:collapse;">
-
-            <tr>
-
-                <td style="
-                    width:50%;
-                    border:1px solid #cdcdcd;
-                    padding:4px;
-                    vertical-align:top;
-                ">
-
-                    <div class="box-title">
-                        Diagnóstico
-                    </div>
-
-                    {{ consulta.diagnostico|safe|linebreaks }}
-
-                </td>
-
-                <td style="
-                    width:50%;
-                    border:1px solid #cdcdcd;
-                    padding:4px;
-                    vertical-align:top;
-                ">
-
-                    <div class="box-title">
-                        Conduta a Estabelecer
-                    </div>
-
-                    {{ consulta.conduta_a_estabelecer|safe|linebreaks }}
-
-                </td>
-
-            </tr>
-
-        </table>
-
-    </div>
-
+<div class="c-meta">
+  {{ labels.professional }}: <b>{{ professional }}</b>{% if professional_position %} · {{ professional_position }}{% endif %}
+  · {{ consulta.created_at|date:"d/m/Y H:i" }}
+  {% if appointment_time %} · {{ labels.appointment }} {{ appointment_time }}{% endif %}
 </div>
 
+{# ---------------- latest vital signs ---------------- #}
+<div class="c-section">
+  <div class="c-title">{{ labels.latest_vitals }}</div>
+  {% if vitals %}
+    <div class="c-sub">
+      {{ vitals.taken_at|date:"d/m/Y H:i" }}{% if vitals.recorded_by %} · {{ labels.recorded_by }} {{ vitals.recorded_by }}{% endif %}
+    </div>
+    <table class="v-grid">
+      <tr>
+      {% for m in vitals.measurements %}
+        <td class="v-tile {{ m.level }}">
+          <div class="v-label">{{ m.label }}</div>
+          <div>
+            <span class="v-value">{{ m.value }}</span> <span class="v-label">{{ m.unit }}</span>
+            {% if m.status %}<span class="v-status {{ m.level }}">{{ m.status }}</span>{% endif %}
+          </div>
+        </td>
+        {% if forloop.counter|divisibleby:6 and not forloop.last %}</tr><tr>{% endif %}
+      {% endfor %}
+      </tr>
+    </table>
+    {% if vitals.calculations or vitals.alerts %}
+      <div class="v-summary">
+        {% for c in vitals.calculations %}
+          <span class="v-chip {{ c.level }}">{{ c.label }}: <b>{{ c.value }}</b> {{ c.unit }}{% if c.status %} ({{ c.status }}){% endif %}</span>
+        {% endfor %}
+        {% for a in vitals.alerts %}
+          <span class="v-alert {{ a.level }}">{{ a.field }}: {{ a.label }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if vitals.notes %}<div class="v-notes">{{ labels.notes }}: {{ vitals.notes }}</div>{% endif %}
+    <div class="c-disclaimer">{{ labels.disclaimer }}</div>
+  {% else %}
+    <div class="c-sub">{{ labels.no_vitals }}</div>
+  {% endif %}
+</div>
 
-</body>
-</html>
+{# ---------------- chief complaint (full width) ---------------- #}
+<div class="c-section">
+  <div class="c-title">{{ labels.dc }}</div>
+  <div class="c-text main">{{ consulta.dc|default:""|safe }}</div>
+</div>
+
+{# ---------------- diagnosis | plan (side by side, as in the form) ---------------- #}
+<div class="c-section">
+  <table class="c-cols">
+    <tr>
+      <td style="padding-right:4px;">
+        <div class="c-title">{{ labels.diagnostico }}</div>
+        <div class="c-text">{{ consulta.diagnostico|default:""|safe }}</div>
+      </td>
+      <td style="padding-left:4px;">
+        <div class="c-title">{{ labels.conduta }}</div>
+        <div class="c-text">{{ consulta.conduta_a_estabelecer|default:""|safe }}</div>
+      </td>
+    </tr>
+  </table>
+</div>
