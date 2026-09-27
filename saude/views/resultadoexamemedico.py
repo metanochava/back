@@ -545,11 +545,11 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
 
             entity=entity,
 
-            resultado=resultado,
-
-            paciente=resultado.paciente,
-
             logo_b64=logo_b64,
+
+            # the result itself (the template used to be a copy of the exam
+            # request's and showed no result): lab_result_service.pdf_context
+            **lab_result_service.pdf_context(request, resultado),
 
             qr_b64=make_qr_b64(
                 str(resultado.id)

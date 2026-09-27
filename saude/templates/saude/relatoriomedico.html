@@ -15,7 +15,7 @@
     @bottom-right {
       content: counter(page) " - " counter(pages);
       font-size: 14px;
-      color: #2563eb;
+      color: #0f766e;
       font-family: Arial, sans-serif;
       font-weight: bold;
       margin-right: 5px;
@@ -71,8 +71,9 @@
 
   .title h1 {
     margin: 0;
-    color: #2563eb;
+    color: #0f766e;
     font-size: 16px;
+    letter-spacing: .03em;
   }
 
   .title .subtitle {
@@ -112,8 +113,8 @@
   }
 
   .box {
-    border: 1px solid #fff;
-    border-radius: 2px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
     padding: 6px;
     margin-bottom: 8px;
     page-break-inside: avoid;
@@ -121,7 +122,7 @@
 
   .box-title {
     font-weight: bold;
-    color: #2563eb;
+    color: #0f766e;
     margin-bottom: 4px;
     text-transform: uppercase;
     font-size: 14px;
@@ -159,7 +160,11 @@
   .linha-assinatura {
     display: inline-block;
     margin-top: 22px;
-    border-top: 1px solid #333;
+    border-top: 1px solid #0f766e;
+    color: #0f766e;
+    font-size: 11px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
     width: 170px;
     text-align: center;
     padding-top: 3px;
@@ -199,6 +204,13 @@
   .footer-center {
     text-align: center;
   }
+
+  /* same look as the prescription, certificate and referral */
+  .box-title { font-weight: bold; color: #0f766e; border-left: 3px solid #0f766e; padding-left: 5px;
+               margin-bottom: 4px; text-transform: uppercase; font-size: 13px; }
+  .box.declaracao { border-left: 3px solid #0f766e; }
+  .campo { margin-top: 8px; padding: 6px 8px; background: #f8fafc; border-radius: 4px; border-left: 3px solid #99f6e4; }
+  .campo-titulo { font-size: 10px; font-weight: bold; color: #0f766e; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
 </style>
 </head>
 
@@ -237,6 +249,8 @@
 
   <div class="box">
 
+    <div class="box-title">Dados do Paciente</div>
+
     <table class="dados">
 
       <tr>
@@ -251,11 +265,11 @@
         </td>
 
         <td class="label">
-          Profissão: {{ relatorio.consulta.paciente.person.occupation }}
+          Profissão: {{ relatorio.consulta.paciente.person.occupation|default:"-" }}
         </td>
 
         <td class="label">
-          Contacto: {{ relatorio.consulta.paciente.emergency_contact.phone }}
+          Contacto: {{ relatorio.consulta.paciente.person.phone|default:"-" }}
         </td>
       </tr>
 
@@ -263,7 +277,7 @@
 
   </div>
 
-  <div class="box">
+  <div class="box declaracao">
 
     <div class="relatorio-text">
 
@@ -283,7 +297,10 @@
 
       <br><br>
 
-      {{ relatorio.resumo|safe }}
+      <div class="campo">
+        <div class="campo-titulo">Resumo clínico</div>
+        {{ relatorio.resumo|default:"-"|safe }}
+      </div>
 
     </div>
 
@@ -332,7 +349,7 @@
           class="footer-center"
           style="width:100%; font-size:12px;">
 
-        {{ entity.rodape|safe }}
+        {{ entity.rodape|default:""|safe }}
 
       </td>
 

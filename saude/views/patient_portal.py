@@ -1,14 +1,17 @@
 """Patient portal - GET /api/saude/me/<section>/ (read only).
 
-PROTECTED (ExplicitAccessMixin: authenticated). Not a BaseAPIView: a patient
-has no profile, so there is no group permission to check. Authorization is
-ownership, resolved on every request:
+PROTECTED. Two barriers, both required on every request:
 
     authentication
-      -> signed tenant context, re-validated for this user (Entity membership)
+      -> signed tenant context, re-validated for this user
       -> saude module active for the Entity
-      -> the user's own Paciente of that Entity with portal_access
+      -> PERMISSION of the section in the active profile (the "Patient"
+         profile has them: view_patient_portal, view_own_*) - ActionPermissionMixin
+      -> OWNERSHIP: the user's own Paciente of that Entity with portal_access
       -> data of that patient only (saude/services/patient_portal_service.py)
+
+The permission says the profile may USE a section; it never widens what is
+returned - every query starts from the caller's own Paciente.
 
 No endpoint takes a patient id: the patient is never chosen by the client.
 `status` always answers 200 (portal available or not) so a staff member
@@ -20,7 +23,8 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
-from django_resaas.saas.core.base.access import ExplicitAccessMixin
+from django_resaas.saas.core.base.access import ActionPermissionMixin, ExplicitAccessMixin
+from django_resaas.saas.core.base.permissions import isPermited
 from django_resaas.saas.core.base.dashboard import is_module_active
 from django_resaas.saas.core.base.views import registerView
 from django_resaas.saas.core.exceptions import ResaasAPIException
@@ -30,12 +34,27 @@ from saude.services import patient_portal_service as portal
 
 
 @registerView("me")
-class PatientPortalViewSet(ExplicitAccessMixin, viewsets.ViewSet):
-    # PROTECTED: authenticated + tenant context + ownership (no public actions)
+class PatientPortalViewSet(ActionPermissionMixin, ExplicitAccessMixin, viewsets.ViewSet):
+    # PROTECTED: authenticated + tenant context + section permission + ownership
+
+    # status needs no permission (always 200, it SAYS whether the portal is
+    # available); every section needs its own
+    membership_actions = ("status",)
+    action_permissions = {
+        "summary": "view_patient_portal",
+        "appointments": "view_own_appointments",
+        "exams": "view_own_exams",
+        "results": "view_own_results",
+        "trends": "view_own_trends",
+        "prescriptions": "view_own_prescriptions",
+        "vitals": "view_own_vitals",
+    }
 
     def initial(self, request, *args, **kwargs):
+        self._check_context(request)
         super().initial(request, *args, **kwargs)
 
+    def _check_context(self, request):
         error = getattr(request, "tenant_context_error", None)
         if error:
             raise error if isinstance(error, PermissionDenied) else PermissionDenied(str(error))
@@ -57,6 +76,8 @@ class PatientPortalViewSet(ExplicitAccessMixin, viewsets.ViewSet):
             return Response({"portal": False, "patient": None})
 
         paciente = portal.resolve_self(request)
+        if paciente is not None and not isPermited(request=request, role="view_patient_portal"):
+            paciente = None  # the active profile can't use the portal
         return Response({
             "portal": paciente is not None,
             "patient": paciente.person.full_name if paciente else None,

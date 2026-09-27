@@ -1,6 +1,8 @@
 
 from django_resaas.saas.core.base.views import BaseAPIView
+from saude.services.document_edit_policy import DocumentEditWindowMixin
 from django_resaas.saas.core.base.views import registerView
+from saude.services import consultation_service
 from saude.models.atestadomedico import AtestadoMedico
 from saude.serializers.atestadomedico import AtestadoMedicoSerializer
 from rest_framework.decorators import action
@@ -11,46 +13,25 @@ import barcode
 import qrcode
 
 
-from saude.models.consulta import Consulta
-from django.utils import timezone
-from django_resaas.hr.models.employee import Employee
-from saude.models.paciente import Paciente
 
 
 @registerView('atestadomedicos')
-class AtestadoMedicoAPIView(BaseAPIView):
+# edited only by its author, within 24 h (document_edit_policy)
+class AtestadoMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
     queryset = AtestadoMedico.objects.all()   
     serializer_class = AtestadoMedicoSerializer
 
     def create(self, request, *args, **kwargs):
 
-        employee = Employee.objects.get(
-            person=request.user.person
+        # the document belongs to a consultation of TODAY of this patient
+        # (consultation_service.resolve_for_document): never one created here,
+        # never a patient of another Entity
+        _patient, _professional, consulta = consultation_service.resolve_for_document(
+            request, request.data.get("paciente"), request.data.get("consulta")
         )
-
-        paciente = Paciente.objects.get(
-            id=request.data.get("paciente")
-        )
-
-        consulta, created = Consulta.objects.get_or_create(
-            paciente=paciente,
-            employee= employee,
-            data=timezone.now().date(),
-
-            entity_id= request.entity_id,
-            branch_id =  request.branch_id,
-            created_by = request.user,
-            updated_by  = request.user,   
-        )
-
-        if not created:
-            consulta.updated_by = request.user
-            consulta.save(update_fields=["updated_by"])
-
 
         data = request.data.copy()
         data['consulta'] = consulta.id
-        print(data['consulta'])
         serializer = self.get_serializer(
             data=data
         )

@@ -10,7 +10,12 @@ from rest_framework.test import APIClient
 from django_resaas.saas.core.services import temporary_password_service
 from django_resaas.saas.core.tenant.context import ResaasContextService
 from django_resaas.saas.models.audit_log import AuditLog
+from django_resaas.saas.core.utils.group_creator import group_creator
+from django_resaas.saas.models.branch_user import BranchUser
+from django_resaas.saas.models.branch_user_group import BranchUserGroup
 from django_resaas.saas.models.entity_user import EntityUser
+from django_resaas.saas.models.group import Group
+from saude.profiles import SAUDE_PROFILES, SAUDE_RENAME_FROM
 
 from saude.models.agenda import Agenda
 from saude.models.dadovital import DadoVital
@@ -25,9 +30,18 @@ ME = "/api/saude/me/"
 RECEPTION = ["view_paciente", "grant_portal_access_paciente"]
 
 
+def _seed_profiles():
+    group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+
+
 def _patient_client(tenant, paciente):
+    """The patient after a normal login: Entity -> the patient's Branch ->
+    the Patient profile."""
     user = paciente.person.user
-    context = ResaasContextService.issue(user=user, entity_id=tenant["entity"].id)
+    context = ResaasContextService.issue(
+        user=user, entity_id=tenant["entity"].id, branch_id=paciente.branch_id,
+        group_id=Group.objects.get(name="Patient").id,
+    )
     client = APIClient()
     client.force_authenticate(user=user)
     client.credentials(HTTP_X_RESAAS_CONTEXT=context["token"], HTTP_L="1")
@@ -42,6 +56,7 @@ class PortalAccessTests(TestCase):
 
     def setUp(self):
         self.tenant = bootstrap_tenant("portal-access", modules=("saude", "hr"))
+        _seed_profiles()
         self.maria = _patient(self.tenant, "Maria")
 
     def test_granting_needs_its_permission(self):
@@ -116,6 +131,7 @@ class PortalDataTests(TestCase):
 
     def setUp(self):
         self.tenant = bootstrap_tenant("portal-data", modules=("saude", "hr"))
+        _seed_profiles()
         self.maria = _patient(self.tenant, "Maria")
         self.carlos = _patient(self.tenant, "Carlos")
         _grant(self.tenant, self.maria)
@@ -148,8 +164,10 @@ class PortalDataTests(TestCase):
         self._result(self.carlos, "8.0")
         Agenda.objects.create(paciente=self.carlos, data=timezone.localdate(), hora_inicio="10:00", **_audit(self.tenant))
 
-        for section in ("results", "exams", "appointments", "trends"):
-            response = self.client_maria.get(f"{ME}{section}/", {"paciente": str(self.carlos.id)})
+        for section in ("results", "exams", "appointments", "trends", "prescriptions", "vitals"):
+            response = self.client_maria.get(f"{ME}{section}/", {
+                "paciente": str(self.carlos.id), "patient_id": str(self.carlos.id), "id": str(self.carlos.id),
+            })
             self.assertEqual(response.status_code, 200, section)
             self.assertNotIn("8.0", str(response.data), section)
             self.assertNotIn(str(self.carlos.id), str(response.data), section)
@@ -196,9 +214,16 @@ class PortalDataTests(TestCase):
         other_record.save()
         EntityUser.objects.get_or_create(entity=other["entity"], user=self.maria.person.user)
 
-        client_b = _patient_client(other, self.maria)
+        # no grant in B: no Patient profile there, so no B context with it -
+        # an Entity-only context is all the person can get
+        self.assertFalse(BranchUserGroup.objects.filter(
+            user=self.maria.person.user, branch__entity=other["entity"]).exists())
+        context = ResaasContextService.issue(user=self.maria.person.user, entity_id=other["entity"].id)
+        client_b = APIClient()
+        client_b.force_authenticate(user=self.maria.person.user)
+        client_b.credentials(HTTP_X_RESAAS_CONTEXT=context["token"], HTTP_L="1")
 
-        self.assertEqual(client_b.get(f"{ME}results/").status_code, 404)
+        self.assertEqual(client_b.get(f"{ME}results/").status_code, 403)
         self.assertFalse(client_b.get(f"{ME}status/").data["portal"])
 
     def test_profiles_seed_gives_reception_the_grant_permission(self):
@@ -210,5 +235,98 @@ class PortalDataTests(TestCase):
 
         self.assertTrue(Group.objects.get(name="Medical Receptionist").permissions
                         .filter(codename="grant_portal_access_paciente").exists())
-        self.assertFalse(Group.objects.get(name="Registered Nurse").permissions
+        self.assertFalse(Group.objects.get(name="Nurse").permissions
                          .filter(codename="grant_portal_access_paciente").exists())
+
+
+class PatientProfileTests(TestCase):
+    """The portal grant assigns the Patient profile (BranchUserGroup at the
+    patient's Branch); revoke removes only that."""
+
+    def setUp(self):
+        self.tenant = bootstrap_tenant("portal-profile", modules=("saude", "hr"))
+        _seed_profiles()
+        self.maria = _patient(self.tenant, "Maria")
+        self.user = self.maria.person.user
+        self.profile = Group.objects.get(name="Patient")
+
+    def _assignments(self):
+        return BranchUserGroup.objects.filter(user=self.user, group=self.profile)
+
+    def test_grant_assigns_the_patient_profile_at_the_patients_branch(self):
+        self.assertEqual(_grant(self.tenant, self.maria).status_code, 200)
+
+        assignment = self._assignments().get()
+        self.assertEqual(assignment.branch_id, self.maria.branch_id)
+        self.assertTrue(BranchUser.objects.filter(user=self.user, branch_id=self.maria.branch_id).exists())
+        self.assertTrue(EntityUser.objects.filter(user=self.user, entity=self.tenant["entity"]).exists())
+
+    def test_granting_twice_duplicates_nothing(self):
+        _grant(self.tenant, self.maria)
+        _grant(self.tenant, self.maria)
+
+        self.assertEqual(self._assignments().count(), 1)
+        self.assertEqual(EntityUser.objects.filter(user=self.user, entity=self.tenant["entity"]).count(), 1)
+        self.assertEqual(BranchUser.objects.filter(user=self.user, branch_id=self.maria.branch_id).count(), 1)
+
+    def test_grant_revoke_grant_restores_the_same_rows(self):
+        _grant(self.tenant, self.maria)
+        _client_with(self.tenant, RECEPTION).post(f"/api/saude/pacientes/{self.maria.id}/revoke_portal_access/")
+
+        self.assertEqual(_grant(self.tenant, self.maria).status_code, 200)
+        self.assertEqual(self._assignments().count(), 1)
+
+    def test_a_missing_patient_profile_is_an_explicit_error(self):
+        self.profile.delete()
+
+        response = _grant(self.tenant, self.maria)
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.data["error"]["code"], "patient_profile_missing")
+        self.maria.refresh_from_db()
+        self.assertFalse(self.maria.portal_access)
+
+    def test_revoke_removes_the_profile_and_the_memberships_when_nothing_else_is_left(self):
+        _grant(self.tenant, self.maria)
+
+        _client_with(self.tenant, RECEPTION).post(f"/api/saude/pacientes/{self.maria.id}/revoke_portal_access/")
+
+        self.assertFalse(self._assignments().exists())
+        self.assertFalse(BranchUser.objects.filter(user=self.user, branch__entity=self.tenant["entity"]).exists())
+        self.assertFalse(EntityUser.objects.filter(user=self.user, entity=self.tenant["entity"]).exists())
+
+    def test_a_patient_who_is_also_staff_keeps_the_professional_access(self):
+        nurse_profile = Group.objects.get(name="Nurse")
+        BranchUser.objects.get_or_create(user=self.user, branch=self.tenant["branch"])
+        EntityUser.objects.get_or_create(user=self.user, entity=self.tenant["entity"])
+        BranchUserGroup.objects.create(user=self.user, branch=self.tenant["branch"], group=nurse_profile)
+        _grant(self.tenant, self.maria)
+
+        _client_with(self.tenant, RECEPTION).post(f"/api/saude/pacientes/{self.maria.id}/revoke_portal_access/")
+
+        self.assertFalse(self._assignments().exists())
+        self.assertTrue(BranchUserGroup.objects.filter(user=self.user, group=nurse_profile).exists())
+        self.assertTrue(EntityUser.objects.filter(user=self.user, entity=self.tenant["entity"]).exists())
+        # the professional login still works
+        ResaasContextService.issue(user=self.user, entity_id=self.tenant["entity"].id,
+                                   branch_id=self.tenant["branch"].id, group_id=nurse_profile.id)
+
+    def test_the_patient_profile_cannot_grant_portals(self):
+        _grant(self.tenant, self.maria)
+        carlos = _patient(self.tenant, "Carlos")
+
+        response = _patient_client(self.tenant, self.maria).post(
+            f"/api/saude/pacientes/{carlos.id}/grant_portal_access/")
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_without_the_portal_permission_nothing_is_served(self):
+        """Ownership alone is not enough: the active profile must have the
+        portal capability (a custom profile without it gets nothing)."""
+        _grant(self.tenant, self.maria)
+        self.profile.permissions.clear()
+        client = _patient_client(self.tenant, self.maria)
+
+        self.assertEqual(client.get(f"{ME}summary/").status_code, 403)
+        self.assertEqual(client.get(f"{ME}results/").status_code, 403)
+        self.assertFalse(client.get(f"{ME}status/").data["portal"])

@@ -14,7 +14,7 @@
     @bottom-right {
       content: counter(page) " - " counter(pages);
       font-size: 10px;
-      color: #2563eb;
+      color: #0f766e;
       font-family: Arial, sans-serif;
       font-weight: bold;
       margin-right: 5px;
@@ -70,8 +70,9 @@
 
   .title h1 {
     margin: 0;
-    color: #2563eb;
+    color: #0f766e;
     font-size: 16px;
+    letter-spacing: .03em;
   }
 
   .title .subtitle {
@@ -111,16 +112,23 @@
   }
 
   .box {
-    border: 1px solid #fff;
-    border-radius: 2px;
-    padding: 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 10px 12px;
     margin-bottom: 8px;
     page-break-inside: avoid;
   }
 
+  /* the declaration: a card with an accent on the left */
+  .box.declaracao {
+    border-left: 3px solid #0f766e;
+  }
+
   .box-title {
     font-weight: bold;
-    color: #2563eb;
+    color: #0f766e;
+    border-left: 3px solid #0f766e;
+    padding-left: 5px;
     margin-bottom: 4px;
     text-transform: uppercase;
     font-size: 14px;
@@ -142,10 +150,22 @@
   .linha-assinatura {
     display: inline-block;
     margin-top: 18px;
-    border-top: 1px solid #333;
-    width: 150px;
+    border-top: 1px solid #0f766e;
+    width: 170px;
     text-align: center;
     padding-top: 3px;
+    color: #0f766e;
+    font-size: 11px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+
+  .diagnostico {
+    display: block;
+    margin-top: 2px;
+    padding: 6px 8px;
+    background: #f0fdfa;
+    border-radius: 4px;
   }
 
   .reconhecimento {
@@ -153,6 +173,9 @@
     text-align: center;
     font-size: 10px;
     line-height: 1.4;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    color: #475569;
   }
 
   .footer {
@@ -223,7 +246,7 @@
 
 <div class="content">
 
-  <div class="box">
+  <div class="box declaracao">
 
     <div class="atestado-text">
 
@@ -250,7 +273,7 @@
       até ao dia
 
       <u>
-        {{ atestado.data_limite }}
+        {{ atestado.data_limite|date:"d/m/Y" }}
       </u>.
 
       <br><br>
@@ -259,7 +282,7 @@
 
       <br><br>
 
-      <b>
+      <b class="diagnostico">
         {{ atestado.diagnostico|safe }}
       </b>
 
@@ -335,7 +358,7 @@
 
     <tr>
       <td colspan="2" class="footer-center" style="width:100%; font-size: 12px;">
-        {{ entity.rodape|safe }}
+        {{ entity.rodape|default:""|safe }}
       </td>
     </tr>
   </table>

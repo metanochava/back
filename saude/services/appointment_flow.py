@@ -55,6 +55,48 @@ def stamp_transition(agenda, previous_estado, now=None):
     return [field]
 
 
+# ------------------------------------------------------------------
+# Reception: explicit check-in / check-out (AgendaAPIView.check_in /
+# check_out). Unlike a free PATCH of `estado`, each one only moves from the
+# states it makes sense from; anything else is 409 and nothing changes.
+# ------------------------------------------------------------------
+CHECK_IN_FROM = ("marcada", "confirmada")
+# the doctor may not have pressed "start": a waiting patient can leave too
+CHECK_OUT_FROM = (WAITING, IN_PROGRESS)
+
+
+def _move(agenda, target, allowed_from, message, code, now=None):
+    from django_resaas.saas.core.exceptions import ConflictError
+
+    if agenda.estado not in allowed_from:
+        raise ConflictError(message, code=code)
+
+    previous = agenda.estado
+    agenda.estado = target
+    fields = ["estado", "updated_at"] + stamp_transition(agenda, previous, now=now)
+    agenda.save(update_fields=fields)
+    return agenda
+
+
+def check_in(agenda, now=None):
+    """The patient arrived: scheduled/confirmed -> waiting (checked_in_at).
+    Only on the appointment day."""
+    from django_resaas.saas.core.exceptions import ConflictError
+
+    today = timezone.localdate(now) if now else timezone.localdate()
+    if agenda.data != today:
+        raise ConflictError("Check-in is only possible on the day of the appointment.",
+                            code="not_appointment_day")
+    return _move(agenda, WAITING, CHECK_IN_FROM,
+                 "This appointment cannot be checked in in its current state.", "invalid_appointment_state", now)
+
+
+def check_out(agenda, now=None):
+    """The patient leaves: waiting / in progress -> completed (completed_at)."""
+    return _move(agenda, COMPLETED, CHECK_OUT_FROM,
+                 "This appointment cannot be checked out in its current state.", "invalid_appointment_state", now)
+
+
 def scheduled_at(agenda):
     moment = datetime.combine(agenda.data, agenda.hora_inicio)
     return timezone.make_aware(moment) if timezone.is_naive(moment) else moment

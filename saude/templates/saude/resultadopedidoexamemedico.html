@@ -14,7 +14,7 @@
     @bottom-right {
       content: " " counter(page) " - " counter(pages);
       font-size: 10px;
-      color: #2563eb;
+      color: #0f766e;
       font-family: Arial, sans-serif;
       font-weight: bold;
       margin-right: 5px;
@@ -66,7 +66,7 @@
 
   .title h1 {
     margin: 0;
-    color: #2563eb;
+    color: #0f766e;
     font-size: 13px;
     text-transform: uppercase;
   }
@@ -106,21 +106,22 @@
   .content { width: 100%; }
 
   .box {
-    border: 1px solid #ddd;
-    border-radius: 2px;
-    padding: 6px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 8px 10px;
     margin-bottom: 7px;
     page-break-inside: avoid;
   }
 
   .box-title {
     font-weight: bold;
-    color: #2563eb;
+    color: #0f766e;
     margin-bottom: 4px;
     text-transform: uppercase;
     font-size: 9px;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 2px;
+    border-left: 3px solid #0f766e;
+    padding-left: 5px;
+    letter-spacing: .04em;
   }
 
   .line { margin-bottom: 2px; }
@@ -136,7 +137,7 @@
   }
 
   .patient-table .label {
-    color: #2563eb;
+    color: #0f766e;
     font-weight: bold;
     width: 54px;
   }
@@ -147,7 +148,7 @@
   }
 
   .tipo-title {
-    background: #2563eb;
+    background: #0f766e;
     color: white;
     padding: 4px 5px;
     font-weight: bold;
@@ -157,7 +158,7 @@
   }
 
   .classe-title {
-    color: #2563eb;
+    color: #0f766e;
     font-weight: bold;
     font-size: 8px;
     margin-top: 5px;
@@ -173,11 +174,11 @@
   }
 
   .items th {
-    background: #eef4ff;
-    color: #1d4ed8;
+    background: #f0fdfa;
+    color: #0f766e;
     padding: 4px;
     text-align: left;
-    border-bottom: 1px solid #c7d2fe;
+    border-bottom: 1px solid #99f6e4;
   }
 
   .items td {
@@ -207,7 +208,8 @@
   .signature-line {
     display: inline-block;
     width: 135px;
-    border-top: 1px solid #333;
+    border-top: 1px solid #0f766e;
+    color: #0f766e;
     padding-top: 3px;
     text-align: center;
     font-size: 8px;
@@ -252,7 +254,7 @@
     margin-top:8px;
     padding:4px 8px;
 
-    background:#2563eb;
+    background:#0f766e;
     color:#fff;
 
     font-size:9px;
@@ -268,12 +270,12 @@
     margin-top:8px;
     margin-bottom:4px;
 
-    color:#2563eb;
+    color:#0f766e;
 
     font-size:8px;
     font-weight:bold;
 
-    border-bottom:1px solid #dbeafe;
+    border-bottom:1px solid #ccfbf1;
 
     padding-bottom:2px;
 
@@ -307,7 +309,7 @@
 
 .exam-code{
 
-    color:#2563eb;
+    color:#0f766e;
 
     font-weight:bold;
 
@@ -358,6 +360,29 @@
     font-style:italic;
 
 }
+
+  /* ---------------- result ---------------- */
+  .exam-title { font-size: 11px; font-weight: bold; color: #111827; }
+  .exam-meta { font-size: 7.5px; color: #6b7280; margin-top: 2px; }
+  .badge { display: inline-block; border-radius: 8px; padding: 1px 6px; font-size: 7px; font-weight: bold; }
+  .badge.ok { background: #ccfbf1; color: #0f766e; }
+  .badge.pending { background: #f1f5f9; color: #64748b; }
+  table.values { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 8px; }
+  .values th { text-align: left; color: #0f766e; font-size: 7px; text-transform: uppercase; letter-spacing: .05em;
+               padding: 3px 4px; border-bottom: 2px solid #0f766e; }
+  .values td { padding: 4px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+  .values tbody tr:nth-child(even) td { background: #f8fafc; }
+  .values .v { font-weight: bold; color: #111827; }
+  .values tr.attention .v { color: #b45309; }
+  .values tr.critical .v { color: #b91c1c; }
+  .flag { display: inline-block; border-radius: 8px; padding: 0 5px; font-size: 7px; font-weight: bold; }
+  .flag.normal { background: #dcfce7; color: #15803d; }
+  .flag.attention { background: #fef3c7; color: #b45309; }
+  .flag.critical { background: #fee2e2; color: #b91c1c; }
+  .legacy-value { margin-top: 6px; font-size: 10px; font-weight: bold; }
+  .campo { margin-top: 6px; padding: 5px 8px; background: #f8fafc; border-radius: 4px; border-left: 3px solid #99f6e4; font-size: 8px; }
+  .campo-titulo { font-size: 7px; font-weight: bold; color: #0f766e; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+  .amended { margin-top: 4px; font-size: 7px; color: #b45309; }
 </style>
 </head>
 
@@ -373,7 +398,7 @@
       </td>
 
       <td class="title">
-        <h1>Resultado Pedido de Exames</h1>
+        <h1>{{ labels.title }}</h1>
         <div class="subtitle">{{ entity.name }}</div>
       </td>
 
@@ -389,141 +414,77 @@
 <div class="content">
 
   <div class="box">
-    <div class="box-title">Dados do Paciente</div>
-
+    <div class="box-title">{{ labels.patient }}</div>
     <table class="patient-table">
       <tr>
-        <td class="label">Nome:</td>
+        <td class="label">{{ labels.name }}:</td>
         <td colspan="3">{{ paciente.person.full_name }}</td>
       </tr>
-
       <tr>
-        <td class="label">NID:</td>
+        <td class="label">{{ labels.nid }}:</td>
         <td>{{ paciente.nid }}</td>
-
-        <td class="label">Contacto:</td>
-        <td>{{ paciente.emergency_contact.phone }}</td>
-      </tr>
-
-      <tr>
-        <td class="label">Profissão:</td>
-        <td>{{ paciente.person.occupation }}</td>
-
-        <td class="label">Data:</td>
-        <td>
-
-          {% if pedido.data %}
-            {{ pedido.data }}
-          {% else %}
-            -
-          {% endif %}
-        </td>
+        <td class="label">{{ labels.contact }}:</td>
+        <td>{{ paciente.person.phone|default:"-" }}</td>
       </tr>
     </table>
   </div>
 
   <div class="box">
-    <div class="box-title">Informação Clínica</div>
-
-    <div class="clinical-text">
-
-      {% if pedido.informacao_clinica %}
-        {{ pedido.informacao_clinica|safe }}
-      {% else %}
-        Sem informação clínica registada.
-      {% endif %}
+    <div class="box-title">{{ labels.exam }}</div>
+    <div class="exam-title">
+      {{ exam }}
+      {% if resultado.validado %}<span class="badge ok">{{ labels.validated }}</span>{% else %}<span class="badge pending">{{ labels.not_validated }}</span>{% endif %}
     </div>
+    <div class="exam-meta">
+      {% if requester %}{{ labels.requested_by }}: {{ requester }} · {% endif %}
+      {% if resultado.data_colheita %}{{ labels.collected }}: {{ resultado.data_colheita|date:"d/m/Y H:i" }} · {% endif %}
+      {% if resultado.data_resultado %}{{ labels.result_date }}: {{ resultado.data_resultado|date:"d/m/Y H:i" }} · {% endif %}
+      {{ labels.revision }} {{ resultado.numero_revisao|default:1 }}
+    </div>
+    {% if resultado.numero_revisao and resultado.numero_revisao > 1 %}<div class="amended">{{ labels.amended }}</div>{% endif %}
 
+    {% if values %}
+    <table class="values">
+      <thead>
+        <tr>
+          <th>{{ labels.parameter }}</th>
+          <th>{{ labels.value }}</th>
+          <th>{{ labels.unit }}</th>
+          <th>{{ labels.reference }}</th>
+          <th style="text-align:right;">{{ labels.flag }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for v in values %}
+        <tr class="{{ v.level }}">
+          <td>{{ v.name }}</td>
+          <td class="v">{{ v.value|default:"-" }}</td>
+          <td>{{ v.unit }}</td>
+          <td>{{ v.reference|default:"-" }}</td>
+          <td style="text-align:right;">{% if v.flag %}<span class="flag {{ v.level }}">{{ v.flag }}</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% elif resultado.valor_resultado %}
+    <div class="legacy-value">{{ labels.result }}: {{ resultado.valor_resultado }}</div>
+    {% endif %}
 
-      <div class="box-title">
-          Exames Solicitados
-      </div>
-
- 
-      {% for item in items %}
-
-        <div class="exam-item">
-
-            <div class="exam-header">
-
-                <div class="exam-name">
-
-                    {% if item.exame.codigo %}
-                        <span class="exam-code">
-                            {{ item.exame.codigo }}
-                        </span>
-                    {% endif %}
-
-                    {{ item.exame.nome }}
-
-                </div>
-
-                {% if item.prioridade %}
-                    <div class="exam-priority">
-                        {{ item.get_prioridade_display|default:item.prioridade }}
-                    </div>
-                {% endif %}
-
-            </div>
-
-            {% if item.instrucoes %}
-                <div class="exam-detail">
-                    <strong>Instruções:</strong>
-                    {{ item.instrucoes|safe }}
-                </div>
-            {% endif %}
-
-            {% if item.observacao %}
-                <div class="exam-detail">
-                    <strong>Observação:</strong>
-                    {{ item.observacao|safe }}
-                </div>
-            {% endif %}
-
-        </div>
-      {% empty %}
-
-          <div class="empty">
-              Nenhum exame solicitado.
-          </div>
-
-      {% endfor %}
-
+    {% if resultado.observacao %}
+    <div class="campo"><div class="campo-titulo">{{ labels.observation }}</div>{{ resultado.observacao|safe }}</div>
+    {% endif %}
+    {% if resultado.laudo %}
+    <div class="campo"><div class="campo-titulo">{{ labels.report }}</div>{{ resultado.laudo|safe }}</div>
+    {% endif %}
   </div>
-
-
-  {% if pedido.outros_exames %}
-  <div class="box">
-    <div class="box-title">Outros Exames</div>
-
-    
-      {{ pedido.outros_exames|safe }}
-
-  </div>
-  {% endif %}
-
-  {% if  pedido.observacao %}
-  <div class="box">
-    <div class="box-title">Observações Gerais</div>
-
-      {{ pedido.observacao|safe }}
-
-  </div>
-  {% endif %}
 
   <div class="signature">
     <div class="signature-line">
-
-      {% if pedido.consulta.employee.person.full_name %}
-        {{ pedido.consulta.employee.person.full_name }}
-      {% else %}
-        Médico Solicitante
-      {% endif %}
+      {{ validated_by|default:"" }}
       <br>
-      Médico
+      {{ labels.validated_by }}{% if resultado.data_validacao %} · {{ resultado.data_validacao|date:"d/m/Y" }}{% endif %}
     </div>
   </div>
-
 </div>
 
 <div class="footer">
@@ -536,12 +497,12 @@
   <table class="footer-table">
     <tr>
       <td class="footer-left">{{ entity.name }}</td>
-      <td class="footer-right">Pedido de Exames Médicos</td>
+      <td class="footer-right">{{ labels.title }}</td>
     </tr>
 
     <tr>
       <td colspan="3" class="footer-center" style="width:100%; font-size: 10px;">
-        {{ entity.rodape }}
+        {{ entity.rodape|default:"" }}
       </td>
     </tr>
   </table>

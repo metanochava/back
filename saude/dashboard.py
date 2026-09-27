@@ -305,12 +305,44 @@ _OPEN_PATIENT = {
     "permissions": ["view_paciente"],
 }
 
+# per queue row: opens the vital-signs dialog registered by the frontend
+# (dev/front pages/saude/dashboard/dashboard.js -> VitalSignsDialog.vue) for
+# that appointment; the row's "id" is the Agenda. Patient, appointment, doctor
+# and professional are filled in by the server (GET dadovitals/intake/).
+# Reception: the patient arrives / leaves. POST to the explicit actions of
+# AgendaAPIView (state checked on the server: 409 otherwise); each button only
+# shows on the rows whose state allows it ("when").
+_CHECK_IN = {
+    "name": "check_in",
+    "type": "request",
+    "request": {"method": "POST", "endpoint": "saude/agendas/{id}/check_in/"},
+    "when": {"field": "estado", "in": ["marcada", "confirmada"]},
+    "icon": "login",
+    "color": "positive",
+    "tooltip": "Check in (patient arrived)",
+    "success": "Patient checked in.",
+    "permissions": ["check_in_agenda"],
+}
+
+_CHECK_OUT = {
+    "name": "check_out",
+    "type": "request",
+    "request": {"method": "POST", "endpoint": "saude/agendas/{id}/check_out/"},
+    "when": {"field": "estado", "in": ["em_espera", "em_atendimento"]},
+    "icon": "logout",
+    "color": "primary",
+    "tooltip": "Check out (patient leaves)",
+    "confirm": "Check out this patient? The appointment will be marked as completed.",
+    "success": "Patient checked out.",
+    "permissions": ["check_out_agenda"],
+}
+
 _RECORD_VITALS = {
     "name": "record_vital_signs",
-    "type": "route",
+    "type": "dialog",
+    "dialog": "saude.record_vital_signs",
     "icon": "monitor_heart",
     "tooltip": "Record vital signs",
-    "route": {"name": "add_dadovital"},
     "permissions": ["add_dadovital"],
 }
 
@@ -334,7 +366,7 @@ def _stat(name, label, provider, icon, permissions, order, tooltip):
     }
 
 
-def _queue(name, label, provider, permissions, order, tooltip, actions=()):
+def _queue(name, label, provider, permissions, order, tooltip, actions=(), row_actions=()):
     return {
         "name": name,
         "type": "table",
@@ -344,7 +376,7 @@ def _queue(name, label, provider, permissions, order, tooltip, actions=()):
         "permission_mode": "all",
         "tooltip": tooltip,
         "actions": list(actions),
-        "row_actions": [_OPEN_PATIENT],
+        "row_actions": [*row_actions, _OPEN_PATIENT],
         "visible": True,
         "cols": _FULL_COLS,
         "order": order,
@@ -385,7 +417,8 @@ DASHBOARDS = [
             _stat("average_waiting", "Average Waiting Time", "saude.flow.average_waiting_today",
                   "timer", ["view_agenda"], 40, "From check-in to the start of the consultation, today."),
             _queue("reception_queue", "Reception Queue", "saude.reception.queue", ["view_agenda"], 50,
-                   "Today's appointments in scheduled order. Check in from the patient record.",
+                   "Today's appointments in scheduled order: check the patient in on arrival and out on leaving.",
+                   row_actions=[_CHECK_IN, _CHECK_OUT],
                    actions=[{
                        "name": "add_patient",
                        "type": "route",
@@ -412,7 +445,7 @@ DASHBOARDS = [
                   "monitor_heart", ["view_dadovital"], 40, "Vital-sign records taken today."),
             _queue("nursing_queue", "Nursing Queue", "saude.nursing.queue",
                    ["view_agenda", "view_dadovital"], 50,
-                   "Waiting patients, vital signs pending first.", actions=[_RECORD_VITALS]),
+                   "Waiting patients, vital signs pending first.", row_actions=[_RECORD_VITALS]),
         ],
     ),
     _operational(
@@ -429,7 +462,7 @@ DASHBOARDS = [
                   "science", ["view_pedidoexamemedico"], 40,
                   "Open exam items from your consultations."),
             _queue("my_queue", "My Queue", "saude.doctor.my_queue", ["view_agenda"], 50,
-                   "Your appointments today that are not closed.", actions=[_RECORD_VITALS]),
+                   "Your appointments today that are not closed.", row_actions=[_RECORD_VITALS]),
             {
                 "name": "recent_results",
                 "type": "list",
@@ -533,3 +566,80 @@ DASHBOARDS = [
         ],
     ),
 ]
+
+
+# ============================================================
+# PATIENT (the Patient profile's home - its own data only)
+#
+# Ownership, not tenant scope: the providers resolve the caller's own
+# Paciente (saude/dashboard_patient_providers.py). Permissions are the
+# portal capabilities the Patient profile has; no operational dashboard
+# permission is involved.
+# ============================================================
+
+from saude import dashboard_patient_providers  # noqa: F401,E402  (regista os providers)
+
+_HALF_COLS = {"xs": 12, "sm": 12, "md": 6, "lg": 6, "xl": 6}
+
+_OPEN_MY_HEALTH = {
+    "name": "open_my_health",
+    "type": "route",
+    "icon": "favorite",
+    "tooltip": "Open My Health",
+    "route": {"name": "my_health"},
+    "permissions": ["view_patient_portal"],
+}
+
+
+def _patient_list(name, label, provider, icon, permission, order, tooltip):
+    return {
+        "name": name,
+        "type": "list",
+        "label": label,
+        "icon": icon,
+        "provider": provider,
+        "permissions": [permission],
+        "permission_mode": "all",
+        "tooltip": tooltip,
+        "actions": [_OPEN_MY_HEALTH],
+        "visible": True,
+        "cols": _HALF_COLS,
+        "order": order,
+        "accepts_filters": [],
+        "filters": [],
+    }
+
+
+DASHBOARDS.append(_operational(
+    "saude_patient", "My Health", "favorite", "view_patient_portal", 0,
+    "Your appointments, exams, results and vital signs.",
+    [
+        _stat("next_appointment", "Next appointment", "saude.patient.next_appointment",
+              "event", ["view_own_appointments"], 10, "Your next appointment."),
+        _stat("pending_exams", "Pending Exams", "saude.patient.pending_exams",
+              "science", ["view_own_exams"], 20, "Your exams not finished yet."),
+        _stat("new_results", "New Results", "saude.patient.new_results",
+              "fact_check", ["view_own_results"], 30, "Results released to you in the last 30 days."),
+        _stat("prescriptions", "Prescriptions", "saude.patient.prescriptions",
+              "medication", ["view_own_prescriptions"], 40, "Your prescriptions."),
+        {
+            "name": "upcoming_appointments",
+            "type": "table",
+            "label": "Upcoming Appointments",
+            "provider": "saude.patient.upcoming_appointments",
+            "permissions": ["view_own_appointments"],
+            "permission_mode": "all",
+            "tooltip": "Your next appointments.",
+            "actions": [_OPEN_MY_HEALTH],
+            "visible": True,
+            "cols": _FULL_COLS,
+            "order": 50,
+            "accepts_filters": [],
+            "filters": [],
+        },
+        _patient_list("recent_results", "My Results", "saude.patient.recent_results",
+                      "fact_check", "view_own_results", 60, "Your latest released results."),
+        _patient_list("latest_vitals", "My Vital Signs", "saude.patient.latest_vitals",
+                      "monitor_heart", "view_own_vitals", 70, "Your latest vital-sign record."),
+    ],
+))

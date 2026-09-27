@@ -428,3 +428,36 @@ class LabProfilesStructuredTests(TestCase):
         self.assertTrue({"collect_itempedidoexamemedico", "reject_sample_itempedidoexamemedico"} <= technician)
         self.assertNotIn("Medical Laboratory Scientist", report["permissions_missing"])
         self.assertNotIn("Medical Laboratory Technician", report["permissions_missing"])
+
+
+class ResultPdfTests(LabFixture):
+    """The result PDF shows the result (it used to be a copy of the exam
+    request's template and showed no result at all)."""
+
+    def test_the_context_has_the_values_with_reference_and_flag(self):
+        from django.test import RequestFactory
+        from django_resaas.saas.models.language import Language
+
+        self.record(_client_with(self.tenant, TECHNICIAN), {**self.VALID, "hb": "6.5"})
+        result = ResultadoExameMedico.objects.get(item_pedido=self.item)
+        pt = Language.objects.get_or_create(code="pt-pt", defaults={"name": "Português"})[0]
+
+        context = lab_result_service.pdf_context(RequestFactory().get("/", HTTP_L=str(pt.id)), result)
+        rows = {v["value"]: v for v in context["values"]}
+
+        self.assertEqual(context["exam"], self.exame.nome)
+        self.assertEqual(rows["6.5"]["unit"], "g/dL")
+        self.assertEqual(rows["6.5"]["reference"], "Adult")
+        self.assertEqual(rows["6.5"]["level"], "critical")
+        self.assertEqual(rows["245"]["flag"], "")               # no range -> no flag
+        self.assertEqual(context["labels"]["parameter"], "Parâmetro")
+
+    def test_the_pdf_is_generated(self):
+        self.record(_client_with(self.tenant, TECHNICIAN), self.VALID)
+        result = ResultadoExameMedico.objects.get(item_pedido=self.item)
+        client = _client_with(self.tenant, ["view_resultadoexamemedico", "pdf_resultadoexamemedico"])
+
+        response = client.get(f"/api/saude/resultadoexamemedicos/{result.id}/pdf/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content[:4], b"%PDF")

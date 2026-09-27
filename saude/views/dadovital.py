@@ -4,6 +4,9 @@ from django_resaas.saas.core.base.views import registerView
 from saude.models.dadovital import DadoVital
 from saude.serializers.dadovital import DadoVitalSerializer
 from rest_framework.decorators import action
+from rest_framework.response import Response
+from django_resaas.saas.core.decorators.action import resaas_action
+from saude.services import vital_signs_service
 from django_resaas.saas.models.entity import Entity
 from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64, PDF
 
@@ -15,7 +18,25 @@ import qrcode
 class DadoVitalAPIView(BaseAPIView):
     queryset = DadoVital.objects.all()   
     serializer_class = DadoVitalSerializer
-    
+
+    # POST dadovitals/ (add_dadovital): the professional is the caller's
+    # Employee; with an appointment, patient and consultation come from it
+    # (vital_signs_service.prepare_create - never from the client).
+    def perform_create(self, serializer):
+        serializer.validated_data.update(
+            vital_signs_service.prepare_create(self.request, serializer.validated_data)
+        )
+        super().perform_create(serializer)
+
+    # What the "record vital signs" dialog shows: patient, appointment,
+    # doctor, the professional signed in, the previous record, the limits.
+    # Read only; needs the permission to record (add_dadovital).
+    @resaas_action(detail=False, methods=["get"], label="Vital signs form", icon="monitor_heart",
+                   permission="add_dadovital", visible=False)
+    def intake(self, request, *args, **kwargs):
+        return Response(vital_signs_service.intake_context(
+            request, request.query_params.get("agenda"), request.query_params.get("paciente")
+        ))
 
 
     @action(

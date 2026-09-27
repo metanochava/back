@@ -21,6 +21,9 @@ ACTION_PERMISSIONS = [
     "record_result_itempedidoexamemedico",
     "lab_evolution_paciente",
     "grant_portal_access_paciente",
+    # online booking requests (saude/services/public_booking_service.py)
+    "confirm_appointmentrequest",
+    "reject_appointmentrequest",
 ]
 
 
@@ -46,6 +49,16 @@ DASHBOARD_PERMISSIONS = [
     ("view_dashboard_saude_nursing", "Can view Nursing dashboard"),
     ("view_dashboard_saude_doctor", "Can view Doctor dashboard"),
     ("view_dashboard_saude_laboratory", "Can view Laboratory dashboard"),
+    # Patient portal (saude/views/patient_portal.py) - capabilities of the
+    # portal, always on the caller's OWN data (ownership is enforced by the
+    # service, never by these codenames). Granted to the "Patient" profile.
+    ("view_patient_portal", "Can use the patient portal"),
+    ("view_own_appointments", "Can view own appointments in the patient portal"),
+    ("view_own_exams", "Can view own exams in the patient portal"),
+    ("view_own_results", "Can view own released results in the patient portal"),
+    ("view_own_trends", "Can view own health trends in the patient portal"),
+    ("view_own_prescriptions", "Can view own prescriptions in the patient portal"),
+    ("view_own_vitals", "Can view own vital signs in the patient portal"),
 ]
 
 

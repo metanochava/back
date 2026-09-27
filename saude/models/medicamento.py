@@ -32,6 +32,15 @@ class Medicamento(BaseModel):
         blank=True
     )
 
+    # usual quantity to prescribe (free text, like ItemReceita.quantidade:
+    # "20 comprimidos"); prefilled on a new prescription when this
+    # medication has none yet (prescription_service.prescription_defaults)
+    quantidade = models.CharField(
+        max_length=200,
+        null=True,
+        blank=True
+    )
+
     observacao = models.TextField(
         null=True,
         blank=True

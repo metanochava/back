@@ -22,6 +22,17 @@ class DadoVital(BaseModel):
         related_name="dados_vitais"
     )
 
+    # the visit (appointment) the record was taken for - links it exactly
+    # instead of "same patient, after the check-in"
+    agenda = models.ForeignKey(
+        "saude.Agenda",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="dados_vitais"
+    )
+
+    # set by the server: the professional signed in (never sent by the client)
     employee = models.ForeignKey(
         "hr.Employee",
         on_delete=models.CASCADE,
@@ -81,6 +92,19 @@ class DadoVital(BaseModel):
         blank=True
     )
 
+    # where the temperature was taken (the normal range depends on it)
+    temperatura_local = models.CharField(
+        max_length=12,
+        choices=[
+            ("axilar", "Axillary"),
+            ("oral", "Oral"),
+            ("timpanica", "Tympanic"),
+            ("retal", "Rectal"),
+        ],
+        null=True,
+        blank=True
+    )
+
     frequencia_cardiaca = models.PositiveIntegerField(
         null=True,
         blank=True,
@@ -117,6 +141,18 @@ class DadoVital(BaseModel):
     glicemia = models.DecimalField(
         max_digits=5,
         decimal_places=2,
+        null=True,
+        blank=True
+    )
+
+    # the glucose value is read against the moment it was measured
+    glicemia_momento = models.CharField(
+        max_length=12,
+        choices=[
+            ("jejum", "Fasting"),
+            ("pos_prandial", "Postprandial"),
+            ("aleatoria", "Random"),
+        ],
         null=True,
         blank=True
     )
