@@ -21,6 +21,9 @@ ACTION_PERMISSIONS = [
     "record_result_itempedidoexamemedico",
     "lab_evolution_paciente",
     "grant_portal_access_paciente",
+    # online booking requests (saude/services/public_booking_service.py)
+    "confirm_appointmentrequest",
+    "reject_appointmentrequest",
 ]
 
 

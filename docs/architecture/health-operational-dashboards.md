@@ -700,6 +700,100 @@ views' `perform_update`: `PATCH` and `PUT`).
 - Each list shows at most 3 entries, then `+N`. Labels are translated with
   the requester's language (`Translate.tdc`).
 
+## Online booking from the public site
+
+The clinic's public site (e.g. the Amal site, `dev/front` `src/sites/amal`)
+lets a visitor pick a doctor, a day and a free time. A visitor is not a
+patient, and `Agenda` needs one, so the booking is an **`AppointmentRequest`**
+that holds the slot until staff confirm it (choosing or registering the
+patient, which creates the `Agenda`) or reject it.
+`saude/services/public_booking_service.py`.
+
+### Public endpoints — PUBLIC (explicit `AllowAny`), `PublicBookingViewSet`
+
+The Entity is always the site's (`site_service.entity_for_origin`: the request
+`Origin` against `Entity.site`, the same rule as `GET site/` and the site
+contact form), never a query or body value. Unknown Origin → `404
+site_not_found`. Throttled per client address (429):
+`SAUDE_PUBLIC_BOOKING_READ_THROTTLE_RATE` (default `300/hour`) for the reads,
+`SAUDE_PUBLIC_BOOKING_THROTTLE_RATE` (default `10/hour`) for requests.
+
+| Method + route | Returns |
+|---|---|
+| `GET /api/saude/publicbooking/doctors/` | `[{id, name, specialties: [{id, title}], photo}]`: Employees of the Entity with an **active** `Medico` and at least one `HorarioMedico`. `specialties` come from `hr.EmployeeSpecialty` (the same source the staff booking dialog filters by; `Medico.categoria` is a professional grade, not a specialty). `photo` is `Person.photo` as an absolute URL, or `null`. Nothing else about the doctor. |
+| `GET /api/saude/publicbooking/availability/?doctor=&date=YYYY-MM-DD` | `[{time: "HH:MM", booked}]`: the doctor's `HorarioMedico` for that weekday cut in slots of `SAUDE_PUBLIC_BOOKING_SLOT_MINUTES` (30). `booked` when an `Agenda` that is not `cancelada` (the same rule as `AgendaAPIView`; no `hora_fim` = 30 min) or a pending request overlaps. Past days, past times of today and days after `SAUDE_PUBLIC_BOOKING_DAYS_AHEAD` (60) give `[]`. Doctor of another Entity or unknown → `404 doctor_not_found`. |
+| `POST /api/saude/publicbooking/requests/` `{doctor, date, time, name, phone, email?, specialty?, reason?}` — `specialty` is the id of one of the doctor's specialties (else `400 invalid_specialty`); its title is stored | `201 {received, date, time}`. The slot must be free **now** (re-checked under the doctor's row lock, like Agenda) → else `409 slot_unavailable`. Branch = the Branch of the schedule the slot belongs to. A filled `website` (honeypot) → `201`, nothing stored. |
+
+Emits **`saude.appointment_request.received`** (context: name, phone, doctor,
+date, time, site) so a notifications rule can tell the reception.
+
+### Staff — PROTECTED, `appointmentrequests/` (`BaseAPIView`, Entity + Branch scope)
+
+| Operation | Permission | Rule |
+|---|---|---|
+| list / detail | `list_` / `view_appointmentrequest` | what the visitor typed is read only |
+| `POST {id}/confirm/ {paciente}` | `confirm_appointmentrequest` | patient of this Entity (else `400 patient_required`); re-checks the slot against Agendas (`409 slot_unavailable`); creates the `Agenda` (`marcada`, same doctor/day/times, `motivo` = the visitor's reason) and links it; `status=confirmed`, `handled_by/at` |
+| `POST {id}/reject/ {reason?}` | `reject_appointmentrequest` | `status=rejected`; frees the slot |
+| a second confirm / reject | — | `409 request_not_pending` |
+| `POST` (create) | — | `405`: only the public site creates requests |
+
+The Medical Receptionist profile has list / view / confirm / reject. The
+action permissions are also granted to Root (`saude/signals/permissions.py`).
+
+**Concurrency:** writes lock the doctor's `Employee` row (the per-doctor mutex
+AgendaAPIView already uses) and the database allows one **pending** request
+per doctor and start time (`saude_appointment_request_one_pending_per_slot`).
+
+**Prerequisite:** doctors appear only with a schedule and are offered
+under their specialties. Configure the schedule in `horariomedicos` (per
+doctor: weekday, start, end) and the specialties in the doctor's form
+(`medicos`, `especialidade` → `hr.EmployeeSpecialty`); without a schedule the
+site says that online booking is not available and asks the visitor to call.
+
+**Migration:** `0009_appointmentrequest` (new table only; saude migrations are
+generated locally).
+
+### Frontend (Amal site, `MarcacaoPage.vue`, `DoctorsPage.vue`)
+
+`src/sites/amal/usePublicBooking.js` loads the doctors once and shares them
+between the "Our doctors" section and the booking form. "Our doctors" shows
+them (photo or initials, specialties; the profile shows only these real
+fields); its **Book appointment** fills the booking form with that doctor
+(and the specialty when the doctor has only one) and scrolls to it - there is
+one booking form.
+
+The form asks for the **specialty first**, then the doctor, and either order
+works: a specialty limits the doctors to those who have it (and clears a
+chosen doctor who does not); a doctor limits the specialties to theirs (and
+fills it in when there is only one). Times and the request go to the
+endpoints above through `HTTPClient` (no session). Changing the doctor clears
+the time; changing
+the date clears the time; past days cannot be chosen; the time comes only
+from the free slots; a `409 slot_unavailable` reloads the times. The form
+never says "booked": it says the request was received and the clinic will
+call to confirm. Earlier versions called endpoints that did not exist (the
+site host answered with its own `index.html`, drawn as thousands of empty
+time buttons) and showed invented times and a false success.
+
+Tests: `saude/tests/test_public_booking.py`.
+
+### Site figures — `GET /api/saude/publicsite/stats/` (PUBLIC)
+
+The counters of the Amal site ("12+ Patients", ...) come from the clinic's own
+records, never from the frontend: `saude/services/public_site_service.py`,
+`PublicSiteViewSet` (explicit `AllowAny`, Entity from the `Origin`, the
+publicbooking read throttle). Only aggregate counts leave the server:
+
+| Field | Counted from |
+|---|---|
+| `patients` | `Paciente` of the Entity (not deleted) |
+| `specialists` | active `Medico` of the Entity |
+| `specialties` | distinct `hr.Specialty` of those doctors (`EmployeeSpecialty`) |
+| `years_of_experience` | full years since `Entity.founded_on`; `null` when it is not recorded |
+
+The site hides a figure that is `null` (fill in the Entity's founding date to
+show the years). Tests: `PublicSiteStatsTests` in `saude/tests/test_public_booking.py`.
+
 ## Demo data (`seed_saude_demo`)
 
 Creates demo patients and one doctor's appointments around today, so the

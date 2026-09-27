@@ -104,6 +104,9 @@ FRONT_OFFICE_PROFILES = [
             "check_in_pedidoexamemedico",
             "check_in_agenda", "check_out_agenda",
             "grant_portal_access_paciente",
+            # online booking requests from the public site
+            "view_appointmentrequest", "list_appointmentrequest",
+            "confirm_appointmentrequest", "reject_appointmentrequest",
             "view_dashboard_saude_reception",
         ],
     },

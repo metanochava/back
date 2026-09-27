@@ -515,6 +515,10 @@ releases:
 		echo "A tag for version $$NEXT_VERSION already exists."
 		exit 1
 	fi
+	
+	git add .
+	git commit -m "bump version $$NEXT_VERSION"
+
 
 	git flow release start "$$NEXT_VERSION"
 	bump2version "$$bump" --no-commit --no-tag
@@ -529,6 +533,7 @@ releases:
 	git commit -m "bump version $$VERSION"
 
 	echo "Release $$VERSION started on branch release/$$VERSION."
+
 
 
 releasef:
