@@ -1728,4 +1728,5 @@ key_value = {
     'Dashboards per module': 'Painéis por módulo',
     'Four languages': 'Quatro idiomas',
     'Notifications & PDF': 'Notificações e PDF',
+    'Invalid specialty.': 'Especialidade inválida.',
 }

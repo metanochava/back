@@ -717,4 +717,5 @@ key_value = {
     'Dashboards per module': 'Dashboards per module',
     'Four languages': 'Four languages',
     'Notifications & PDF': 'Notifications & PDF',
+    'Invalid specialty.': 'Invalid specialty.',
 }

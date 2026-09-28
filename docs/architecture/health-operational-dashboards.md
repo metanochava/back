@@ -265,6 +265,47 @@ Creating an exam: `ExameMedico` (existing screens) -> add its parameters
 validated (`/api/saude/examreferenceranges/`, `add_examreferencerange`) -> the
 result form of every item of that exam is built from them.
 
+### Standard catalogue (`seed_exam_catalogue`)
+
+A new Entity does not have to build its catalogue by hand:
+
+```bash
+python manage.py seed_exam_catalogue --entity Amal --dry-run   # validate and count, write nothing
+python manage.py seed_exam_catalogue --entity Amal             # --branch <name|id> when it has several
+```
+
+It creates about 165 exams with their parameters (code, type, unit, decimal
+places, choices, required), organised as:
+
+| Type | Classes |
+|---|---|
+| Laboratório | Hematologia, Hemostase, Imuno-hematologia, Bioquímica, Endocrinologia, Marcadores tumorais, Imunologia e serologia, Biologia molecular, Microbiologia, Parasitologia, Urina, Líquidos biológicos, Anatomia patológica |
+| Imagiologia | Radiologia, Ecografia, Tomografia computorizada, Ressonância magnética, Mamografia, Densitometria óssea |
+| Exames funcionais | Cardiologia, Pneumologia, Neurofisiologia, Audiologia |
+| Endoscopia | Endoscopia digestiva |
+
+- **Real configuration, safe in production.** Additive and idempotent: types and
+  classes are matched by name, exams by name (unique per Entity), parameters by
+  `code`. Only what is missing is created; nothing existing is changed or
+  deleted. An exam the laboratory renamed, moved, deactivated or edited keeps its
+  configuration, and only gains the parameters it is missing.
+- **Tenant explicit.** `--entity` is required; `--branch` too when the Entity has
+  several Branches. Nothing is written to another Entity.
+- **No reference ranges, no critical limits.** Reference intervals depend on the
+  method, the analyser and the population and must be verified by each
+  laboratory (CLSI EP28, ISO 15189). Until the laboratory adds them, values are
+  recorded without a flag (see above).
+- **Language.** Names, units and choices are Entity data shown as-is on the
+  request and result screens. The standard catalogue is written in Portuguese
+  (Mozambique); the laboratory can rename or extend it on the existing screens.
+- **Codes.** `ExameMedico.codigo` is the catalogue's internal code (`HEM-01`,
+  `BIO-15`, ...), not a LOINC code. Terminology mappings are future work.
+
+Code: `saude/services/catalogos/exam_catalogue.py` (data),
+`saude/services/exam_catalogue_service.py`,
+`saude/management/commands/seed_exam_catalogue.py`.
+Tests: `saude/tests/test_exam_catalogue.py`.
+
 ### Recording (dynamic form)
 
 - `GET /api/saude/itempedidoexamemedicos/{id}/result_form/` (`view_itempedidoexamemedico`):
