@@ -56,6 +56,23 @@ class ItemPedidoExameMedicoAPIView(BaseAPIView):
         )
         return Response(lab_result_service.form_schema(item))
 
+    # same capability as record_result: entering a result, another form of it
+    @resaas_action(detail=True, methods=["post"], label="Record report", icon="description",
+                   permission="record_result_itempedidoexamemedico", visible=False)
+    def record_report(self, request, *args, **kwargs):
+        """Free-form result (multipart): valor_resultado?, laudo?, observacao?,
+        file? - on the same result record as record_result."""
+        item = self.get_object()
+        lab_result_service.record_report(
+            request, item,
+            valor_resultado=request.data.get("valor_resultado"),
+            laudo=request.data.get("laudo"),
+            observacao=request.data.get("observacao"),
+            file=request.FILES.get("file"),
+        )
+        item.refresh_from_db()
+        return Response(self.get_serializer(item).data)
+
     @resaas_action(detail=True, methods=["post"], label="Collect", icon="colorize", autorequest=True)
     def collect(self, request, *args, **kwargs):
         item = exam_request_service.collect(request, self.get_object())

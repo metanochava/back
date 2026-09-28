@@ -717,4 +717,10 @@ key_value = {
     'Dashboards per module': 'Dashboards per module',
     'Four languages': 'Four languages',
     'Notifications & PDF': 'Notifications & PDF',
+    'Invalid specialty.': 'Invalid specialty.',
+    'Enter a value, a report, an observation or a file.': 'Enter a value, a report, an observation or a file.',
+    'This value is too long.': 'This value is too long.',
+    'Record report': 'Record report',
+    'Save report': 'Save report',
+    'No exams in this request.': 'No exams in this request.',
 }

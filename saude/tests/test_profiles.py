@@ -58,6 +58,41 @@ class SaudeProfilesTests(TestCase):
         self.assertIn("view_paciente", codenames)
         self.assertIn("add_consulta", codenames)
 
+    def test_receptionist_can_load_the_booking_dialog_lookups(self):
+        """The booking dialog lists specialties (hr), doctors, rooms and doctor
+        schedules: without these the receptionist got 403 on hr/specialties."""
+        bootstrap_tenant("profile-reception", modules=("saude", "hr"))
+
+        group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+
+        codenames = set(Group.objects.get(name="Medical Receptionist").permissions.values_list("codename", flat=True))
+        for model in ("specialty", "medico", "consultorio", "horariomedico"):
+            self.assertTrue({f"list_{model}", f"view_{model}"} <= codenames, model)
+
+    def test_lab_scientist_and_administrator_manage_the_exam_catalogue(self):
+        """Creating an exam type answered 403 for every saude profile."""
+        bootstrap_tenant("profile-exam-catalogue", modules=("saude", "hr"))
+
+        group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+
+        for name in ("Medical Laboratory Scientist", "Healthcare Administrator"):
+            codenames = set(Group.objects.get(name=name).permissions.values_list("codename", flat=True))
+            for model in ("tipoexamemedico", "classeexamemedico"):
+                self.assertTrue({f"list_{model}", f"add_{model}", f"change_{model}"} <= codenames, (name, model))
+                self.assertNotIn(f"delete_{model}", codenames)
+
+    def test_doctor_and_receptionist_can_open_the_exam_catalogue(self):
+        """saude/catalogoexames/ (the exam request's catalogue) answers with
+        list_tipoexamemedico; the doctor also needs the specialty lookups."""
+        bootstrap_tenant("profile-doctor-lookups", modules=("saude", "hr"))
+
+        group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+
+        for name in ("Doctor", "Medical Receptionist"):
+            codenames = set(Group.objects.get(name=name).permissions.values_list("codename", flat=True))
+            self.assertIn("list_tipoexamemedico", codenames, name)
+            self.assertTrue({"list_specialty", "view_specialty", "list_medico", "view_medico"} <= codenames, name)
+
     def test_patient_has_only_portal_capabilities(self):
         """No clinical model permission: those would open clinical
         resources in general, not only the patient's own."""

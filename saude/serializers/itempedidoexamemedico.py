@@ -31,7 +31,7 @@ class ItemPedidoExameMedicoSerializer(BaseSerializer):
             "valor_resultado": "",
             "laudo": "",
             "observacao": "",
-            "ficheiro": None,
+            "file": None,
             "numero_revisao": 1,
             "validado": False,
             "assinado_digitalmente": False,

@@ -265,6 +265,47 @@ Creating an exam: `ExameMedico` (existing screens) -> add its parameters
 validated (`/api/saude/examreferenceranges/`, `add_examreferencerange`) -> the
 result form of every item of that exam is built from them.
 
+### Standard catalogue (`seed_exam_catalogue`)
+
+A new Entity does not have to build its catalogue by hand:
+
+```bash
+python manage.py seed_exam_catalogue --entity Amal --dry-run   # validate and count, write nothing
+python manage.py seed_exam_catalogue --entity Amal             # --branch <name|id> when it has several
+```
+
+It creates about 165 exams with their parameters (code, type, unit, decimal
+places, choices, required), organised as:
+
+| Type | Classes |
+|---|---|
+| Laboratório | Hematologia, Hemostase, Imuno-hematologia, Bioquímica, Endocrinologia, Marcadores tumorais, Imunologia e serologia, Biologia molecular, Microbiologia, Parasitologia, Urina, Líquidos biológicos, Anatomia patológica |
+| Imagiologia | Radiologia, Ecografia, Tomografia computorizada, Ressonância magnética, Mamografia, Densitometria óssea |
+| Exames funcionais | Cardiologia, Pneumologia, Neurofisiologia, Audiologia |
+| Endoscopia | Endoscopia digestiva |
+
+- **Real configuration, safe in production.** Additive and idempotent: types and
+  classes are matched by name, exams by name (unique per Entity), parameters by
+  `code`. Only what is missing is created; nothing existing is changed or
+  deleted. An exam the laboratory renamed, moved, deactivated or edited keeps its
+  configuration, and only gains the parameters it is missing.
+- **Tenant explicit.** `--entity` is required; `--branch` too when the Entity has
+  several Branches. Nothing is written to another Entity.
+- **No reference ranges, no critical limits.** Reference intervals depend on the
+  method, the analyser and the population and must be verified by each
+  laboratory (CLSI EP28, ISO 15189). Until the laboratory adds them, values are
+  recorded without a flag (see above).
+- **Language.** Names, units and choices are Entity data shown as-is on the
+  request and result screens. The standard catalogue is written in Portuguese
+  (Mozambique); the laboratory can rename or extend it on the existing screens.
+- **Codes.** `ExameMedico.codigo` is the catalogue's internal code (`HEM-01`,
+  `BIO-15`, ...), not a LOINC code. Terminology mappings are future work.
+
+Code: `saude/services/catalogos/exam_catalogue.py` (data),
+`saude/services/exam_catalogue_service.py`,
+`saude/management/commands/seed_exam_catalogue.py`.
+Tests: `saude/tests/test_exam_catalogue.py`.
+
 ### Recording (dynamic form)
 
 - `GET /api/saude/itempedidoexamemedicos/{id}/result_form/` (`view_itempedidoexamemedico`):
@@ -285,11 +326,35 @@ result form of every item of that exam is built from them.
 - Values are relational and typed (`value_numeric` Decimal, `value_text`,
   `value_boolean`), not JSON, so history and charts query them directly.
 
+### Free-form report (the second way)
+
+The result screen (`AddResultadoModal.vue`, "Results" of an exam request) offers
+both ways on each exam's card, on the **same** result record (the item's current
+revision):
+
+- **Record result** opens the structured form above (`record_result`).
+- The card itself takes a free-form report: a value, findings, an observation
+  and/or an attached file (PDF, image, ...), saved with
+  `POST .../{id}/record_report/` (multipart: `valor_resultado`?, `laudo`?,
+  `observacao`?, `file`?), under the same permission
+  `record_result_itempedidoexamemedico`.
+
+`record_report` creates the result header when there is none (type `File`,
+revision `N+1`, patient and exam name from the item, collection time from the
+item, result time = now) or updates the current draft. It never touches the
+structured values, and `record_result` keeps the report text, so an exam can
+have both. The same rules apply: a validated result answers
+`409 result_already_validated` (amend it), a request with nothing to save
+`400 empty_result`, a value longer than 200 characters `400 invalid_result_values`,
+and an item of another Entity `404`. Each recording is audited
+(`LAB_RESULT_RECORDED`). Validate and Release are shown on the card only in the
+state and with the permission the backend accepts.
+
 ### Validation, release, amendment
 
 | Step | Endpoint | Permission | Rule |
 |---|---|---|---|
-| Record | `record_result` | `record_result_itempedidoexamemedico` | draft, editable |
+| Record | `record_result` (structured) or `record_report` (free-form) | `record_result_itempedidoexamemedico` | draft, editable |
 | Validate | `resultadoexamemedicos/{id}/validate/` (or the checkbox on the result screen) | `validate_resultadoexamemedico` | then immutable |
 | Release | `resultadoexamemedicos/{id}/release/` | `release_resultadoexamemedico` | only after validation; `released`, `released_by`, `released_at` set by the server and read-only in the API |
 | Amend | `resultadoexamemedicos/{id}/amend/` `{"reason"}` | `amend_resultadoexamemedico` | only the latest validated revision; creates revision N+1 (copy of the values, unvalidated). The validated one stays unchanged and is superseded. |

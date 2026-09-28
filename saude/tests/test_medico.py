@@ -73,3 +73,84 @@ class MedicoEndpointTests(TestCase):
         response = self.tenant["client"].get("/api/saude/medicos/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["count"], 1)
+
+
+class MedicoSpecialtiesTests(TestCase):
+    """The doctor's specialties (hr.EmployeeSpecialty) are written by the
+    Medico serializer: they must carry the doctor's tenant, or saving a
+    doctor with specialties fails (BaseModel requires entity and branch)."""
+
+    def setUp(self):
+        from django_resaas.hr.models.specialty import Specialty
+
+        self.tenant = bootstrap_tenant("medico-spec", modules=("saude", "hr"))
+        self.employee = _create_employee(self.tenant)
+        common = dict(entity=self.tenant["entity"], branch=self.tenant["branch"],
+                      created_by=self.tenant["user"], updated_by=self.tenant["user"], state="Active")
+        self.cardio = Specialty.objects.create(title="Cardiologia", code="CD", **common)
+        self.internal = Specialty.objects.create(title="Interna", code="IN", **common)
+
+    def _specialties(self, response):
+        return sorted(item["label"] for item in response.data["especialidade"])
+
+    def test_create_with_specialties_links_them_in_the_doctors_tenant(self):
+        from django_resaas.hr.models.employee_specialty import EmployeeSpecialty
+
+        response = self.tenant["client"].post(
+            "/api/saude/medicos/",
+            {"employee": str(self.employee.id), "especialidade": [str(self.cardio.id), str(self.internal.id)]},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(self._specialties(response), ["Cardiologia", "Interna"])
+        rows = EmployeeSpecialty.objects.filter(employee=self.employee)
+        self.assertEqual(rows.count(), 2)
+        self.assertTrue(all(r.entity_id == self.tenant["entity"].id and r.branch_id == self.tenant["branch"].id
+                            for r in rows))
+
+    def test_update_replaces_the_specialties(self):
+        created = self.tenant["client"].post(
+            "/api/saude/medicos/",
+            {"employee": str(self.employee.id), "especialidade": [str(self.cardio.id)]},
+            content_type="application/json",
+        )
+        self.assertEqual(created.status_code, 201, created.data)
+
+        response = self.tenant["client"].patch(
+            f"/api/saude/medicos/{created.data['id']}/",
+            {"especialidade": [str(self.internal.id)]},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(self._specialties(response), ["Interna"])
+
+    def test_the_doctor_list_returns_the_specialties_the_booking_dialog_filters_on(self):
+        self.tenant["client"].post(
+            "/api/saude/medicos/",
+            {"employee": str(self.employee.id), "especialidade": [str(self.cardio.id)]},
+            content_type="application/json",
+        )
+
+        response = self.tenant["client"].get("/api/saude/medicos/", {"ativo": "true", "page_size": 0})
+
+        self.assertEqual(response.status_code, 200)
+        rows = response.data["results"] if isinstance(response.data, dict) else response.data
+        self.assertEqual([e["value"] for e in rows[0]["especialidade"]], [str(self.cardio.id)])
+
+    def test_a_specialty_of_another_entity_is_refused(self):
+        from django_resaas.hr.models.specialty import Specialty
+
+        other = bootstrap_tenant("medico-spec-other", modules=("saude", "hr"))
+        foreign = Specialty.objects.create(title="Pediatria", code="PD", entity=other["entity"], branch=other["branch"],
+                                           created_by=other["user"], updated_by=other["user"], state="Active")
+
+        response = self.tenant["client"].post(
+            "/api/saude/medicos/",
+            {"employee": str(self.employee.id), "especialidade": [str(foreign.id)]},
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertFalse(Medico.objects.filter(employee=self.employee).exists())
