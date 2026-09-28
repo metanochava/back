@@ -268,6 +268,65 @@ def record_result(request, item, values, *, observacao=None, laudo=None):
     return result
 
 
+REPORT_FIELDS = ("valor_resultado", "laudo", "observacao")
+VALUE_MAX_LENGTH = ResultadoExameMedico._meta.get_field("valor_resultado").max_length
+
+
+@transaction.atomic
+def record_report(request, item, *, valor_resultado=None, laudo=None, observacao=None, file=None):
+    """The free-form way of entering a result (the one the result screen had
+    before structured parameters): a value, the report text, an observation
+    and/or an attached file, on the SAME result record the structured form
+    uses - the item's current, not yet validated revision (created when there
+    is none). A validated result is never changed: amend it first.
+
+    Collection and result times are the server's (item.data_colheita, now)."""
+
+    given = {"valor_resultado": valor_resultado, "laudo": laudo, "observacao": observacao}
+    if all(value in (None, "") for value in given.values()) and not file:
+        raise _error("Enter a value, a report, an observation or a file.", "empty_result")
+    if valor_resultado and len(str(valor_resultado)) > VALUE_MAX_LENGTH:
+        raise _error("Some values are not valid.", "invalid_result_values",
+                     details={"valor_resultado": ["This value is too long."]})
+
+    now = timezone.now()
+    result = latest_result(item)
+    if result is not None:
+        result = ResultadoExameMedico.objects.select_for_update().get(pk=result.pk)
+    if result is not None and result.validado:
+        raise ConflictError(
+            "A validated result cannot be changed. Create a new revision (amend).",
+            code="result_already_validated",
+        )
+
+    if result is None:
+        result = ResultadoExameMedico(
+            paciente=item.pedido.patient,
+            item_pedido=item,
+            nome=item.exame.nome,
+            tipo=ResultadoExameMedico.FILE,
+            numero_revisao=_next_revision(item),
+            data_colheita=item.data_colheita,
+            emitido_por=request.user,
+            entity_id=request.entity_id,
+            branch_id=request.branch_id,
+            created_by=request.user,
+        )
+
+    for field, value in given.items():
+        if value is not None:
+            setattr(result, field, value)
+    if file:
+        result.file = file
+    result.data_resultado = now
+    result.updated_by = request.user
+    result.save()
+
+    audit_service.record(action="LAB_RESULT_RECORDED", target=result, actor=request.user,
+                         request=request, entity_id=request.entity_id)
+    return result
+
+
 def _build_value(result, parameter, coerced, patient, on_date, request, now):
     numeric, text, boolean = coerced
     rng = applicable_range(parameter, patient, on_date)

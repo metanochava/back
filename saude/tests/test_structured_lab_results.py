@@ -461,3 +461,74 @@ class ResultPdfTests(LabFixture):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content[:4], b"%PDF")
+
+
+class FreeFormReportTests(LabFixture):
+    """record_report: the free-form way of entering a result (value, report,
+    observation, file) on the same result record as record_result."""
+
+    def report(self, client, data, item=None):
+        return client.post(f"{ITEMS}{(item or self.item).id}/record_report/", data, format="multipart")
+
+    def test_report_with_a_file_creates_the_items_current_result(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        response = self.report(_client_with(self.tenant, TECHNICIAN), {
+            "valor_resultado": "Negativo", "laudo": "<p>Sem alterações</p>",
+            "file": SimpleUploadedFile("laudo.pdf", b"%PDF-1.4 test", content_type="application/pdf"),
+        })
+
+        self.assertEqual(response.status_code, 200, response.data)
+        result = ResultadoExameMedico.objects.get(item_pedido=self.item)
+        self.assertEqual((result.valor_resultado, result.tipo, result.numero_revisao), ("Negativo", "File", 1))
+        self.assertEqual(result.paciente_id, self.patient.id)
+        self.assertEqual((result.extensao, result.mime_type), (".pdf", "application/pdf"))
+        self.assertEqual(result.emitido_por, self.tenant["user"])
+        self.assertEqual(response.data["resultado"]["id"], str(result.id))
+        self.assertTrue(AuditLog.objects.filter(action="LAB_RESULT_RECORDED", object_id=str(result.id)).exists())
+
+    def test_both_forms_share_one_result_record(self):
+        client = _client_with(self.tenant, TECHNICIAN)
+
+        self.record(client, {"hb": "13.5", "plt": "250", "malaria": "Negative"})
+        self.report(client, {"laudo": "Relatório", "observacao": "Amostra lipémica"})
+
+        result = ResultadoExameMedico.objects.get(item_pedido=self.item)
+        self.assertEqual(result.laudo, "Relatório")
+        self.assertEqual(result.parameter_values.count(), 3)
+        self.record(client, {"hb": "13.6", "plt": "250", "malaria": "Negative"})
+        self.assertEqual(ResultadoExameMedico.objects.filter(item_pedido=self.item).count(), 1)
+        self.assertEqual(ResultadoExameMedico.objects.get(item_pedido=self.item).laudo, "Relatório")
+
+    def test_a_validated_result_is_not_changed(self):
+        client = _client_with(self.tenant, SCIENTIST)
+        self.report(client, {"valor_resultado": "Negativo"})
+        result = ResultadoExameMedico.objects.get(item_pedido=self.item)
+        client.post(f"{RESULTS}{result.id}/validate/")
+
+        response = self.report(client, {"valor_resultado": "Positivo"})
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.json()["error"]["code"], "result_already_validated")
+        result.refresh_from_db()
+        self.assertEqual(result.valor_resultado, "Negativo")
+
+    def test_an_empty_report_is_refused(self):
+        response = self.report(_client_with(self.tenant, TECHNICIAN), {"laudo": ""})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"]["code"], "empty_result")
+        self.assertFalse(ResultadoExameMedico.objects.filter(item_pedido=self.item).exists())
+
+    def test_it_needs_the_permission_to_record_results(self):
+        response = self.report(_client_with(self.tenant, ["view_itempedidoexamemedico"]), {"laudo": "x"})
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_an_item_of_another_entity_is_not_found(self):
+        other = bootstrap_tenant("slr-report-other", modules=("saude", "hr"))
+        foreign = _item(other, _patient(other, "Ana"), _exame(other))
+
+        response = self.report(_client_with(self.tenant, TECHNICIAN), {"laudo": "x"}, item=foreign)
+
+        self.assertEqual(response.status_code, 404)

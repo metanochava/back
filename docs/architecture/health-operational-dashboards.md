@@ -326,11 +326,35 @@ Tests: `saude/tests/test_exam_catalogue.py`.
 - Values are relational and typed (`value_numeric` Decimal, `value_text`,
   `value_boolean`), not JSON, so history and charts query them directly.
 
+### Free-form report (the second way)
+
+The result screen (`AddResultadoModal.vue`, "Results" of an exam request) offers
+both ways on each exam's card, on the **same** result record (the item's current
+revision):
+
+- **Record result** opens the structured form above (`record_result`).
+- The card itself takes a free-form report: a value, findings, an observation
+  and/or an attached file (PDF, image, ...), saved with
+  `POST .../{id}/record_report/` (multipart: `valor_resultado`?, `laudo`?,
+  `observacao`?, `file`?), under the same permission
+  `record_result_itempedidoexamemedico`.
+
+`record_report` creates the result header when there is none (type `File`,
+revision `N+1`, patient and exam name from the item, collection time from the
+item, result time = now) or updates the current draft. It never touches the
+structured values, and `record_result` keeps the report text, so an exam can
+have both. The same rules apply: a validated result answers
+`409 result_already_validated` (amend it), a request with nothing to save
+`400 empty_result`, a value longer than 200 characters `400 invalid_result_values`,
+and an item of another Entity `404`. Each recording is audited
+(`LAB_RESULT_RECORDED`). Validate and Release are shown on the card only in the
+state and with the permission the backend accepts.
+
 ### Validation, release, amendment
 
 | Step | Endpoint | Permission | Rule |
 |---|---|---|---|
-| Record | `record_result` | `record_result_itempedidoexamemedico` | draft, editable |
+| Record | `record_result` (structured) or `record_report` (free-form) | `record_result_itempedidoexamemedico` | draft, editable |
 | Validate | `resultadoexamemedicos/{id}/validate/` (or the checkbox on the result screen) | `validate_resultadoexamemedico` | then immutable |
 | Release | `resultadoexamemedicos/{id}/release/` | `release_resultadoexamemedico` | only after validation; `released`, `released_by`, `released_at` set by the server and read-only in the API |
 | Amend | `resultadoexamemedicos/{id}/amend/` `{"reason"}` | `amend_resultadoexamemedico` | only the latest validated revision; creates revision N+1 (copy of the values, unvalidated). The validated one stays unchanged and is superseded. |

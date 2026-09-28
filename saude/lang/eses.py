@@ -1729,4 +1729,9 @@ key_value = {
     'Four languages': 'Cuatro idiomas',
     'Notifications & PDF': 'Notificaciones y PDF',
     'Invalid specialty.': 'Especialidad no válida.',
+    'Enter a value, a report, an observation or a file.': 'Introduzca un valor, un informe, una observación o un archivo.',
+    'This value is too long.': 'Este valor es demasiado largo.',
+    'Record report': 'Registrar informe',
+    'Save report': 'Guardar informe',
+    'No exams in this request.': 'Esta solicitud no tiene exámenes.',
 }
