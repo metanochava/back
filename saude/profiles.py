@@ -68,6 +68,14 @@ CLINICAL_PROFILES = [
             # correcting a vital-sign value; a medication missing from the
             # catalogue ("New medication" on the prescription screen)
             "change_dadovital", "add_medicamento",
+            # exam catalogue of the exam request (saude/catalogoexames/ lists
+            # with list_tipoexamemedico) and the read-only lookups of the
+            # appointment screens (specialty -> doctor -> room/schedule)
+            "list_tipoexamemedico",
+            "list_specialty", "view_specialty",
+            "list_medico", "view_medico",
+            "list_consultorio", "view_consultorio",
+            "list_horariomedico", "view_horariomedico",
         ],
     },
     {
@@ -103,6 +111,13 @@ FRONT_OFFICE_PROFILES = [
             "view_examemedico", "view_tipoexamemedico",
             "check_in_pedidoexamemedico",
             "check_in_agenda", "check_out_agenda",
+            # exam catalogue of the exam request (saude/catalogoexames/)
+            "list_tipoexamemedico",
+            # lookups of the booking dialog (specialty -> doctor -> room/schedule)
+            "list_specialty", "view_specialty",
+            "list_medico", "view_medico",
+            "list_consultorio", "view_consultorio",
+            "list_horariomedico", "view_horariomedico",
             "grant_portal_access_paciente",
             # online booking requests from the public site
             "view_appointmentrequest", "list_appointmentrequest",
@@ -137,6 +152,9 @@ LABORATORY_PROFILES = [
             "view_pedidoexamemedico", "list_pedidoexamemedico",
             "view_itempedidoexamemedico", "change_itempedidoexamemedico",
             "view_examemedico", "view_tipoexamemedico", "view_classeexamemedico",
+            # exam catalogue (types and classes of exam); deleting stays with Admin
+            "list_tipoexamemedico", "add_tipoexamemedico", "change_tipoexamemedico",
+            "list_classeexamemedico", "add_classeexamemedico", "change_classeexamemedico",
             "view_examparameter", "add_examparameter", "change_examparameter",
             "view_examreferencerange", "add_examreferencerange", "change_examreferencerange",
             "check_in_pedidoexamemedico",
@@ -203,6 +221,9 @@ MANAGEMENT_PROFILES = [
             "view_pedidoexamemedico", "list_pedidoexamemedico",
             "view_itempedidoexamemedico",
             "view_examemedico", "view_tipoexamemedico", "view_classeexamemedico",
+            # exam catalogue (types and classes of exam); deleting stays with Admin
+            "list_tipoexamemedico", "add_tipoexamemedico", "change_tipoexamemedico",
+            "list_classeexamemedico", "add_classeexamemedico", "change_classeexamemedico",
             "view_resultadoexamemedico",
             "view_dashboard_saude_clinica",
         ],
