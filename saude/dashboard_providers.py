@@ -17,7 +17,7 @@ from django_resaas.saas.core.dashboards.providers import (
     BaseDashboardProvider,
     register_provider,
 )
-from django_resaas.hr.models.employee import Employee
+from hr.models.employee import Employee
 
 from saude.models.agenda import Agenda
 from saude.models.consulta import Consulta

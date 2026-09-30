@@ -36,9 +36,13 @@ LANGUAGE_CODE = 'EN-US'
 # Aplicações
 # --------------------------
 
+# modules activated for every new EntityType, besides the framework's own
+# (django_resaas.saas.core.services.bootstrap_service.default_modules)
+RESAAS_DEFAULT_MODULES = ["hr"]
+
 MY_APPS = [
     'django_resaas.saas',
-    'django_resaas.hr',
+    'hr',  # HR module of this application (was django_resaas.hr)
     'saude',
     'inventory',
     'sales',

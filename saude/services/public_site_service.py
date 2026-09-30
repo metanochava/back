@@ -6,7 +6,7 @@ identifier.
 """
 from django.utils import timezone
 
-from django_resaas.hr.models.employee_specialty import EmployeeSpecialty
+from hr.models.employee_specialty import EmployeeSpecialty
 from saude.models.medico import Medico
 from saude.models.paciente import Paciente
 

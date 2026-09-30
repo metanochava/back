@@ -136,7 +136,7 @@ class SaudeLabelsAreTranslated(SimpleTestCase):
         from farmacia.profiles import FARMACIA_PROFILES
         from inventory.profiles import INVENTORY_PROFILES
         from sales.profiles import SALES_PROFILES
-        from django_resaas.hr.profiles import HR_PROFILES
+        from hr.profiles import HR_PROFILES
         from django_resaas.saas.profiles import CORE_PROFILES
 
         names = {"Root", "Admin", "Guest"}

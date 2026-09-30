@@ -15,8 +15,8 @@ from rest_framework.test import APIClient
 
 from django_resaas.saas.core.events import EventDispatcher
 from django_resaas.saas.models.person import Person
-from django_resaas.hr.models.employee_specialty import EmployeeSpecialty
-from django_resaas.hr.models.specialty import Specialty
+from hr.models.employee_specialty import EmployeeSpecialty
+from hr.models.specialty import Specialty
 from saude.models.agenda import Agenda
 from saude.models.appointment_request import AppointmentRequest
 from saude.models.horariomedico import HorarioMedico

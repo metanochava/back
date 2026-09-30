@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+
+<meta charset="UTF-8">
+
+<title>{{ pdf_title|default:"Payroll Register" }}</title>
+
+<meta name="author" content="{{ pdf_author|default:'RESAAS' }}">
+<meta name="description" content="{{ pdf_subject|default:'Payroll Register' }}">
+<meta name="generator" content="{{ pdf_generator|default:'RESAAS / WeasyPrint' }}">
+
+<style>
+
+  @page {
+    size: A4 landscape;
+    margin-top: 120px;
+    margin-bottom: 90px;
+    margin-left: 35px;
+    margin-right: 35px;
+
+    @bottom-right {
+      content: counter(page) " - " counter(pages);
+      font-size: 11px;
+      color: #2563eb;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+      margin-right: 5px;
+      margin-bottom: 3px;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    color: #333;
+  }
+
+  .header {
+    position: fixed;
+    top: -95px;
+    left: 0;
+    right: 0;
+    height: 90px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .header-table { width: 100%; height: 90px; border-collapse: collapse; table-layout: fixed; }
+  .header-table td { padding: 0; vertical-align: middle; }
+
+  .logo { width: 100px; text-align: left; }
+  .logo img { width: 85px; height: 85px; object-fit: contain; }
+
+  .title { text-align: center; }
+  .title h1 { margin: 0; font-size: 21px; font-weight: bold; color: #2563eb; }
+  .title .subtitle { margin-top: 4px; font-size: 14px; color: #777; }
+
+  .qr { width: 100px; text-align: right; }
+  .qr img { width: 80px; height: 80px; object-fit: contain; }
+
+  .content { width: 100%; }
+
+  .section-title {
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ddd;
+    font-size: 15px;
+    font-weight: bold;
+    color: #2563eb;
+  }
+
+  .list-table { width: 100%; border-collapse: collapse; }
+  .list-table thead { display: table-header-group; }
+  .list-table tr { page-break-inside: avoid; }
+
+  .list-table th {
+    background: #2563eb;
+    color: #fff;
+    border: 1px solid #d7d7d7;
+    padding: 6px;
+    text-align: left;
+    font-size: 10px;
+    font-weight: bold;
+  }
+
+  .list-table td {
+    border: 1px solid #ddd;
+    padding: 5px 6px;
+    vertical-align: top;
+    font-size: 10px;
+  }
+
+  .list-table tbody tr:nth-child(even) { background: #f5f7fa; }
+
+  .totals {
+    margin-top: 12px;
+    text-align: right;
+  }
+
+  .totals .net {
+    font-size: 14px;
+    font-weight: bold;
+    color: #2563eb;
+  }
+
+  .footer {
+    position: fixed;
+    bottom: -58px;
+    left: 0;
+    right: 0;
+    min-height: 48px;
+    padding-top: 5px;
+    background: #fff;
+    border-top: 1px solid #ddd;
+    font-size: 11px;
+    color: #777;
+  }
+
+  .footer-table { width: 100%; border-collapse: collapse; }
+  .footer-table td { padding: 1px 0; vertical-align: middle; }
+  .footer-left { text-align: left; }
+  .footer-right { text-align: right; }
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+  <table class="header-table">
+    <tr>
+      <td class="logo">
+        {% if logo_b64 %}<img src="data:image/png;base64,{{ logo_b64 }}">{% endif %}
+      </td>
+      <td class="title">
+        <h1>{{ section_title|default:"Payroll Register" }}</h1>
+        {% if entity %}<div class="subtitle">{{ entity.name }}</div>{% endif %}
+      </td>
+      <td class="qr">
+        {% if qr_b64 %}<img src="data:image/png;base64,{{ qr_b64 }}">{% endif %}
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div class="content">
+
+  {% if pdf_rows %}
+
+    <table class="list-table">
+      <thead>
+        <tr>
+          {% for field in pdf_fields %}
+            <th>{{ field.label }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in pdf_rows %}
+          <tr>
+            {% for value in row %}
+              <td>{{ value|default:"-" }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <div>Total records: {{ pdf_rows|length }}</div>
+      <div class="net">Total Net Salary: {{ total_net_salary|default:0 }}</div>
+    </div>
+
+  {% else %}
+
+    <div style="padding: 40px; text-align: center; color: #777;">
+      Sem dados
+    </div>
+
+  {% endif %}
+
+  {% if barcode_b64 %}
+    <div style="margin-top: 15px; text-align: center; page-break-inside: avoid;">
+      <img src="data:image/png;base64,{{ barcode_b64 }}" style="width: 280px; height: 50px; object-fit: contain;">
+    </div>
+  {% endif %}
+
+</div>
+
+<div class="footer">
+  <table class="footer-table">
+    <tr>
+      <td class="footer-left">{% if entity %}{{ entity.name }}{% endif %}</td>
+      <td class="footer-right">{{ data_emissao|date:"d/m/Y" }}</td>
+    </tr>
+  </table>
+</div>
+
+</body>
+</html>

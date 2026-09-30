@@ -21,7 +21,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
-from django_resaas.hr.models.employee import Employee
+from hr.models.employee import Employee
 from django_resaas.saas.models.branch import Branch
 from django_resaas.saas.models.entity import Entity
 from django_resaas.saas.models.person import Person

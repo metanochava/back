@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from django_resaas.saas.core.decorators.action import resaas_action
 
 from django_resaas.saas.core.base.views import BaseAPIView, registerView
-from django_resaas.hr.models.employee import Employee
+from hr.models.employee import Employee
 
 from saude.models.agenda import Agenda
 from saude.services import appointment_flow

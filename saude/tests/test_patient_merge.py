@@ -7,7 +7,7 @@ from testutils.tenant import bootstrap_tenant
 
 from django_resaas.saas.models.person import Person
 from django_resaas.saas.models.user import User
-from django_resaas.hr.models.employee import Employee
+from hr.models.employee import Employee
 
 from saude.models.consent_grant import ConsentGrant
 from saude.models.emergency_access import EmergencyAccess
@@ -63,7 +63,7 @@ class PatientMergeServiceTests(TestCase):
         self.assertTrue(Person.objects.filter(id=self.duplicate_person.id).exists())
 
     def test_merge_preserves_consulta_fk_history_without_loss(self):
-        from django_resaas.hr.models.employee import Employee as HREmployee
+        from hr.models.employee import Employee as HREmployee
         from saude.models.consulta import Consulta
 
         employee_person = Person.objects.create(name="Dr", surname="X")

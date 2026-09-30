@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+
+<meta charset="UTF-8">
+
+<title>{{ pdf_title|default:"Payslip" }}</title>
+
+<meta name="author" content="{{ pdf_author|default:'RESAAS' }}">
+<meta name="description" content="{{ pdf_subject|default:'Payslip' }}">
+<meta name="generator" content="{{ pdf_generator|default:'RESAAS / WeasyPrint' }}">
+
+<style>
+
+  @page {
+    size: A4 portrait;
+    margin-top: 120px;
+    margin-bottom: 60px;
+    margin-left: 45px;
+    margin-right: 35px;
+
+    @bottom-right {
+      content: counter(page) " - " counter(pages);
+      font-size: 11px;
+      color: #2563eb;
+      font-family: Arial, sans-serif;
+      font-weight: bold;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    color: #333;
+  }
+
+  .header {
+    position: fixed;
+    top: -95px;
+    left: 0;
+    right: 0;
+    height: 90px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .header-table { width: 100%; height: 90px; border-collapse: collapse; table-layout: fixed; }
+  .header-table td { padding: 0; vertical-align: middle; }
+
+  .logo { width: 100px; text-align: left; }
+  .logo img { width: 85px; height: 85px; object-fit: contain; }
+
+  .title { text-align: center; }
+  .title h1 { margin: 0; font-size: 20px; font-weight: bold; color: #2563eb; }
+  .title .subtitle { margin-top: 4px; font-size: 13px; color: #777; }
+
+  .qr { width: 100px; text-align: right; }
+  .qr img { width: 80px; height: 80px; object-fit: contain; }
+
+  .content { width: 100%; }
+
+  .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+  .summary-table td { padding: 6px 8px; vertical-align: top; border-bottom: 1px solid #eee; }
+  .summary-table .label { width: 30%; font-weight: bold; color: #555; }
+  .summary-table .value { color: #333; }
+
+  .section-title {
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+    font-weight: bold;
+    color: #2563eb;
+  }
+
+  .items-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  .items-table th {
+    text-align: left;
+    font-size: 12px;
+    color: #555;
+    padding: 6px 8px;
+    border-bottom: 2px solid #ddd;
+  }
+  .items-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid #eee;
+  }
+  .items-table .amount { text-align: right; }
+  .items-table .earning { color: #15803d; }
+  .items-table .deduction { color: #b91c1c; }
+  .items-table .employer_contribution { color: #6b7280; }
+
+  .totals-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .totals-table td { padding: 6px 8px; }
+  .totals-table .label { text-align: right; font-weight: bold; color: #555; width: 80%; }
+  .totals-table .value { text-align: right; font-weight: bold; }
+  .totals-table .net td { font-size: 16px; color: #2563eb; border-top: 2px solid #2563eb; }
+
+  .footer {
+    position: fixed;
+    bottom: -50px;
+    left: 0;
+    right: 0;
+    min-height: 40px;
+    padding-top: 5px;
+    background: #fff;
+    border-top: 1px solid #ddd;
+    font-size: 10px;
+    color: #777;
+  }
+
+  .footer-table { width: 100%; border-collapse: collapse; }
+  .footer-table td { padding: 1px 0; }
+  .footer-left { text-align: left; }
+  .footer-right { text-align: right; }
+
+</style>
+
+</head>
+
+<body>
+
+{% with payroll=object.payroll %}
+
+<div class="header">
+  <table class="header-table">
+    <tr>
+      <td class="logo">
+        {% if logo_b64 %}<img src="data:image/png;base64,{{ logo_b64 }}">{% endif %}
+      </td>
+      <td class="title">
+        <h1>Payslip</h1>
+        <div class="subtitle">
+          {% if entity %}{{ entity.name }} · {% endif %}{{ payroll.period.name }}
+        </div>
+      </td>
+      <td class="qr">
+        {% if qr_b64 %}<img src="data:image/png;base64,{{ qr_b64 }}">{% endif %}
+      </td>
+    </tr>
+  </table>
+</div>
+
+<div class="content">
+
+  <table class="summary-table">
+    <tr>
+      <td class="label">Employee</td>
+      <td class="value">{{ payroll.employee.person.full_name }}</td>
+    </tr>
+    <tr>
+      <td class="label">Employee number</td>
+      <td class="value">{{ payroll.employee.code }}</td>
+    </tr>
+    <tr>
+      <td class="label">Period</td>
+      <td class="value">{{ payroll.period.name }} ({{ payroll.period.start_date|date:"d/m/Y" }} - {{ payroll.period.end_date|date:"d/m/Y" }})</td>
+    </tr>
+    <tr>
+      <td class="label">Issued at</td>
+      <td class="value">{{ object.issued_at|date:"d/m/Y H:i" }}</td>
+    </tr>
+  </table>
+
+  <div class="section-title">Earnings &amp; Deductions</div>
+
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Type</th>
+        <th class="amount">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in payroll.items.all %}
+      <tr>
+        <td>{{ item.description|default:item.component.name }}</td>
+        <td class="{{ item.component.component_type }}">
+          {{ item.component.get_component_type_display }}
+        </td>
+        <td class="amount {{ item.component.component_type }}">{{ item.amount }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3" style="text-align:center; color:#777;">No items</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <table class="totals-table">
+    <tr>
+      <td class="label">Total Earnings</td>
+      <td class="value">{{ payroll.total_earnings }}</td>
+    </tr>
+    <tr>
+      <td class="label">Total Deductions</td>
+      <td class="value">{{ payroll.total_deductions }}</td>
+    </tr>
+    <tr class="net">
+      <td class="label">Net Salary</td>
+      <td class="value">{{ payroll.net_salary }}</td>
+    </tr>
+  </table>
+
+</div>
+
+{% endwith %}
+
+<div class="footer">
+  <table class="footer-table">
+    <tr>
+      <td class="footer-left">{% if entity %}{{ entity.name }}{% endif %}</td>
+      <td class="footer-right">{{ data_emissao|date:"d/m/Y" }}</td>
+    </tr>
+  </table>
+</div>
+
+</body>
+</html>

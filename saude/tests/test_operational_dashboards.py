@@ -16,7 +16,7 @@ from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from django_resaas.hr.models.employee import Employee
+from hr.models.employee import Employee
 from django_resaas.saas.core.tenant.context import ResaasContextService
 from django_resaas.saas.core.utils.group_creator import group_creator
 from django_resaas.saas.models.branch_user_group import BranchUserGroup

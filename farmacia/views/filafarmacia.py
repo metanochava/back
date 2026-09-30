@@ -5,7 +5,7 @@ from django_resaas.saas.core.base.views import BaseAPIView, registerView
 from django_resaas.saas.core.decorators import resaas_action
 from django_resaas.saas.core.utils import all
 
-from django_resaas.hr.models.employee import Employee
+from hr.models.employee import Employee
 
 from farmacia.models.filafarmacia import FilaFarmacia
 from farmacia.serializers.filafarmacia import FilaFarmaciaSerializer
