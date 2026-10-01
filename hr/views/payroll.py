@@ -71,11 +71,11 @@ class PayrollAPIView(BaseAPIView):
     # =========================
     # REPORTS (Fase 10)
     # =========================
-    # Reusa a acao generica pdflist() de BaseAPIView - so enriquece o
+    # Reusa a acao generica pdf_list() de BaseAPIView - so enriquece o
     # contexto (total liquido) para o template hr/payroll_list.html.
 
-    def get_pdflist_context(self, request, queryset):
-        context = super().get_pdflist_context(request, queryset)
+    def get_pdf_list_context(self, request, queryset):
+        context = super().get_pdf_list_context(request, queryset)
 
         context["section_title"] = "Payroll Register"
         context["total_net_salary"] = sum(

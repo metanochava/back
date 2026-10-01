@@ -182,8 +182,8 @@ class PacienteAPIView(BaseAPIView):
 
         return None
 
-    def get_pdflist_context(self, request, queryset):
-        context = super().get_pdflist_context(request, queryset)
+    def get_pdf_list_context(self, request, queryset):
+        context = super().get_pdf_list_context(request, queryset)
         context.update({
             "titulo": "Lista de Pacientes",
             "pacientes": queryset,

@@ -414,11 +414,11 @@ class EmployeeAPIView(BaseAPIView):
     # =========================
     # REPORTS (Fase 10)
     # =========================
-    # Reusa a acao generica pdflist() de BaseAPIView - so enriquece o
+    # Reusa a acao generica pdf_list() de BaseAPIView - so enriquece o
     # contexto (headcount por departamento) para hr/employee_list.html.
 
-    def get_pdflist_context(self, request, queryset):
-        context = super().get_pdflist_context(request, queryset)
+    def get_pdf_list_context(self, request, queryset):
+        context = super().get_pdf_list_context(request, queryset)
 
         by_department = {}
         for employee in queryset.select_related("position__department"):

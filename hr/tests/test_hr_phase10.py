@@ -11,7 +11,7 @@ com as secções em falta (Leave/Recruitment/Onboarding/Performance/
 Training/Lifecycle) e reforça o `pdflist` genérico (BaseAPIView, já
 usado por todos os modelos crud=True) com dois relatórios úteis
 (Payroll Register, Headcount Report) via override de
-`get_pdflist_context()` - sem nenhuma view/permissão/migration nova.
+`get_pdf_list_context()` - sem nenhuma view/permissão/migration nova.
 """
 from datetime import date
 from decimal import Decimal
@@ -57,7 +57,7 @@ def _clear_listeners():
 
 
 # =============================================================
-# get_pdflist_context() OVERRIDES (nova lógica desta fase)
+# get_pdf_list_context() OVERRIDES (nova lógica desta fase)
 # =============================================================
 
 def test_employee_pdflist_context_groups_headcount_by_department(bootstrap_tenant):
@@ -78,7 +78,7 @@ def test_employee_pdflist_context_groups_headcount_by_department(bootstrap_tenan
     view = EmployeeAPIView()
     view.request = SimpleNamespace(entity_id=entity.id)
 
-    context = view.get_pdflist_context(view.request, Employee.objects.filter(entity=entity))
+    context = view.get_pdf_list_context(view.request, Employee.objects.filter(entity=entity))
 
     by_department = dict(context["headcount_by_department"])
     assert by_department["Engineering"] == 2
@@ -90,7 +90,7 @@ def test_employee_pdflist_context_groups_headcount_by_department(bootstrap_tenan
 def test_employee_pdflist_context_only_counts_given_queryset(bootstrap_tenant):
     """The context builder must trust the queryset it receives (already
     tenant-scoped by BaseAPIView.get_queryset()/filter_queryset() before
-    pdflist() calls this hook) instead of re-querying Employee globally -
+    pdf_list() calls this hook) instead of re-querying Employee globally -
     otherwise a report would leak cross-tenant headcount."""
     tenant_a = bootstrap_tenant("hc-report-a")
     tenant_b = bootstrap_tenant("hc-report-b")
@@ -102,7 +102,7 @@ def test_employee_pdflist_context_only_counts_given_queryset(bootstrap_tenant):
     view = EmployeeAPIView()
     view.request = SimpleNamespace(entity_id=tenant_a["entity"].id)
 
-    context = view.get_pdflist_context(
+    context = view.get_pdf_list_context(
         view.request, Employee.objects.filter(entity=tenant_a["entity"])
     )
 
@@ -125,21 +125,21 @@ def test_payroll_pdflist_context_computes_total_net_salary(bootstrap_tenant):
     view = PayrollAPIView()
     view.request = SimpleNamespace(entity_id=entity.id)
 
-    context = view.get_pdflist_context(view.request, Payroll.objects.filter(entity=entity))
+    context = view.get_pdf_list_context(view.request, Payroll.objects.filter(entity=entity))
 
     assert context["total_net_salary"] == Decimal("1500.50")
     assert context["section_title"] == "Payroll Register"
 
 
 # =============================================================
-# END-TO-END: /pdflist/ ainda gera PDF válido com os templates novos
+# END-TO-END: /pdf_list/ ainda gera PDF válido com os templates novos
 # =============================================================
 
 def test_employees_pdflist_endpoint_returns_pdf(bootstrap_tenant):
     tenant = bootstrap_tenant("hc-endpoint", modules=("hr",))
     _make_employee(tenant["entity"], tenant["branch"], code="EMP-EP-1")
 
-    response = tenant["client"].get("/api/hr/employees/pdflist/")
+    response = tenant["client"].get("/api/hr/employees/pdf_list/")
 
     assert response.status_code == 200
     assert response["Content-Type"] == "application/pdf"
@@ -157,7 +157,7 @@ def test_payrolls_pdflist_endpoint_returns_pdf(bootstrap_tenant):
     employee = _make_employee(entity, branch, code="EMP-EP-2")
     _make_payroll(entity, branch, employee, period, Decimal("750.00"))
 
-    response = tenant["client"].get("/api/hr/payrolls/pdflist/")
+    response = tenant["client"].get("/api/hr/payrolls/pdf_list/")
 
     assert response.status_code == 200
     assert response["Content-Type"] == "application/pdf"
@@ -189,6 +189,6 @@ def test_employees_pdflist_denied_without_permission(bootstrap_tenant):
     )
     tenant["client"].credentials(HTTP_X_RESAAS_CONTEXT=context["token"], HTTP_L="1")
 
-    response = tenant["client"].get("/api/hr/employees/pdflist/")
+    response = tenant["client"].get("/api/hr/employees/pdf_list/")
 
     assert response.status_code == 403
