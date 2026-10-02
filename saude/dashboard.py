@@ -366,7 +366,7 @@ def _stat(name, label, provider, icon, permissions, order, tooltip):
     }
 
 
-def _queue(name, label, provider, permissions, order, tooltip, actions=(), row_actions=()):
+def _queue(name, label, provider, permissions, order, tooltip, actions=(), row_actions=(), cols=None):
     return {
         "name": name,
         "type": "table",
@@ -378,7 +378,7 @@ def _queue(name, label, provider, permissions, order, tooltip, actions=(), row_a
         "actions": list(actions),
         "row_actions": [*row_actions, _OPEN_PATIENT],
         "visible": True,
-        "cols": _FULL_COLS,
+        "cols": cols or _FULL_COLS,
         "order": order,
         "accepts_filters": [],
         "filters": [],
@@ -432,6 +432,7 @@ DASHBOARDS = [
                 "type": "calendar",
                 "label": "Appointment Calendar",
                 "provider": "saude.reception.calendar",
+                "count_label": "Appointments",
                 "permissions": ["view_agenda"],
                 "permission_mode": "all",
                 "tooltip": "Every appointment of the unit, 30 days back and 90 ahead. Click one to open the patient record.",
@@ -481,13 +482,16 @@ DASHBOARDS = [
             _stat("pending_exams", "Pending Exams", "saude.doctor.pending_exams",
                   "science", ["view_pedidoexamemedico"], 40,
                   "Open exam items from your consultations."),
+            # My Queue and My Appointment Calendar share a row from md up (6 + 6)
             _queue("my_queue", "My Queue", "saude.doctor.my_queue", ["view_agenda"], 50,
-                   "Your appointments today that are not closed.", row_actions=[_RECORD_VITALS]),
+                   "Your appointments today that are not closed.", row_actions=[_RECORD_VITALS],
+                   cols={"xs": 12, "sm": 12, "md": 6, "lg": 6, "xl": 6}),
             {
                 "name": "my_calendar",
                 "type": "calendar",
                 "label": "My Appointment Calendar",
                 "provider": "saude.doctor.my_calendar",
+                "count_label": "Appointments",
                 "permissions": ["view_agenda"],
                 "permission_mode": "all",
                 "tooltip": "Your appointments, 30 days back and 90 ahead. Click one to open the patient record.",
@@ -498,7 +502,7 @@ DASHBOARDS = [
                     "permissions": ["view_paciente"],
                 },
                 "visible": True,
-                "cols": _FULL_COLS,
+                "cols": {"xs": 12, "sm": 12, "md": 6, "lg": 6, "xl": 6},
                 "order": 55,
                 "accepts_filters": [],
                 "filters": [],
