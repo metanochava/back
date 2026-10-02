@@ -1758,4 +1758,13 @@ key_value = {
     "My Appointment Calendar": "O meu calendário de consultas",
     "Your appointments, 30 days back and 90 ahead. Click one to open the patient record.": "As suas marcações, dos últimos 30 dias aos próximos 90. Clique numa para abrir a ficha do paciente.",
     "Every appointment of the unit, 30 days back and 90 ahead. Click one to open the patient record.": "Todas as marcações da unidade, dos últimos 30 dias aos próximos 90. Clique numa para abrir a ficha do paciente.",
+    # vital signs charts (VitalSignsCharts)
+    "Record": "Registar",
+    "Charts": "Gráficos",
+    "No vital signs recorded yet for this patient.": "Ainda não há sinais vitais registados para este paciente.",
+    "Showing the latest": "A mostrar os mais recentes",
+    # vital signs charts, grouped (VitalSignsCharts)
+    "Heart rate, pulse and SpO₂": "Frequência cardíaca, pulso e SpO₂",
+    "Temperature and respiratory rate": "Temperatura e frequência respiratória",
+    "Blood glucose and pain": "Glicemia e dor",
 }
