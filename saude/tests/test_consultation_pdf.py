@@ -30,9 +30,13 @@ class SharedVitalSignRulesTests(TestCase):
         self.assertEqual(vs.status_of("ta_diastolica", {"ta_diastolica": 46})["label"], "Low")
         self.assertEqual(vs.status_of("dor", {"dor": 6})["label"], "Moderate pain")
         self.assertEqual(
-            vs.status_of("glicemia", {"glicemia": 110, "glicemia_momento": "jejum"})["label"], "Impaired fasting glucose"
+            vs.status_of("glicemia", {"glicemia": 6.1, "glicemia_momento": "jejum"})["label"], "Impaired fasting glucose"
         )
-        self.assertEqual(vs.status_of("glicemia", {"glicemia": 110, "glicemia_momento": "aleatoria"})["level"], "normal")
+        self.assertEqual(vs.status_of("glicemia", {"glicemia": 6.1, "glicemia_momento": "aleatoria"})["level"], "normal")
+        # mmol/L (SI)
+        self.assertEqual(vs.status_of("glicemia", {"glicemia": 2.8})["level"], "critical")
+        self.assertEqual(vs.status_of("glicemia", {"glicemia": 7.2, "glicemia_momento": "jejum"})["label"], "Hyperglycaemia")
+        self.assertEqual(vs.status_of("glicemia", {"glicemia": 12.0, "glicemia_momento": "aleatoria"})["label"], "Hyperglycaemia")
         self.assertEqual(vs.status_of("frequencia_cardiaca", {"frequencia_cardiaca": 65})["level"], "normal")
 
     def test_calculations(self):

@@ -82,7 +82,7 @@ class VitalSignsDialogTests(TestCase):
             "employee": str(self.doctor.id),     # ignored: the signed-in professional wins
             "peso": "70.5", "altura": "1.75", "temperatura": "38.4", "temperatura_local": "axilar",
             "ta_sistolica": 130, "ta_diastolica": 85, "saturacao_oxigenio": 97,
-            "glicemia": "110", "glicemia_momento": "jejum",
+            "glicemia": "6.1", "glicemia_momento": "jejum",
         }, format="json")
 
         self.assertEqual(response.status_code, 201, response.content)
@@ -212,3 +212,44 @@ class VitalSignsFromThePatientHeaderTests(TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()["error"]["code"], "patient_not_found")
+
+
+class GlucoseToMmolCommandTests(TestCase):
+    """saude_glucose_to_mmol: stored mg/dL values become mmol/L (SI), once."""
+
+    def setUp(self):
+        self.tenant = bootstrap_tenant("glucose-si", modules=("saude", "hr"))
+        doctor = _employee(self.tenant, Person.objects.create(name="Ana", surname="Doctor"))
+        patient = _patient(self.tenant, "Maria")
+        self.records = [
+            DadoVital.objects.create(paciente=patient, employee=doctor, glicemia=mg_dl,
+                                     data=timezone.localdate(), **_audit(self.tenant))
+            for mg_dl in (90, 126, 34)
+        ]
+
+    def _values(self):
+        return [DadoVital.all_objects.get(pk=r.pk).glicemia for r in self.records]
+
+    def test_dry_run_changes_nothing(self):
+        from django.core.management import call_command
+
+        call_command("saude_glucose_to_mmol", stdout=open("/dev/null", "w"))
+
+        self.assertEqual([float(v) for v in self._values()], [90.0, 126.0, 34.0])
+
+    def test_apply_converts_to_mmol_per_litre(self):
+        from decimal import Decimal
+
+        from django.core.management import call_command
+
+        call_command("saude_glucose_to_mmol", "--apply", stdout=open("/dev/null", "w"))
+
+        self.assertEqual(self._values(), [Decimal("5.00"), Decimal("6.99"), Decimal("1.89")])
+
+    def test_a_second_run_is_refused(self):
+        from django.core.management import CommandError, call_command
+
+        call_command("saude_glucose_to_mmol", "--apply", stdout=open("/dev/null", "w"))
+
+        with self.assertRaises(CommandError):
+            call_command("saude_glucose_to_mmol", "--apply", stdout=open("/dev/null", "w"))

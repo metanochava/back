@@ -114,7 +114,7 @@ class DadoVital(BaseModel):
     frequencia_respiratoria = models.PositiveIntegerField(
         null=True,
         blank=True,
-        help_text="irpm"
+        help_text="rpm"
     )
 
     pulso = models.PositiveIntegerField(
@@ -142,7 +142,8 @@ class DadoVital(BaseModel):
         max_digits=5,
         decimal_places=2,
         null=True,
-        blank=True
+        blank=True,
+        help_text="mmol/L"
     )
 
     # the glucose value is read against the moment it was measured
