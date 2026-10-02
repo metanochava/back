@@ -253,3 +253,50 @@ class GlucoseToMmolCommandTests(TestCase):
 
         with self.assertRaises(CommandError):
             call_command("saude_glucose_to_mmol", "--apply", stdout=open("/dev/null", "w"))
+
+
+class VitalSignsHistoryTests(TestCase):
+    """GET dadovitals/history/?paciente= - the charts of the record dialog."""
+
+    def setUp(self):
+        self.tenant = bootstrap_tenant("vitals-history", modules=("saude", "hr"))
+        self.nurse = _employee(self.tenant, self.tenant["user"].person)
+        self.patient = _patient(self.tenant, "Maria")
+        for days_ago, systolic, glucose in ((2, 120, "5.4"), (0, 140, "7.2"), (1, 130, None)):
+            record = DadoVital.objects.create(paciente=self.patient, employee=self.nurse, ta_sistolica=systolic,
+                                              ta_diastolica=80, glicemia=glucose, **_audit(self.tenant))
+            # data/hora/created_at are set on creation: age the record by hand
+            DadoVital.objects.filter(pk=record.pk).update(created_at=record.created_at - timedelta(days=days_ago))
+
+    def test_points_oldest_first_with_units(self):
+        client = _client_with(self.tenant, ["view_dadovital"])
+
+        response = client.get(f"{URL}history/", {"paciente": str(self.patient.id)})
+
+        self.assertEqual(response.status_code, 200, response.content)
+        data = response.json()
+        self.assertEqual([p["ta_sistolica"] for p in data["points"]], [120.0, 130.0, 140.0])
+        self.assertEqual([p["glicemia"] for p in data["points"]], [5.4, None, 7.2])
+        self.assertEqual(data["units"]["glicemia"], "mmol/L")
+
+    def test_needs_view_dadovital(self):
+        client = _client_with(self.tenant, ["add_dadovital"])
+
+        self.assertEqual(client.get(f"{URL}history/", {"paciente": str(self.patient.id)}).status_code, 403)
+
+    def test_another_tenants_patient_gives_nothing(self):
+        other = bootstrap_tenant("vitals-history-other", modules=("saude", "hr"))
+        client = _client_with(other, ["view_dadovital"])
+
+        response = client.get(f"{URL}history/", {"paciente": str(self.patient.id)})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["points"], [])
+
+    def test_an_invalid_patient_is_400(self):
+        client = _client_with(self.tenant, ["view_dadovital"])
+
+        response = client.get(f"{URL}history/", {"paciente": "not-an-id"})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"]["code"], "patient_required")

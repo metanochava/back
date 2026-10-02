@@ -229,6 +229,45 @@ LABELS = {
 }
 UNITS = {field: unit for field, (_low, _high, unit) in LIMITS.items()}
 
+HISTORY_LIMIT = 100
+
+
+def history(queryset, paciente_id):
+    """A patient's recorded vital signs for the charts of the "record vital
+    signs" dialog: the latest HISTORY_LIMIT records, oldest first, numeric
+    measurements only. `queryset` is the view's scoped queryset (Entity /
+    Branch of the signed context), so another tenant's patient gives none."""
+    import uuid
+
+    try:
+        uuid.UUID(str(paciente_id))
+    except (TypeError, ValueError):
+        raise _bad("Choose the patient.", "patient_required", details={"paciente": ["Choose the patient."]})
+
+    rows = list(
+        # data/hora are auto_now_add: created_at is the moment of the record
+        queryset.filter(paciente_id=paciente_id).order_by("-created_at")[:HISTORY_LIMIT]
+    )
+    rows.reverse()
+
+    def number(value):
+        return None if value is None else float(value)
+
+    return {
+        "limit": HISTORY_LIMIT,
+        "units": UNITS,
+        "labels": {field: LABELS.get(field, field) for field in LIMITS},
+        "points": [
+            {
+                "id": str(r.id),
+                "date": timezone.localtime(r.created_at).date().isoformat(),
+                "time": timezone.localtime(r.created_at).strftime("%H:%M"),
+                **{field: number(getattr(r, field)) for field in LIMITS},
+            }
+            for r in rows
+        ],
+    }
+
 
 def _band(value, bands):
     for test, level, label in bands:
