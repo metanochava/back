@@ -407,3 +407,17 @@ class OperationalProfilesSeedTests(TestCase):
 
         self.assertEqual(report["permissions_missing"], {"Seed Probe": ["does_not_exist_xyz"]})
         self.assertFalse(Permission.objects.filter(codename="does_not_exist_xyz").exists())
+
+
+class QueueBadgeColumnsTest(SimpleTestCase):
+    """The reception/nursing queues colour Vital Signs and Status (column
+    `badge`, rendered by quasar_resaas's TableWidget). Every appointment
+    state needs its own colour - a new state must not fall back to grey."""
+
+    def test_every_appointment_state_has_a_status_colour(self):
+        from saude.dashboard_flow_providers import ESTADO_LABELS, QUEUE_COLUMNS
+
+        columns = {column["name"]: column for column in QUEUE_COLUMNS}
+
+        self.assertEqual(set(columns["status"]["badge"]), set(ESTADO_LABELS.values()))
+        self.assertEqual(set(columns["vital_signs"]["badge"]), {"Recorded", "Pending"})

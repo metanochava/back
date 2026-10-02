@@ -137,8 +137,18 @@ QUEUE_COLUMNS = [
     {"name": "doctor", "label": "Doctor"},
     {"name": "waiting", "label": "Waiting (min)"},
     {"name": "waiting_band", "label": "Waiting"},
-    {"name": "vital_signs", "label": "Vital Signs"},
-    {"name": "status", "label": "Status"},
+    # badge: the dashboard table shows these values as coloured labels
+    # (Quasar brand colours - they follow the Theme; any other value is grey)
+    {"name": "vital_signs", "label": "Vital Signs", "badge": {"Recorded": "positive", "Pending": "warning"}},
+    {"name": "status", "label": "Status", "badge": {
+        "Scheduled": "info",
+        "Confirmed": "primary",
+        "Waiting": "warning",
+        "In Progress": "accent",
+        "Completed": "positive",
+        "Cancelled": "negative",
+        "No-show": "grey-7",
+    }},
 ]
 
 
