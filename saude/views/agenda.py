@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from django_resaas.saas.core.decorators.action import resaas_action
 from django_resaas.saas.core.base.permissions import isPermited
-from django_resaas.saas.core.utils import fail
+from django_resaas.saas.core.exceptions import ResaasAPIException
 from django.utils import timezone
 
 from django_resaas.saas.core.base.views import BaseAPIView, registerView
@@ -108,7 +108,9 @@ class AgendaAPIView(BaseAPIView):
         if validated.get("estado") == appointment_flow.WAITING and not isPermited(
             request=self.request, role="check_in_agenda"
         ):
-            fail(self.request, "You are not allowed to check patients in.", status=403)
+            raise ResaasAPIException(
+                "You are not allowed to check patients in.", code="permission_denied", status_code=403
+            )
 
         # No doctor chosen yet (a "GERAL"-specialty booking, see Agenda.medico) -
         # nothing to check for overlap against. A walk-in joins the doctor's

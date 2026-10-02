@@ -1750,4 +1750,12 @@ key_value = {
     # consultation card (ConsultationCard)
     "Open consultation": "Abrir consulta",
     "No content recorded": "Sin contenido registrado",
+    # clinical summary, managed in place (ClinicalListCard)
+    "Add allergy": "Añadir alergia",
+    "Add condition": "Añadir enfermedad",
+    "Add medication": "Añadir medicación",
+    # calendars (doctor / reception dashboards)
+    "My Appointment Calendar": "Mi calendario de citas",
+    "Your appointments, 30 days back and 90 ahead. Click one to open the patient record.": "Sus citas, de los últimos 30 días a los próximos 90. Haga clic en una para abrir la ficha del paciente.",
+    "Every appointment of the unit, 30 days back and 90 ahead. Click one to open the patient record.": "Todas las citas de la unidad, de los últimos 30 días a los próximos 90. Haga clic en una para abrir la ficha del paciente.",
 }

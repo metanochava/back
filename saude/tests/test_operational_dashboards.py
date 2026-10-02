@@ -214,7 +214,9 @@ class AgendaFlowTimestampsTests(TestCase):
         self.assertIsNone(self.agenda.checked_in_at)
 
     def test_a_walk_in_created_as_waiting_is_checked_in(self):
-        response = self.tenant["client"].post("/api/saude/agendas/", {
+        # creating it already checked in needs check_in_agenda besides add_agenda
+        client = _client_with(self.tenant, ["add_agenda", "check_in_agenda"])
+        response = client.post("/api/saude/agendas/", {
             "paciente": str(self.agenda.paciente_id), "data": str(timezone.localdate()),
             "hora_inicio": "11:00:00", "estado": "em_espera",
         }, format="json")
@@ -326,6 +328,46 @@ class OperationalDashboardsTests(TestCase):
         rows = _widget(client, "saude_doctor", "my_queue").data["data"]["rows"]
         self.assertEqual({r["patient"] for r in rows}, {"Maria Flow", "Carlos Flow"})
         self.assertEqual({r["vital_signs"] for r in rows}, {"Recorded", "Pending"})
+
+    def test_doctor_calendar_shows_only_their_appointments_in_the_window(self):
+        today = timezone.localdate()
+        # mine, next week (listed) and far in the future (outside the window)
+        Agenda.objects.create(paciente=self.maria, medico=self.me, data=today + timedelta(days=7),
+                              hora_inicio="10:00", estado="marcada", **_audit(self.tenant))
+        Agenda.objects.create(paciente=self.maria, medico=self.me, data=today + timedelta(days=200),
+                              hora_inicio="10:00", estado="marcada", **_audit(self.tenant))
+        client = _client_with(self.tenant, DOCTOR)
+
+        data = _widget(client, "saude_doctor", "my_calendar").data["data"]
+
+        titles = sorted((e["start"][:10], e["title"]) for e in data["events"])
+        self.assertEqual(titles, sorted([
+            (str(today), "Maria Flow"), (str(today), "Carlos Flow"),          # today, mine (a colleague's and the cancelled one are not)
+            (str(today + timedelta(days=7)), "Maria Flow"),
+        ]))
+        waiting = next(e for e in data["events"] if e["title"] == "Carlos Flow")
+        self.assertEqual((waiting["status"], waiting["status_color"]), ("Waiting", "warning"))
+        self.assertEqual(waiting["paciente_id"], str(self.carlos.id))
+
+    def test_reception_calendar_shows_every_doctor_of_the_unit(self):
+        client = _client_with(self.tenant, RECEPTION)
+
+        events = _widget(client, "saude_reception", "reception_calendar").data["data"]["events"]
+
+        me = self.me.person.full_name
+        self.assertEqual(sorted(e["title"] for e in events), sorted([
+            f"Carlos Flow — {me}", f"Maria Flow — {me}", "Rui Flow — Other Doctor",
+        ]))  # the cancelled one is not listed
+
+    def test_doctor_calendar_is_tenant_scoped(self):
+        other = bootstrap_tenant("flow-dash-other", modules=("saude", "hr"))
+        Agenda.objects.create(paciente=_patient(other, "Ana"), medico=self.me, data=timezone.localdate(),
+                              hora_inicio="08:00", estado="marcada", **_audit(other))
+        client = _client_with(self.tenant, DOCTOR)
+
+        events = _widget(client, "saude_doctor", "my_calendar").data["data"]["events"]
+
+        self.assertNotIn("Ana Flow", [e["title"] for e in events])
 
     def test_doctor_recent_results_are_only_released_ones_of_their_requests(self):
         consulta = Consulta.objects.create(paciente=self.maria, employee=self.me, **_audit(self.tenant))

@@ -740,4 +740,12 @@ key_value = {
     # consultation card (ConsultationCard)
     "Open consultation": "Open consultation",
     "No content recorded": "No content recorded",
+    # clinical summary, managed in place (ClinicalListCard)
+    "Add allergy": "Add allergy",
+    "Add condition": "Add condition",
+    "Add medication": "Add medication",
+    # calendars (doctor / reception dashboards)
+    "My Appointment Calendar": "My Appointment Calendar",
+    "Your appointments, 30 days back and 90 ahead. Click one to open the patient record.": "Your appointments, 30 days back and 90 ahead. Click one to open the patient record.",
+    "Every appointment of the unit, 30 days back and 90 ahead. Click one to open the patient record.": "Every appointment of the unit, 30 days back and 90 ahead. Click one to open the patient record.",
 }

@@ -80,6 +80,7 @@ even listed). Providers: `saude/dashboard_flow_providers.py`.
 | | `waiting_now` | stat | `view_agenda` | today's appointments in `em_espera` |
 | | `average_waiting` | stat | `view_agenda` | average check-in -> service start, today (minutes) |
 | | `reception_queue` | table | `view_agenda` | today's appointments by scheduled time; row actions: check in (`check_in_agenda`, scheduled/confirmed rows), check out (`check_out_agenda`, waiting/in-progress rows), open patient (`view_paciente`); toolbar: register patient (`add_paciente`) |
+| | `reception_calendar` | calendar | `view_agenda` | every appointment of the unit (all doctors, "patient — doctor"), 30 days back and 90 ahead, cancelled excluded; status colours as the queue badges; click → patient record (`view_paciente`) |
 | Nursing | `waiting_now` | stat | `view_agenda` | as above |
 | | `vitals_pending` | stat | `view_agenda` + `view_dadovital` | waiting, no vital signs since check-in |
 | | `ready_for_doctor` | stat | `view_agenda` + `view_dadovital` | waiting, vital signs recorded |
@@ -90,6 +91,7 @@ even listed). Providers: `saude/dashboard_flow_providers.py`.
 | | `completed_today` | stat | `view_agenda` | the user's appointments `concluida` today |
 | | `pending_exams` | stat | `view_pedidoexamemedico` | open exam items (`pendente`, `agendado`, `colhido`, `processamento`) from the user's consultations |
 | | `my_queue` | table | `view_agenda` | the user's appointments today that are not closed |
+| | `my_calendar` | calendar | `view_agenda` | the signed-in doctor's appointments (`Agenda.medico` → `Person.user`), 30 days back and 90 ahead, cancelled excluded; click → patient record (`view_paciente`) |
 | | `recent_results` | list | `view_resultadoexamemedico` | **released** results (`released=True`) of exams the user requested, last 7 days; recorded or only validated results are never listed |
 
 | Laboratory | `requests_today` | stat | `view_pedidoexamemedico` | requests created today (both origins) |
@@ -784,6 +786,24 @@ views' `perform_update`: `PATCH` and `PUT`).
   banner and disables saving.
 - Tests: `saude/tests/test_document_edit_policy.py`.
 
+### Clinical Summary: allergies, conditions, medication in place
+
+In the patient record's **Clinical Summary**, current allergies
+(`alergiacorrentes`), conditions (`doencacorrentes`) and medication
+(`medicacaocorrentes`) are managed in the card itself
+(`ClinicalListCard.vue`), instead of a link to their list pages:
+
+| Action | How | Permission (UX; the backend enforces it) |
+|---|---|---|
+| Add | type the name, Enter / + → `POST <endpoint>/ {nome, paciente}` | `add_<model>` |
+| Rename | click the item → `PATCH <endpoint>/{id}/ {nome}` | `change_<model>` |
+| Remove | the chip's × → `DELETE <endpoint>/{id}/` (soft delete) | `delete_<model>` |
+
+The patient is validated against the tenant by the serializer (another
+Entity's patient → 400 `paciente: Does not belong to the current entity`).
+Their three entries left the sidebar (`saude/sidebar.py`): the list pages and
+the API still exist. Tests: `saude/tests/test_clinical_summary.py`.
+
 ### Recent consultations: PDF, edit, linked documents
 
 **Recent Consultations** — in the patient record and on the saude dashboard
@@ -807,6 +827,11 @@ saude dashboard `DashBoarde`) has three actions
 | PDF | the consultation PDF in the PDF modal (`ConsultaStore.getPdf`) | always | `pdf_consulta` |
 | Edit | opens `change_consulta` | `change_consulta` + author within the edit window (`canEditDocument`) | `change_consulta`, `403 not_document_author`, `409 edit_window_expired` |
 | Linked documents | a modal (`ConsultationDocumentsDialog.vue`) with the prescriptions, medical certificates, referrals, medical reports and exam requests of that consultation, each with its PDF | always; each section only with `list_<model>` | `list_<model>` per section, tenant scope |
+
+The consultation page (`view_consulta`, `ConsultaVPage`) shows the same: the
+consultation in full (`ConsultationCard`, with PDF and edit) and, beside it, the
+linked documents with their PDFs (`ConsultationDocumentsList`, the list the
+dialog also uses).
 
 No new endpoint: the dialog reads the existing lists filtered by
 `?consulta=<id>` (BaseAPIView's automatic filters), e.g.
