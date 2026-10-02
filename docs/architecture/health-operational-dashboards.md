@@ -156,6 +156,27 @@ editing its state:
 - A free `PATCH` of `estado` (edit appointment dialog) still works as before.
   It is not limited to these transitions yet.
 
+### Book now (walk-in)
+
+The patient is already at the unit: the booking dialog's **Now** switch
+(step *Date and Time*, shown only with `check_in_agenda`) books and checks in
+in one step, so the patient goes straight to the nursing queue, waiting for
+vital signs.
+
+`POST /api/saude/agendas/` with `"immediate": true` (a write-only serializer
+field, not a model field) — **PROTECTED**: `add_agenda` (BaseAPIView) **and**
+`check_in_agenda`:
+
+- The server sets `data` = today, `hora_inicio` = now (minutes), `hora_fim` =
+  none and `estado` = `em_espera`, whatever the client sent; `checked_in_at` is
+  stamped by `appointment_flow.stamp_transition`.
+- No time-slot overlap check: a walk-in joins the doctor's queue, it does not
+  reserve a slot (a normal booking is still checked).
+- Creating an appointment directly as `em_espera` (immediate or the status
+  chosen by hand) without `check_in_agenda` is `403` and nothing is created —
+  the check-in permission cannot be bypassed through `add_agenda`.
+- Tests: `saude/tests/test_reception_flow.py` (`BookNowTests`).
+
 Metrics (`saude/services/appointment_flow.py`):
 
 - **Waiting time** = `checked_in_at -> service_started_at`, or up to now while
@@ -592,6 +613,23 @@ visit), `temperatura_local` (axillary/oral/tympanic/rectal) and
 `glicemia_momento` (fasting/postprandial/random). Existing rows are
 unchanged.
 
+**Units (International System).** Weight kg, height m, waist circumference cm,
+temperature °C, heart rate and pulse bpm, respiratory rate rpm, SpO₂ %, and
+**blood glucose mmol/L** (SI). Blood pressure stays in **mmHg**, the unit the
+SI (ISO 80000) accepts for blood pressure and the one every
+sphygmomanometer shows. The units, the physiological limits
+(`vital_signs_service.LIMITS`, also served to the dialog as `limits`) and the
+clinical bands (`status_of`; mirrored in the frontend's `vitalSigns.js`) are
+in these units: glucose hypoglycaemia < 3.9 (critical < 3.0), fasting
+5.6 / 7.0, random 7.8 / 11.1, critical > 22.2 mmol/L.
+
+Glucose used to be recorded in mg/dL. **Upgrading an environment:** deploy,
+then run once `python manage.py saude_glucose_to_mmol` (dry run: lists the
+conversions) and `... --apply` (mmol/L = mg/dL ÷ 18.016, 2 decimals, one
+transaction). It refuses a second run: when no stored value is above 33 the
+values already look like mmol/L (`--force` overrides). Laboratory exams keep
+their own units (the exam catalogue's "Glicose" parameter is still mg/dL).
+
 For a queue, an appointment's vital signs count as **recorded** when a
 `DadoVital` is linked to it (`agenda`). Older records without that link fall
 back to the previous rule: a record of the patient created **after the
@@ -745,6 +783,36 @@ views' `perform_update`: `PATCH` and `PUT`).
   documents that can no longer be edited. `ConsultaSEPage` shows a read-only
   banner and disables saving.
 - Tests: `saude/tests/test_document_edit_policy.py`.
+
+### Recent consultations: PDF, edit, linked documents
+
+**Recent Consultations** — in the patient record and on the saude dashboard
+(`DashBoarde`, with the patient's name: `show-patient`) — shows each
+consultation in full (`ConsultationCard.vue`): date, doctor and its three sections — chief complaint
+and history, diagnosis, plan (empty ones hidden) — so they can be read without
+opening each one. The rich text is shown through `clinicalHtml.js`
+(`sanitizeClinicalHtml`): an allowlist of the editor's formatting tags, with
+every attribute removed and `script`/`iframe`/`svg`... dropped.
+Every `v-html` of user-written clinical text in `dev/front` goes through it:
+prescription notes, exam request instructions/notes (request page, item page,
+`ExameCard`) and the laboratory report (`AddResultadoModal`). Shown raw,
+HTML typed into those fields could run in the browser of whoever opens them.
+
+Each consultation of **Recent Consultations** (patient record `PacienteVPage`,
+saude dashboard `DashBoarde`) has three actions
+(`pages/saude/components/ConsultationActions.vue`):
+
+| Action | What | Shown when (UX) | Enforced by the backend |
+|---|---|---|---|
+| PDF | the consultation PDF in the PDF modal (`ConsultaStore.getPdf`) | always | `pdf_consulta` |
+| Edit | opens `change_consulta` | `change_consulta` + author within the edit window (`canEditDocument`) | `change_consulta`, `403 not_document_author`, `409 edit_window_expired` |
+| Linked documents | a modal (`ConsultationDocumentsDialog.vue`) with the prescriptions, medical certificates, referrals, medical reports and exam requests of that consultation, each with its PDF | always; each section only with `list_<model>` | `list_<model>` per section, tenant scope |
+
+No new endpoint: the dialog reads the existing lists filtered by
+`?consulta=<id>` (BaseAPIView's automatic filters), e.g.
+`GET /api/saude/receitamedicas/?consulta=<id>`. A section the backend refuses
+is left out. An id of another Entity's consultation returns nothing. Tests:
+`saude/tests/test_consultation_documents.py`.
 
 ### Patient card PDF
 

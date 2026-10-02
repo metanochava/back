@@ -1734,4 +1734,20 @@ key_value = {
     'Record report': 'Enregistrer le compte rendu',
     'Save report': 'Enregistrer le compte rendu',
     'No exams in this request.': 'Cette demande ne contient aucun examen.',
+    "You are not allowed to check patients in.": "Vous n'avez pas l'autorisation d'enregistrer l'arrivée des patients.",
+    # book now (AgendaConsultaDialog)
+    "Now: the patient is here": "Maintenant : le patient est présent",
+    "The appointment is for today at the current time, already checked in: the patient waits for vital signs.": "Le rendez-vous est pour aujourd'hui, à l'heure actuelle, arrivée déjà enregistrée : le patient attend la prise des signes vitaux.",
+    "When": "Quand",
+    "Checked in, waiting for vital signs": "Arrivée enregistrée, en attente des signes vitaux",
+    "Check in now": "Enregistrer l'arrivée maintenant",
+    # consultation actions (ConsultationActions / ConsultationDocumentsDialog)
+    "Consultation documents": "Documents de la consultation",
+    "No document linked to this consultation": "Aucun document lié à cette consultation",
+    "Referrals": "Lettres de transfert",
+    "Consultation PDF": "PDF de la consultation",
+    "Linked documents": "Documents liés",
+    # consultation card (ConsultationCard)
+    "Open consultation": "Ouvrir la consultation",
+    "No content recorded": "Aucun contenu enregistré",
 }

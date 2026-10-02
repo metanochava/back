@@ -1734,4 +1734,20 @@ key_value = {
     'Record report': 'Registar relatório',
     'Save report': 'Guardar relatório',
     'No exams in this request.': 'Este pedido não tem exames.',
+    "You are not allowed to check patients in.": "Não tem permissão para fazer o check-in de pacientes.",
+    # book now (AgendaConsultaDialog)
+    "Now: the patient is here": "Agora: o paciente está presente",
+    "The appointment is for today at the current time, already checked in: the patient waits for vital signs.": "A marcação fica para hoje, à hora actual, com o check-in já feito: o paciente aguarda a colheita dos sinais vitais.",
+    "When": "Quando",
+    "Checked in, waiting for vital signs": "Check-in feito, a aguardar sinais vitais",
+    "Check in now": "Fazer check-in agora",
+    # consultation actions (ConsultationActions / ConsultationDocumentsDialog)
+    "Consultation documents": "Documentos da consulta",
+    "No document linked to this consultation": "Nenhum documento associado a esta consulta",
+    "Referrals": "Guias de transferência",
+    "Consultation PDF": "PDF da consulta",
+    "Linked documents": "Documentos associados",
+    # consultation card (ConsultationCard)
+    "Open consultation": "Abrir consulta",
+    "No content recorded": "Sem conteúdo registado",
 }
