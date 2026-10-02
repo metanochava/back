@@ -121,3 +121,78 @@ class ReceptionCheckInOutTests(TestCase):
         )
 
         self.assertEqual([a["name"] for a in widget["row_actions"]], ["view_patient"])
+
+
+class BookNowTests(TestCase):
+    """POST agendas/ with immediate=true ("Now"): the patient is here - the
+    appointment is for today at the current time, already checked in, and
+    waits in the nursing queue for vital signs. The server decides date,
+    time and state; the check-in permission is required besides add_agenda."""
+
+    def setUp(self):
+        self.tenant = bootstrap_tenant("book-now", modules=("saude", "hr"))
+        self.doctor = _employee(self.tenant, Person.objects.create(name="Ana", surname="Doctor"))
+        self.patient = _patient(self.tenant, "Maria")
+        self.client = _client_with(self.tenant, FRONT_DESK + ["add_agenda"])
+
+    def _book_now(self, client=None, **extra):
+        payload = {
+            "paciente": str(self.patient.id), "medico": str(self.doctor.id),
+            "data": "2020-01-01", "hora_inicio": "03:00", "estado": "marcada",   # ignored: now wins
+            "immediate": True, **extra,
+        }
+        return (client or self.client).post(URL, payload, format="json")
+
+    def test_book_now_checks_the_patient_in_today(self):
+        response = self._book_now()
+
+        self.assertEqual(response.status_code, 201, response.content)
+        agenda = Agenda.objects.get(id=response.json()["id"])
+        self.assertEqual(agenda.estado, "em_espera")
+        self.assertEqual(agenda.data, timezone.localdate())
+        self.assertIsNotNone(agenda.checked_in_at)
+        self.assertLess(abs((timezone.now() - agenda.checked_in_at).total_seconds()), 120)
+
+    def test_the_patient_waits_for_vital_signs_in_the_nursing_queue(self):
+        from saude.tests.test_operational_dashboards import NURSING
+
+        self._book_now()
+        nursing = _client_with(self.tenant, NURSING)
+
+        rows = nursing.get(
+            "/api/django_resaas/dashboard/saude_nursing/widget/nursing_queue/"
+        ).json()["data"]["rows"]
+
+        self.assertEqual([(r["patient"], r["vital_signs"]) for r in rows], [("Maria Flow", "Pending")])
+
+    def test_book_now_does_not_need_a_free_time_slot(self):
+        """A walk-in joins the doctor's queue, it does not reserve a slot."""
+        now = timezone.localtime()
+        _appointment(self.tenant, _patient(self.tenant, "Rui"), self.doctor, "marcada",
+                     hora=now.time().replace(second=0, microsecond=0))
+
+        self.assertEqual(self._book_now().status_code, 201)
+
+    def test_book_now_needs_the_check_in_permission(self):
+        client = _client_with(self.tenant, RECEPTION + ["add_agenda"])
+
+        response = self._book_now(client)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Agenda.objects.filter(paciente=self.patient).exists())
+
+    def test_creating_an_appointment_as_waiting_needs_it_too(self):
+        client = _client_with(self.tenant, RECEPTION + ["add_agenda"])
+
+        response = self._book_now(client, immediate=False, data=str(timezone.localdate()),
+                                  hora_inicio="10:00", estado="em_espera")
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_a_normal_booking_is_unchanged(self):
+        response = self._book_now(immediate=False, data=str(timezone.localdate() + timedelta(days=1)),
+                                  hora_inicio="10:00", estado="marcada")
+
+        self.assertEqual(response.status_code, 201, response.content)
+        agenda = Agenda.objects.get(id=response.json()["id"])
+        self.assertEqual((agenda.estado, agenda.checked_in_at), ("marcada", None))

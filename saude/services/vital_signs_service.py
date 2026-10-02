@@ -34,7 +34,8 @@ LIMITS = {
     "saturacao_oxigenio": (50, 100, "%"),
     "ta_sistolica": (50, 300, "mmHg"),
     "ta_diastolica": (20, 200, "mmHg"),
-    "glicemia": (Decimal("10"), Decimal("1000"), "mg/dL"),
+    # SI: mmol/L (mg/dL ÷ 18.016)
+    "glicemia": (Decimal("0.5"), Decimal("55.5"), "mmol/L"),
     "dor": (0, 10, ""),
     "glasgow": (3, 15, ""),
 }
@@ -237,21 +238,23 @@ def _band(value, bands):
 
 
 def _glucose(value, values):
-    if value < 54:
+    # mmol/L (SI). The usual mg/dL cut-offs: 54, 70, 400; fasting 100/126;
+    # random 140/200.
+    if value < 3.0:
         return {"level": "critical", "label": "Hypoglycaemia"}
-    if value < 70:
+    if value < 3.9:
         return {"level": "warning", "label": "Hypoglycaemia"}
-    if value > 400:
+    if value > 22.2:
         return {"level": "critical", "label": "Severe hyperglycaemia"}
     if values.get("glicemia_momento") == "jejum":
-        if value >= 126:
+        if value >= 7.0:
             return {"level": "warning", "label": "Hyperglycaemia"}
-        if value >= 100:
+        if value >= 5.6:
             return {"level": "attention", "label": "Impaired fasting glucose"}
     else:
-        if value >= 200:
+        if value >= 11.1:
             return {"level": "warning", "label": "Hyperglycaemia"}
-        if value >= 140:
+        if value >= 7.8:
             return {"level": "attention", "label": "Elevated"}
     return {"level": "normal", "label": ""}
 

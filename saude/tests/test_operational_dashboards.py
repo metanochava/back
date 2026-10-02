@@ -16,7 +16,7 @@ from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from django_resaas.hr.models.employee import Employee
+from hr.models.employee import Employee
 from django_resaas.saas.core.tenant.context import ResaasContextService
 from django_resaas.saas.core.utils.group_creator import group_creator
 from django_resaas.saas.models.branch_user_group import BranchUserGroup
@@ -214,7 +214,9 @@ class AgendaFlowTimestampsTests(TestCase):
         self.assertIsNone(self.agenda.checked_in_at)
 
     def test_a_walk_in_created_as_waiting_is_checked_in(self):
-        response = self.tenant["client"].post("/api/saude/agendas/", {
+        # creating it already checked in needs check_in_agenda besides add_agenda
+        client = _client_with(self.tenant, ["add_agenda", "check_in_agenda"])
+        response = client.post("/api/saude/agendas/", {
             "paciente": str(self.agenda.paciente_id), "data": str(timezone.localdate()),
             "hora_inicio": "11:00:00", "estado": "em_espera",
         }, format="json")
@@ -327,6 +329,46 @@ class OperationalDashboardsTests(TestCase):
         self.assertEqual({r["patient"] for r in rows}, {"Maria Flow", "Carlos Flow"})
         self.assertEqual({r["vital_signs"] for r in rows}, {"Recorded", "Pending"})
 
+    def test_doctor_calendar_shows_only_their_appointments_in_the_window(self):
+        today = timezone.localdate()
+        # mine, next week (listed) and far in the future (outside the window)
+        Agenda.objects.create(paciente=self.maria, medico=self.me, data=today + timedelta(days=7),
+                              hora_inicio="10:00", estado="marcada", **_audit(self.tenant))
+        Agenda.objects.create(paciente=self.maria, medico=self.me, data=today + timedelta(days=200),
+                              hora_inicio="10:00", estado="marcada", **_audit(self.tenant))
+        client = _client_with(self.tenant, DOCTOR)
+
+        data = _widget(client, "saude_doctor", "my_calendar").data["data"]
+
+        titles = sorted((e["start"][:10], e["title"]) for e in data["events"])
+        self.assertEqual(titles, sorted([
+            (str(today), "Maria Flow"), (str(today), "Carlos Flow"),          # today, mine (a colleague's and the cancelled one are not)
+            (str(today + timedelta(days=7)), "Maria Flow"),
+        ]))
+        waiting = next(e for e in data["events"] if e["title"] == "Carlos Flow")
+        self.assertEqual((waiting["status"], waiting["status_color"]), ("Waiting", "warning"))
+        self.assertEqual(waiting["paciente_id"], str(self.carlos.id))
+
+    def test_reception_calendar_shows_every_doctor_of_the_unit(self):
+        client = _client_with(self.tenant, RECEPTION)
+
+        events = _widget(client, "saude_reception", "reception_calendar").data["data"]["events"]
+
+        me = self.me.person.full_name
+        self.assertEqual(sorted(e["title"] for e in events), sorted([
+            f"Carlos Flow — {me}", f"Maria Flow — {me}", "Rui Flow — Other Doctor",
+        ]))  # the cancelled one is not listed
+
+    def test_doctor_calendar_is_tenant_scoped(self):
+        other = bootstrap_tenant("flow-dash-other", modules=("saude", "hr"))
+        Agenda.objects.create(paciente=_patient(other, "Ana"), medico=self.me, data=timezone.localdate(),
+                              hora_inicio="08:00", estado="marcada", **_audit(other))
+        client = _client_with(self.tenant, DOCTOR)
+
+        events = _widget(client, "saude_doctor", "my_calendar").data["data"]["events"]
+
+        self.assertNotIn("Ana Flow", [e["title"] for e in events])
+
     def test_doctor_recent_results_are_only_released_ones_of_their_requests(self):
         consulta = Consulta.objects.create(paciente=self.maria, employee=self.me, **_audit(self.tenant))
         pedido = PedidoExameMedico.objects.create(consulta=consulta, **_audit(self.tenant))
@@ -407,3 +449,17 @@ class OperationalProfilesSeedTests(TestCase):
 
         self.assertEqual(report["permissions_missing"], {"Seed Probe": ["does_not_exist_xyz"]})
         self.assertFalse(Permission.objects.filter(codename="does_not_exist_xyz").exists())
+
+
+class QueueBadgeColumnsTest(SimpleTestCase):
+    """The reception/nursing queues colour Vital Signs and Status (column
+    `badge`, rendered by quasar_resaas's TableWidget). Every appointment
+    state needs its own colour - a new state must not fall back to grey."""
+
+    def test_every_appointment_state_has_a_status_colour(self):
+        from saude.dashboard_flow_providers import ESTADO_LABELS, QUEUE_COLUMNS
+
+        columns = {column["name"]: column for column in QUEUE_COLUMNS}
+
+        self.assertEqual(set(columns["status"]["badge"]), set(ESTADO_LABELS.values()))
+        self.assertEqual(set(columns["vital_signs"]["badge"]), {"Recorded", "Pending"})

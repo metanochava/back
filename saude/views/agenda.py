@@ -6,9 +6,12 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.response import Response
 
 from django_resaas.saas.core.decorators.action import resaas_action
+from django_resaas.saas.core.base.permissions import isPermited
+from django_resaas.saas.core.exceptions import ResaasAPIException
+from django.utils import timezone
 
 from django_resaas.saas.core.base.views import BaseAPIView, registerView
-from django_resaas.hr.models.employee import Employee
+from hr.models.employee import Employee
 
 from saude.models.agenda import Agenda
 from saude.services import appointment_flow
@@ -90,9 +93,29 @@ class AgendaAPIView(BaseAPIView):
         validated = serializer.validated_data
         medico = validated.get("medico")
 
+        # "Book now" (walk-in): today, now, checked in - the server decides
+        # date, time and state, whatever the client sent.
+        immediate = validated.pop("immediate", False)
+        if immediate:
+            now = timezone.localtime()
+            validated["data"] = now.date()
+            validated["hora_inicio"] = now.time().replace(second=0, microsecond=0)
+            validated["hora_fim"] = None
+            validated["estado"] = appointment_flow.WAITING
+
+        # Created already checked in (book now, or a "waiting" state chosen by
+        # hand): the check-in permission is required too, not only add_agenda.
+        if validated.get("estado") == appointment_flow.WAITING and not isPermited(
+            request=self.request, role="check_in_agenda"
+        ):
+            raise ResaasAPIException(
+                "You are not allowed to check patients in.", code="permission_denied", status_code=403
+            )
+
         # No doctor chosen yet (a "GERAL"-specialty booking, see Agenda.medico) -
-        # nothing to check for overlap against.
-        if medico:
+        # nothing to check for overlap against. A walk-in joins the doctor's
+        # queue: it does not reserve a time slot, so it is not checked either.
+        if medico and not immediate:
             try:
                 _assert_no_overlap(
                     medico_id=medico.id,
@@ -112,6 +135,7 @@ class AgendaAPIView(BaseAPIView):
     def perform_update(self, serializer):
         instance = serializer.instance
         validated = serializer.validated_data
+        validated.pop("immediate", None)  # only meaningful when booking
 
         # Só revalida sobreposição se um campo de horário/médico está
         # mesmo a mudar - um PATCH que só altera "estado" (ex.:

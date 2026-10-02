@@ -723,4 +723,29 @@ key_value = {
     'Record report': 'Record report',
     'Save report': 'Save report',
     'No exams in this request.': 'No exams in this request.',
+    "You are not allowed to check patients in.": "You are not allowed to check patients in.",
+    # book now (AgendaConsultaDialog)
+    "Now: the patient is here": "Now: the patient is here",
+    "The appointment is for today at the current time, already checked in: the patient waits for vital signs.": "The appointment is for today at the current time, already checked in: the patient waits for vital signs.",
+    "When": "When",
+    "Checked in, waiting for vital signs": "Checked in, waiting for vital signs",
+    "Check in now": "Check in now",
+    "Now": "Now",
+    # consultation actions (ConsultationActions / ConsultationDocumentsDialog)
+    "Consultation documents": "Consultation documents",
+    "No document linked to this consultation": "No document linked to this consultation",
+    "Referrals": "Referrals",
+    "Consultation PDF": "Consultation PDF",
+    "Linked documents": "Linked documents",
+    # consultation card (ConsultationCard)
+    "Open consultation": "Open consultation",
+    "No content recorded": "No content recorded",
+    # clinical summary, managed in place (ClinicalListCard)
+    "Add allergy": "Add allergy",
+    "Add condition": "Add condition",
+    "Add medication": "Add medication",
+    # calendars (doctor / reception dashboards)
+    "My Appointment Calendar": "My Appointment Calendar",
+    "Your appointments, 30 days back and 90 ahead. Click one to open the patient record.": "Your appointments, 30 days back and 90 ahead. Click one to open the patient record.",
+    "Every appointment of the unit, 30 days back and 90 ahead. Click one to open the patient record.": "Every appointment of the unit, 30 days back and 90 ahead. Click one to open the patient record.",
 }

@@ -17,7 +17,7 @@ from django_resaas.saas.core.tenant.context import ResaasContextService
 from django_resaas.saas.models.branch_user_group import BranchUserGroup
 from django_resaas.saas.models.group import Group
 from django_resaas.saas.models.person import Person
-from django_resaas.hr.models.employee import Employee
+from hr.models.employee import Employee
 
 from farmacia.models import Dispensa, FilaFarmacia
 from saude.models.consulta import Consulta

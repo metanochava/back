@@ -6,8 +6,8 @@ from saude.models.medico import Medico
 
 from django_resaas.saas.core.utils.translate import Translate
 
-from django_resaas.hr.models.specialty import Specialty
-from django_resaas.hr.models.employee_specialty import EmployeeSpecialty
+from hr.models.specialty import Specialty
+from hr.models.employee_specialty import EmployeeSpecialty
 
 
 class MedicoSerializer(BaseSerializer):

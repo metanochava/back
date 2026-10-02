@@ -28,8 +28,8 @@ from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import status
 
-from django_resaas.hr.models.employee import Employee
-from django_resaas.hr.models.employee_specialty import EmployeeSpecialty
+from hr.models.employee import Employee
+from hr.models.employee_specialty import EmployeeSpecialty
 from django_resaas.saas.core.events import EventDispatcher
 from django_resaas.saas.core.exceptions import ConflictError, ResaasAPIException
 from django_resaas.saas.core.services.site_service import site_host

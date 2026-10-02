@@ -1734,4 +1734,28 @@ key_value = {
     'Record report': 'Registrar informe',
     'Save report': 'Guardar informe',
     'No exams in this request.': 'Esta solicitud no tiene exámenes.',
+    "You are not allowed to check patients in.": "No tiene permiso para registrar la llegada de pacientes.",
+    # book now (AgendaConsultaDialog)
+    "Now: the patient is here": "Ahora: el paciente está presente",
+    "The appointment is for today at the current time, already checked in: the patient waits for vital signs.": "La cita queda para hoy, a la hora actual, con la llegada ya registrada: el paciente espera la toma de signos vitales.",
+    "When": "Cuándo",
+    "Checked in, waiting for vital signs": "Llegada registrada, esperando signos vitales",
+    "Check in now": "Registrar llegada ahora",
+    # consultation actions (ConsultationActions / ConsultationDocumentsDialog)
+    "Consultation documents": "Documentos de la consulta",
+    "No document linked to this consultation": "Ningún documento vinculado a esta consulta",
+    "Referrals": "Derivaciones",
+    "Consultation PDF": "PDF de la consulta",
+    "Linked documents": "Documentos vinculados",
+    # consultation card (ConsultationCard)
+    "Open consultation": "Abrir consulta",
+    "No content recorded": "Sin contenido registrado",
+    # clinical summary, managed in place (ClinicalListCard)
+    "Add allergy": "Añadir alergia",
+    "Add condition": "Añadir enfermedad",
+    "Add medication": "Añadir medicación",
+    # calendars (doctor / reception dashboards)
+    "My Appointment Calendar": "Mi calendario de citas",
+    "Your appointments, 30 days back and 90 ahead. Click one to open the patient record.": "Sus citas, de los últimos 30 días a los próximos 90. Haga clic en una para abrir la ficha del paciente.",
+    "Every appointment of the unit, 30 days back and 90 ahead. Click one to open the patient record.": "Todas las citas de la unidad, de los últimos 30 días a los próximos 90. Haga clic en una para abrir la ficha del paciente.",
 }

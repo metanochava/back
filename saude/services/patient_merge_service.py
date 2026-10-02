@@ -4,7 +4,7 @@ from django.db import transaction
 from django_resaas.saas.core.events import EventDispatcher
 from django_resaas.saas.models.person import Person
 from django_resaas.saas.models.user import User
-from django_resaas.hr.models.employee import Employee
+from hr.models.employee import Employee
 
 from saude.models.consent_grant import ConsentGrant
 from saude.models.emergency_access import EmergencyAccess

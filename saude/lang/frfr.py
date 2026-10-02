@@ -1734,4 +1734,28 @@ key_value = {
     'Record report': 'Enregistrer le compte rendu',
     'Save report': 'Enregistrer le compte rendu',
     'No exams in this request.': 'Cette demande ne contient aucun examen.',
+    "You are not allowed to check patients in.": "Vous n'avez pas l'autorisation d'enregistrer l'arrivée des patients.",
+    # book now (AgendaConsultaDialog)
+    "Now: the patient is here": "Maintenant : le patient est présent",
+    "The appointment is for today at the current time, already checked in: the patient waits for vital signs.": "Le rendez-vous est pour aujourd'hui, à l'heure actuelle, arrivée déjà enregistrée : le patient attend la prise des signes vitaux.",
+    "When": "Quand",
+    "Checked in, waiting for vital signs": "Arrivée enregistrée, en attente des signes vitaux",
+    "Check in now": "Enregistrer l'arrivée maintenant",
+    # consultation actions (ConsultationActions / ConsultationDocumentsDialog)
+    "Consultation documents": "Documents de la consultation",
+    "No document linked to this consultation": "Aucun document lié à cette consultation",
+    "Referrals": "Lettres de transfert",
+    "Consultation PDF": "PDF de la consultation",
+    "Linked documents": "Documents liés",
+    # consultation card (ConsultationCard)
+    "Open consultation": "Ouvrir la consultation",
+    "No content recorded": "Aucun contenu enregistré",
+    # clinical summary, managed in place (ClinicalListCard)
+    "Add allergy": "Ajouter une allergie",
+    "Add condition": "Ajouter une maladie",
+    "Add medication": "Ajouter un médicament",
+    # calendars (doctor / reception dashboards)
+    "My Appointment Calendar": "Mon calendrier des rendez-vous",
+    "Your appointments, 30 days back and 90 ahead. Click one to open the patient record.": "Vos rendez-vous, des 30 derniers jours aux 90 prochains. Cliquez sur l'un d'eux pour ouvrir le dossier du patient.",
+    "Every appointment of the unit, 30 days back and 90 ahead. Click one to open the patient record.": "Tous les rendez-vous de l'unité, des 30 derniers jours aux 90 prochains. Cliquez sur l'un d'eux pour ouvrir le dossier du patient.",
 }

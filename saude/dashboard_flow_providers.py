@@ -137,8 +137,18 @@ QUEUE_COLUMNS = [
     {"name": "doctor", "label": "Doctor"},
     {"name": "waiting", "label": "Waiting (min)"},
     {"name": "waiting_band", "label": "Waiting"},
-    {"name": "vital_signs", "label": "Vital Signs"},
-    {"name": "status", "label": "Status"},
+    # badge: the dashboard table shows these values as coloured labels
+    # (Quasar brand colours - they follow the Theme; any other value is grey)
+    {"name": "vital_signs", "label": "Vital Signs", "badge": {"Recorded": "positive", "Pending": "warning"}},
+    {"name": "status", "label": "Status", "badge": {
+        "Scheduled": "info",
+        "Confirmed": "primary",
+        "Waiting": "warning",
+        "In Progress": "accent",
+        "Completed": "positive",
+        "Cancelled": "negative",
+        "No-show": "grey-7",
+    }},
 ]
 
 
@@ -308,6 +318,67 @@ class DoctorMyQueueProvider(FlowProvider):
             "rows": self.queue_rows(agendas, timezone.now()),
             "pagination": pagination,
         }
+
+
+CALENDAR_DAYS_BEFORE = 30
+CALENDAR_DAYS_AFTER = 90
+
+
+class AppointmentCalendarProvider(FlowProvider):
+    """Appointments as calendar events (30 days back, 90 ahead, cancelled
+    excluded), inside the Entity/Branch of the signed context. Colours: the
+    same as the queues' Status badge. Subclasses choose whose appointments."""
+
+    with_doctor = False
+
+    def appointments(self, qs):
+        return qs
+
+    def resolve(self):
+        today = _today()
+        date_from = today - timedelta(days=CALENDAR_DAYS_BEFORE)
+        date_to = today + timedelta(days=CALENDAR_DAYS_AFTER)
+
+        qs = self.appointments(
+            self.scoped_queryset(Agenda.objects.filter(data__gte=date_from, data__lte=date_to))
+        ).exclude(estado="cancelada").select_related("paciente__person", "medico__person").order_by("data", "hora_inicio")
+        colours = next(c["badge"] for c in QUEUE_COLUMNS if c["name"] == "status")
+
+        events = []
+        for a in qs:
+            end = a.hora_fim or a.hora_inicio
+            label = ESTADO_LABELS.get(a.estado, a.estado)
+            title = a.paciente.person.full_name
+            if self.with_doctor and a.medico_id:
+                title = f"{title} — {a.medico.person.full_name}"
+            events.append({
+                "id": str(a.id),
+                "paciente_id": str(a.paciente_id),
+                "title": title,
+                "start": f"{a.data.isoformat()}T{a.hora_inicio.strftime('%H:%M:%S')}",
+                "end": f"{a.data.isoformat()}T{end.strftime('%H:%M:%S')}",
+                "status": label,
+                "status_color": colours.get(label, "grey"),
+            })
+
+        return {"start": date_from.isoformat(), "end": date_to.isoformat(), "events": events}
+
+
+@register_provider("saude.doctor.my_calendar")
+class DoctorMyCalendarProvider(AppointmentCalendarProvider):
+    """The doctor's own appointments. The doctor is the signed-in user
+    (Agenda.medico -> Person.user), never an id from the client."""
+
+    def appointments(self, qs):
+        return qs.filter(medico__person__user=self.request.user)
+
+
+@register_provider("saude.reception.calendar")
+class ReceptionCalendarProvider(AppointmentCalendarProvider):
+    """Every appointment of the unit (all doctors), with the doctor in the
+    title - the reception's schedule."""
+
+    with_doctor = True
 
 
 @register_provider("saude.doctor.recent_results")

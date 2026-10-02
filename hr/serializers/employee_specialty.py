@@ -1,0 +1,38 @@
+# hr/serializers/employee_specialty.py
+
+from rest_framework import serializers
+from django_resaas.saas.core.base.serializers import BaseSerializer
+
+from hr.models.employee_specialty import EmployeeSpecialty
+from hr.models.employee import Employee
+from hr.models.specialty import Specialty
+
+from hr.serializers.employee import EmployeeSerializer
+from hr.serializers.specialty import SpecialtySerializer
+
+
+class EmployeeSpecialtySerializer(BaseSerializer):
+
+    employee = serializers.PrimaryKeyRelatedField(
+        queryset=Employee.objects.all(),
+        write_only=True
+    )
+
+    employee_data = EmployeeSerializer(
+        source='employee',
+        read_only=True
+    )
+
+    specialty = serializers.PrimaryKeyRelatedField(
+        queryset=Specialty.objects.all(),
+        write_only=True
+    )
+
+    specialty_data = SpecialtySerializer(
+        source='specialty',
+        read_only=True
+    )
+
+    class Meta:
+        model = EmployeeSpecialty
+        fields = "__all__"

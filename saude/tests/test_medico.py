@@ -14,7 +14,7 @@ from django.test import TestCase
 from testutils.tenant import bootstrap_tenant
 
 from django_resaas.saas.models.person import Person
-from django_resaas.hr.models.employee import Employee
+from hr.models.employee import Employee
 
 from saude.models.medico import Medico
 
@@ -81,7 +81,7 @@ class MedicoSpecialtiesTests(TestCase):
     doctor with specialties fails (BaseModel requires entity and branch)."""
 
     def setUp(self):
-        from django_resaas.hr.models.specialty import Specialty
+        from hr.models.specialty import Specialty
 
         self.tenant = bootstrap_tenant("medico-spec", modules=("saude", "hr"))
         self.employee = _create_employee(self.tenant)
@@ -94,7 +94,7 @@ class MedicoSpecialtiesTests(TestCase):
         return sorted(item["label"] for item in response.data["especialidade"])
 
     def test_create_with_specialties_links_them_in_the_doctors_tenant(self):
-        from django_resaas.hr.models.employee_specialty import EmployeeSpecialty
+        from hr.models.employee_specialty import EmployeeSpecialty
 
         response = self.tenant["client"].post(
             "/api/saude/medicos/",
@@ -140,7 +140,7 @@ class MedicoSpecialtiesTests(TestCase):
         self.assertEqual([e["value"] for e in rows[0]["especialidade"]], [str(self.cardio.id)])
 
     def test_a_specialty_of_another_entity_is_refused(self):
-        from django_resaas.hr.models.specialty import Specialty
+        from hr.models.specialty import Specialty
 
         other = bootstrap_tenant("medico-spec-other", modules=("saude", "hr"))
         foreign = Specialty.objects.create(title="Pediatria", code="PD", entity=other["entity"], branch=other["branch"],
