@@ -17,9 +17,11 @@ from django.utils import timezone
 from rest_framework import status
 
 from django_resaas.saas.core.exceptions import ResaasAPIException
+from django_resaas.saas.core.services.group_access_service import held_codenames
 from saude.models.agenda import Agenda
 from saude.models.dadovital import DadoVital
 from saude.models.paciente import Paciente
+from saude.services.document_edit_policy import is_editable
 from saude.services.exam_request_service import require_professional
 
 # field: (min, max, unit)
@@ -173,7 +175,18 @@ def intake_context(request, agenda_id, paciente_id=None):
         },
         "tipo": "consulta" if agenda and agenda.consulta_id else "triagem",
         "previous": (
-            {"id": str(previous.id), "created_at": previous.created_at, **_values(previous)}
+            {
+                "id": str(previous.id),
+                "created_at": previous.created_at,
+                "tipo": previous.tipo,
+                "observacao": previous.observacao,
+                # the dialog offers "Edit last record" only when the backend
+                # would accept it: the author, within the edit window, with
+                # change_dadovital (DocumentEditWindowMixin enforces it again)
+                "editable": "change_dadovital" in held_codenames(request)
+                and is_editable(request, previous),
+                **_values(previous),
+            }
             if previous else None
         ),
         "limits": {

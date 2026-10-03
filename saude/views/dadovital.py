@@ -7,6 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_resaas.saas.core.decorators.action import resaas_action
 from saude.services import vital_signs_service
+from saude.services.document_edit_policy import DocumentEditWindowMixin
 from django_resaas.saas.models.entity import Entity
 from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64, PDF
 
@@ -15,7 +16,7 @@ import qrcode
 
 
 @registerView('dadovitals')
-class DadoVitalAPIView(BaseAPIView):
+class DadoVitalAPIView(DocumentEditWindowMixin, BaseAPIView):
     queryset = DadoVital.objects.all()   
     serializer_class = DadoVitalSerializer
 

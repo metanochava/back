@@ -759,4 +759,9 @@ key_value = {
     "Blood glucose and pain": "Blood glucose and pain",
     "Vital signs history": "Vital signs history",
     "Rejected": "Rejected",
+    "Edit last record": "Edit last record",
+    "Editing the record of": "Editing the record of",
+    "New record": "New record",
+    "Vital signs updated.": "Vital signs updated.",
+    "This field cannot be changed.": "This field cannot be changed.",
 }

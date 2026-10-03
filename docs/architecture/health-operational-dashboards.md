@@ -638,6 +638,26 @@ back to the previous rule: a record of the patient created **after the
 check-in**, or dated on the appointment day when there was no check-in.
 Nurses and, with `add_dadovital`, doctors record them.
 
+### Editing the last record
+
+The dialog's **Record** tab offers **Edit last record** for the patient's most
+recent record. It loads the values into the form; **Save changes** sends
+`PATCH dadovitals/{id}/` instead of creating a new record (**New record** goes
+back to recording a new one). Deltas against the previous record are hidden
+while editing it.
+
+- Offered only when `intake`'s `previous.editable` is true: the caller holds
+  `change_dadovital`, is the record's author (`created_by`) and is within the
+  edit window - the same rule as clinical documents (below). The frontend also
+  checks `User.can('change_dadovital')` (UX only).
+- Enforced by the backend: `DadoVitalAPIView` uses `DocumentEditWindowMixin`
+  (`403 not_document_author`, `409 edit_window_expired`, `403` without
+  `change_dadovital`), and the values are checked against the limits as on
+  create (`400` with the field errors).
+- A correction never moves the record: changing `paciente`, `agenda` or
+  `consulta` on update is `400` ("This field cannot be changed.").
+- Tests: `saude/tests/test_vital_signs.py` (`VitalSignsEditLastRecordTests`).
+
 ### Charts of the recorded vital signs
 
 The "Record vital signs" dialog has three tabs (the two chart tabs shown with
@@ -788,7 +808,7 @@ consultations on the same day no longer break them either.
 ### Editing a clinical document: author only, within 24 h
 
 Consultations, prescriptions and their items, certificates, referrals,
-medical reports and exam requests can be changed only by **the user who
+medical reports, exam requests and vital-sign records can be changed only by **the user who
 created them** (`created_by`), and only **within 24 hours of `created_at`**
 (`saude/services/document_edit_policy.py`, `DocumentEditWindowMixin` on those
 views' `perform_update`: `PATCH` and `PUT`).
