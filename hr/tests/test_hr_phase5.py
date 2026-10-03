@@ -416,7 +416,7 @@ def test_onboarding_api_flow(bootstrap_tenant):
 
     task_id = response.data["tasks"][0]["id"]
     response = client.post(f"/api/hr/employeeonboardingtasks/{task_id}/complete/")
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
     assert response.data["is_done"] is True
 
     # required task ("Assign laptop") still pending -> complete blocked
@@ -429,7 +429,7 @@ def test_onboarding_api_flow(bootstrap_tenant):
     client.post(f"/api/hr/employeeonboardingtasks/{remaining_task_id}/complete/")
 
     response = client.post(f"/api/hr/employeeonboardings/{onboarding_id}/complete/")
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
     assert response.data["status"]["value"] == EmployeeOnboardingStatus.COMPLETED
 
 

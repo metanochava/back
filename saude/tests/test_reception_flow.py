@@ -38,7 +38,7 @@ class ReceptionCheckInOutTests(TestCase):
 
         response = self._post(agenda, "check_in")
 
-        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.status_code, 202, response.content)
         agenda.refresh_from_db()
         self.assertEqual(agenda.estado, "em_espera")
         self.assertIsNotNone(agenda.checked_in_at)
@@ -71,7 +71,7 @@ class ReceptionCheckInOutTests(TestCase):
 
             response = self._post(agenda, "check_out")
 
-            self.assertEqual(response.status_code, 200, response.content)
+            self.assertEqual(response.status_code, 202, response.content)
             agenda.refresh_from_db()
             self.assertEqual(agenda.estado, "concluida")
             self.assertIsNotNone(agenda.completed_at)

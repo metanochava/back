@@ -338,11 +338,11 @@ def test_leave_request_api_flow(bootstrap_tenant):
     leave_request_id = response.data["id"]
 
     response = client.post(f"/api/hr/leaverequests/{leave_request_id}/submit/")
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
     assert response.data["status"]["value"] == LeaveRequestStatus.PENDING
 
     response = client.post(f"/api/hr/leaverequests/{leave_request_id}/approve/")
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
     assert response.data["status"]["value"] == LeaveRequestStatus.APPROVED
 
 

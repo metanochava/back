@@ -41,3 +41,20 @@ class DocumentEditWindowMixin:
     def perform_update(self, serializer):
         check_editable(self.request, serializer.instance)
         super().perform_update(serializer)
+
+
+def author_name(document):
+    """The name printed on a document's signature line: the professional who
+    created it (created_by -> Person), falling back to the doctor of its
+    consultation for documents created before created_by was recorded."""
+    user = getattr(document, "created_by", None)
+    person = getattr(user, "person", None) if user else None
+    name = getattr(person, "full_name", None) if person else None
+    if not name and user:
+        name = user.get_full_name() if hasattr(user, "get_full_name") else None
+        name = name or getattr(user, "username", None)
+    if not name:
+        consulta = getattr(document, "consulta", None)
+        employee = getattr(consulta, "employee", None) if consulta else None
+        name = getattr(getattr(employee, "person", None), "full_name", None)
+    return (name or "").strip() or None

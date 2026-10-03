@@ -369,12 +369,12 @@ def test_performance_api_flow(bootstrap_tenant):
     response = client.post(
         f"/api/hr/employeegoals/{goal.id}/update_progress/", {"progress": 60},
     )
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
     assert response.data["progress"] == 60
 
     review = _make_review(entity, branch, employee, cycle, "self")
     response = client.post(f"/api/hr/performancereviews/{review.id}/submit_review/")
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
     assert response.data["status"]["value"] == ReviewStatus.SUBMITTED
 
 

@@ -1,6 +1,6 @@
 
 from django_resaas.saas.core.base.views import BaseAPIView
-from saude.services.document_edit_policy import DocumentEditWindowMixin
+from saude.services.document_edit_policy import DocumentEditWindowMixin, author_name
 from django_resaas.saas.core.base.views import registerView
 from saude.services import consultation_service
 from saude.models.atestadomedico import AtestadoMedico
@@ -79,5 +79,6 @@ class AtestadoMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
             logo_b64=logo_b64,
             qr_b64=qr_b64,
             barcode_b64=barcode_b64,
-            atestado=atestado
+            atestado=atestado,
+            signer_name=author_name(atestado),
         )

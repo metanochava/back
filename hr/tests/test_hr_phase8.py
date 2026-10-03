@@ -466,7 +466,7 @@ def test_generate_for_period_via_api(bootstrap_tenant):
     _grant_payroll_actions(tenant["root_group"])
 
     response = tenant["client"].post(f"/api/hr/payrollperiods/{period.id}/generate/")
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
     assert len(response.data) == 1
     assert response.data[0]["status"]["value"] == PayrollStatus.CALCULATED
 
