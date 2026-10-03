@@ -1689,7 +1689,7 @@ key_value = {
     'Financing': 'Financiamento',
 
     # RESAAS documentation site
-    'Open-source SaaS framework': 'Framework SaaS de código aberto',
+    'Full-stack multi-tenant framework': 'Framework full-stack multi-tenant',
     'Build multi-tenant business systems': 'Construa sistemas de gestão multi-inquilino',
     'without rebuilding the platform': 'sem reconstruir a plataforma',
     'RESAAS is two libraries that work together: django_resaas describes your models, permissions and tenants; quasar_resaas renders them as a complete application.': 'O RESAAS são duas bibliotecas que trabalham juntas: o django_resaas descreve os seus modelos, permissões e inquilinos; o quasar_resaas apresenta-os como uma aplicação completa.',

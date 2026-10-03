@@ -80,7 +80,7 @@ even listed). Providers: `saude/dashboard_flow_providers.py`.
 | | `waiting_now` | stat | `view_agenda` | today's appointments in `em_espera` |
 | | `average_waiting` | stat | `view_agenda` | average check-in -> service start, today (minutes) |
 | | `reception_queue` | table | `view_agenda` | today's appointments by scheduled time; row actions: check in (`check_in_agenda`, scheduled/confirmed rows), check out (`check_out_agenda`, waiting/in-progress rows), open patient (`view_paciente`); toolbar: register patient (`add_paciente`) |
-| | `reception_calendar` | calendar | `view_agenda` | every appointment of the unit (all doctors, "patient — doctor"), 30 days back and 90 ahead, cancelled excluded; status colours as the queue badges; click → patient record (`view_paciente`) |
+| | `reception_calendar` | calendar | `view_agenda` | every appointment of the unit (all doctors, "patient — doctor"), 30 days back and 90 ahead, cancelled excluded; status colours as the queue badges; click → patient record (`view_paciente`); shares the row with `reception_queue` from md up (queue 8 + calendar 4) |
 | Nursing | `waiting_now` | stat | `view_agenda` | as above |
 | | `vitals_pending` | stat | `view_agenda` + `view_dadovital` | waiting, no vital signs since check-in |
 | | `ready_for_doctor` | stat | `view_agenda` + `view_dadovital` | waiting, vital signs recorded |
@@ -91,7 +91,7 @@ even listed). Providers: `saude/dashboard_flow_providers.py`.
 | | `completed_today` | stat | `view_agenda` | the user's appointments `concluida` today |
 | | `pending_exams` | stat | `view_pedidoexamemedico` | open exam items (`pendente`, `agendado`, `colhido`, `processamento`) from the user's consultations |
 | | `my_queue` | table | `view_agenda` | the user's appointments today that are not closed |
-| | `my_calendar` | calendar | `view_agenda` | the signed-in doctor's appointments (`Agenda.medico` → `Person.user`), 30 days back and 90 ahead, cancelled excluded; click → patient record (`view_paciente`); shares the row with `my_queue` from md up (6 + 6); clicking a day opens its list in a modal ("Appointments: n") |
+| | `my_calendar` | calendar | `view_agenda` | the signed-in doctor's appointments (`Agenda.medico` → `Person.user`), 30 days back and 90 ahead, cancelled excluded; click → patient record (`view_paciente`); shares the row with `my_queue` from md up (queue 8 + calendar 4); clicking a day opens its list in a modal ("Appointments: n") with a static search (patient, status, time) above the scrolling list |
 | | `recent_results` | list | `view_resultadoexamemedico` | **released** results (`released=True`) of exams the user requested, last 7 days; recorded or only validated results are never listed |
 
 | Laboratory | `requests_today` | stat | `view_pedidoexamemedico` | requests created today (both origins) |
