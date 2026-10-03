@@ -34,6 +34,15 @@ def check_editable(request, document, now=None):
         )
 
 
+def is_editable(request, document, now=None):
+    """check_editable as a yes/no, for a UI that wants to offer the edit."""
+    try:
+        check_editable(request, document, now=now)
+    except (ResaasAPIException, ConflictError):
+        return False
+    return True
+
+
 class DocumentEditWindowMixin:
     """For the BaseAPIView of a clinical document: the permission to change it
     is not enough - it must be the author's, within the edit window."""

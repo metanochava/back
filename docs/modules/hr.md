@@ -194,3 +194,29 @@ raised on any business-rule violation, `transaction.atomic()` left to the caller
     `complete_offboarding`/`cancel_offboarding` - identical shape to their `onboarding_service.py`
     counterparts (Fase 5): `complete_offboarding` raises if any `is_required` task is still
     pending, and emits `hr.offboarding.completed`.
+
+## Management commands
+
+### `hr_create_missing_users`
+
+Gives every Employee whose Person has no User its User account. The core
+creates a User only when a Person is **created**
+(`django_resaas.saas.core.services.person_user_service`); Employees whose
+Person existed before that have none. This is the explicit backfill for them.
+
+```bash
+python manage.py hr_create_missing_users                  # dry run: lists who would get one
+python manage.py hr_create_missing_users --apply          # creates them
+python manage.py hr_create_missing_users --entity <id>    # only one Entity
+```
+
+- Uses the core's `create_user_for_person`: username from the first name,
+  a temporary password the user must replace, the User's state copied from
+  the Person (an **Inactive** Person gets an **Inactive** User).
+- Idempotent: only Persons without a User are touched; soft-deleted
+  Employees are left alone; a Person employed in several Entities gets one User.
+- Each Employee is its own transaction: a failure is reported (`FAILED`) and
+  the others still proceed.
+- It grants **no access**: what the new User may do still depends on its
+  groups (`BranchUserGroup`), like any account.
+- Tests: `hr/tests/test_create_missing_users_command.py`.

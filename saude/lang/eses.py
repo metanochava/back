@@ -1769,4 +1769,9 @@ key_value = {
     "Blood glucose and pain": "Glucemia y dolor",
     "Vital signs history": "Historial de signos vitales",
     "Rejected": "Rechazado",
+    "Edit last record": "Editar último registro",
+    "Editing the record of": "Editando el registro de",
+    "New record": "Nuevo registro",
+    "Vital signs updated.": "Signos vitales actualizados.",
+    "This field cannot be changed.": "Este campo no se puede cambiar.",
 }

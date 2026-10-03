@@ -300,3 +300,81 @@ class VitalSignsHistoryTests(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["error"]["code"], "patient_required")
+
+
+class VitalSignsEditLastRecordTests(TestCase):
+    """"Edit last record" in the dialog: only the author, within the edit
+    window, with change_dadovital (DocumentEditWindowMixin); a correction
+    never moves the record to another patient or appointment."""
+
+    EDITOR = NURSING + ["change_dadovital"]
+
+    def setUp(self):
+        self.tenant = bootstrap_tenant("vitals-edit", modules=("saude", "hr"))
+        self.nurse = _employee(self.tenant, self.tenant["user"].person)
+        self.doctor = _employee(self.tenant, Person.objects.create(name="Ana", surname="Doctor"))
+        self.patient = _patient(self.tenant, "Maria")
+        self.agenda = _appointment(self.tenant, self.patient, self.doctor, "em_espera",
+                                   checked_in_at=timezone.now() - timedelta(minutes=10))
+        self.client = _client_with(self.tenant, self.EDITOR)
+        created = self.client.post(URL, {"agenda": str(self.agenda.id), "peso": "70", "temperatura": "37.2"},
+                                   format="json")
+        self.assertEqual(created.status_code, 201, created.content)
+        self.record = DadoVital.objects.get(id=created.json()["id"])
+
+    def _previous(self, client=None):
+        response = (client or self.client).get(f"{URL}intake/", {"agenda": str(self.agenda.id)})
+        self.assertEqual(response.status_code, 200, response.content)
+        return response.json()["previous"]
+
+    def test_the_author_is_offered_the_edit_and_can_correct_the_values(self):
+        previous = self._previous()
+        self.assertEqual(previous["id"], str(self.record.id))
+        self.assertTrue(previous["editable"])
+
+        response = self.client.patch(f"{URL}{self.record.id}/", {"peso": "71.5", "temperatura": None}, format="json")
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.record.refresh_from_db()
+        self.assertEqual(float(self.record.peso), 71.5)
+        self.assertIsNone(self.record.temperatura)
+        self.assertEqual(DadoVital.objects.filter(paciente=self.patient).count(), 1)
+
+    def test_without_change_dadovital_it_is_not_editable(self):
+        reader = _client_with(self.tenant, NURSING)
+
+        self.assertFalse(self._previous(reader)["editable"])
+        self.assertEqual(reader.patch(f"{URL}{self.record.id}/", {"peso": "72"}, format="json").status_code, 403)
+
+    def test_another_users_record_is_not_editable(self):
+        from django_resaas.saas.models.user import User
+        other = User.objects.create_user(username="other-nurse", email="other@vitals.test", password="Pass-12345")
+        DadoVital.objects.filter(id=self.record.id).update(created_by=other)
+
+        self.assertFalse(self._previous()["editable"])
+        response = self.client.patch(f"{URL}{self.record.id}/", {"peso": "72"}, format="json")
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.json()["error"]["code"], "not_document_author")
+
+    def test_after_the_edit_window_it_is_not_editable(self):
+        DadoVital.objects.filter(id=self.record.id).update(created_at=timezone.now() - timedelta(hours=25))
+
+        self.assertFalse(self._previous()["editable"])
+        response = self.client.patch(f"{URL}{self.record.id}/", {"peso": "72"}, format="json")
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.json()["error"]["code"], "edit_window_expired")
+
+    def test_a_correction_cannot_move_the_record_to_another_patient(self):
+        other = _patient(self.tenant, "Rui")
+
+        response = self.client.patch(f"{URL}{self.record.id}/", {"paciente": str(other.id)}, format="json")
+
+        self.assertEqual(response.status_code, 400, response.content)
+        self.record.refresh_from_db()
+        self.assertEqual(self.record.paciente_id, self.patient.id)
+
+    def test_a_correction_is_checked_against_the_limits(self):
+        response = self.client.patch(f"{URL}{self.record.id}/", {"temperatura": "52"}, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("temperatura", response.json()["error"]["details"])
