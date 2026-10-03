@@ -80,7 +80,7 @@ even listed). Providers: `saude/dashboard_flow_providers.py`.
 | | `waiting_now` | stat | `view_agenda` | today's appointments in `em_espera` |
 | | `average_waiting` | stat | `view_agenda` | average check-in -> service start, today (minutes) |
 | | `reception_queue` | table | `view_agenda` | today's appointments by scheduled time; row actions: check in (`check_in_agenda`, scheduled/confirmed rows), check out (`check_out_agenda`, waiting/in-progress rows), open patient (`view_paciente`); toolbar: register patient (`add_paciente`) |
-| | `reception_calendar` | calendar | `view_agenda` | every appointment of the unit (all doctors, "patient — doctor"), 30 days back and 90 ahead, cancelled excluded; status colours as the queue badges; click → patient record (`view_paciente`) |
+| | `reception_calendar` | calendar | `view_agenda` | every appointment of the unit (all doctors, "patient — doctor"), 30 days back and 90 ahead, cancelled excluded; status colours as the queue badges; click → patient record (`view_paciente`); shares the row with `reception_queue` from md up (queue 8 + calendar 4) |
 | Nursing | `waiting_now` | stat | `view_agenda` | as above |
 | | `vitals_pending` | stat | `view_agenda` + `view_dadovital` | waiting, no vital signs since check-in |
 | | `ready_for_doctor` | stat | `view_agenda` + `view_dadovital` | waiting, vital signs recorded |
@@ -91,7 +91,7 @@ even listed). Providers: `saude/dashboard_flow_providers.py`.
 | | `completed_today` | stat | `view_agenda` | the user's appointments `concluida` today |
 | | `pending_exams` | stat | `view_pedidoexamemedico` | open exam items (`pendente`, `agendado`, `colhido`, `processamento`) from the user's consultations |
 | | `my_queue` | table | `view_agenda` | the user's appointments today that are not closed |
-| | `my_calendar` | calendar | `view_agenda` | the signed-in doctor's appointments (`Agenda.medico` → `Person.user`), 30 days back and 90 ahead, cancelled excluded; click → patient record (`view_paciente`) |
+| | `my_calendar` | calendar | `view_agenda` | the signed-in doctor's appointments (`Agenda.medico` → `Person.user`), 30 days back and 90 ahead, cancelled excluded; click → patient record (`view_paciente`); shares the row with `my_queue` from md up (queue 8 + calendar 4); clicking a day opens its list in a modal ("Appointments: n") with a static search (patient, status, time) above the scrolling list |
 | | `recent_results` | list | `view_resultadoexamemedico` | **released** results (`released=True`) of exams the user requested, last 7 days; recorded or only validated results are never listed |
 
 | Laboratory | `requests_today` | stat | `view_pedidoexamemedico` | requests created today (both origins) |
@@ -637,6 +637,31 @@ For a queue, an appointment's vital signs count as **recorded** when a
 back to the previous rule: a record of the patient created **after the
 check-in**, or dated on the appointment day when there was no check-in.
 Nurses and, with `add_dadovital`, doctors record them.
+
+### Charts of the recorded vital signs
+
+The "Record vital signs" dialog has three tabs (the two chart tabs shown with
+`view_dadovital`), from the patient's earlier records
+(`VitalSignsCharts.vue`):
+
+- **Record** — the form.
+- **Charts** — line charts with measures of similar magnitude grouped on one
+  axis: blood pressure (systolic, diastolic — mmHg); heart rate, pulse and
+  SpO₂; temperature and respiratory rate; blood glucose and pain; weight. A
+  chart whose series share a unit shows it in the title, otherwise each series
+  carries its unit in the legend (e.g. "Temperature (°C)").
+- **All** — every measure in one chart. Clicking a measure in the legend hides
+  / shows it and the axis rescales to the visible ones.
+
+Measures with no value are left out.
+
+`GET /api/saude/dadovitals/history/?paciente=<id>` — **PROTECTED**,
+`view_dadovital` (a read-only `@resaas_action`); the view's scoped queryset
+keeps it in the current Entity/Branch (another tenant's patient → no points).
+It returns the latest 100 records oldest first (`created_at`: `data`/`hora`
+are set on creation), numeric measurements only, with `units` and `labels`;
+an invalid patient id → `400 patient_required`. Tests:
+`saude/tests/test_vital_signs.py` (`VitalSignsHistoryTests`).
 
 ### Recording from a dashboard queue
 

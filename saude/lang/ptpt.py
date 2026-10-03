@@ -1689,7 +1689,7 @@ key_value = {
     'Financing': 'Financiamento',
 
     # RESAAS documentation site
-    'Open-source SaaS framework': 'Framework SaaS de código aberto',
+    'Full-stack multi-tenant framework': 'Framework full-stack multi-tenant',
     'Build multi-tenant business systems': 'Construa sistemas de gestão multi-inquilino',
     'without rebuilding the platform': 'sem reconstruir a plataforma',
     'RESAAS is two libraries that work together: django_resaas describes your models, permissions and tenants; quasar_resaas renders them as a complete application.': 'O RESAAS são duas bibliotecas que trabalham juntas: o django_resaas descreve os seus modelos, permissões e inquilinos; o quasar_resaas apresenta-os como uma aplicação completa.',
@@ -1758,4 +1758,13 @@ key_value = {
     "My Appointment Calendar": "O meu calendário de consultas",
     "Your appointments, 30 days back and 90 ahead. Click one to open the patient record.": "As suas marcações, dos últimos 30 dias aos próximos 90. Clique numa para abrir a ficha do paciente.",
     "Every appointment of the unit, 30 days back and 90 ahead. Click one to open the patient record.": "Todas as marcações da unidade, dos últimos 30 dias aos próximos 90. Clique numa para abrir a ficha do paciente.",
+    # vital signs charts (VitalSignsCharts)
+    "Record": "Registar",
+    "Charts": "Gráficos",
+    "No vital signs recorded yet for this patient.": "Ainda não há sinais vitais registados para este paciente.",
+    "Showing the latest": "A mostrar os mais recentes",
+    # vital signs charts, grouped (VitalSignsCharts)
+    "Heart rate, pulse and SpO₂": "Frequência cardíaca, pulso e SpO₂",
+    "Temperature and respiratory rate": "Temperatura e frequência respiratória",
+    "Blood glucose and pain": "Glicemia e dor",
 }

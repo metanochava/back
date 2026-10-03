@@ -678,7 +678,7 @@ key_value = {
     'Financing': 'Financing',
 
     # RESAAS documentation site
-    'Open-source SaaS framework': 'Open-source SaaS framework',
+    'Full-stack multi-tenant framework': 'Full-stack multi-tenant framework',
     'Build multi-tenant business systems': 'Build multi-tenant business systems',
     'without rebuilding the platform': 'without rebuilding the platform',
     'RESAAS is two libraries that work together: django_resaas describes your models, permissions and tenants; quasar_resaas renders them as a complete application.': 'RESAAS is two libraries that work together: django_resaas describes your models, permissions and tenants; quasar_resaas renders them as a complete application.',
@@ -748,4 +748,13 @@ key_value = {
     "My Appointment Calendar": "My Appointment Calendar",
     "Your appointments, 30 days back and 90 ahead. Click one to open the patient record.": "Your appointments, 30 days back and 90 ahead. Click one to open the patient record.",
     "Every appointment of the unit, 30 days back and 90 ahead. Click one to open the patient record.": "Every appointment of the unit, 30 days back and 90 ahead. Click one to open the patient record.",
+    # vital signs charts (VitalSignsCharts)
+    "Record": "Record",
+    "Charts": "Charts",
+    "No vital signs recorded yet for this patient.": "No vital signs recorded yet for this patient.",
+    "Showing the latest": "Showing the latest",
+    # vital signs charts, grouped (VitalSignsCharts)
+    "Heart rate, pulse and SpO₂": "Heart rate, pulse and SpO₂",
+    "Temperature and respiratory rate": "Temperature and respiratory rate",
+    "Blood glucose and pain": "Blood glucose and pain",
 }

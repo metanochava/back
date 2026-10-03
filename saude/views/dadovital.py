@@ -39,6 +39,14 @@ class DadoVitalAPIView(BaseAPIView):
         ))
 
 
+    # The patient's recorded vital signs over time (the dialog's charts).
+    # Read only: view_dadovital; get_queryset() keeps it in the current
+    # Entity/Branch.
+    @resaas_action(detail=False, methods=["get"], label="Vital signs history", icon="show_chart",
+                   permission="view_dadovital", visible=False)
+    def history(self, request, *args, **kwargs):
+        return Response(vital_signs_service.history(self.get_queryset(), request.query_params.get("paciente")))
+
     @action(
         detail=True,
         methods=['GET'],

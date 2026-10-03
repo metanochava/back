@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import SimpleRateThrottle
 
 from django_resaas.saas.core.base.views import registerView
+from django_resaas.saas.core.base.response_mixin import ResaasResponseMixin
 from django_resaas.saas.core.exceptions import ResaasAPIException
 from django_resaas.saas.core.services.site_service import entity_for_origin
 from saude.serializers.appointment_request import PublicAppointmentRequestSerializer
@@ -37,7 +38,7 @@ class PublicBookingRequestThrottle(_AddressThrottle):
 
 
 @registerView("publicbooking")
-class PublicBookingViewSet(viewsets.ViewSet):
+class PublicBookingViewSet(ResaasResponseMixin, viewsets.ViewSet):
     """Online booking of the clinic's public site.
 
     PUBLIC (explicit): used by visitors who have no session, like the site's
