@@ -406,12 +406,12 @@ class ConsentGrantAndEmergencyAccessEndpointTests(TestCase):
         end_response = self.tenant_b["client"].post(
             f"/api/saude/emergency_accesses/{access_id}/end/"
         )
-        self.assertEqual(end_response.status_code, 200)
+        self.assertEqual(end_response.status_code, 202)
 
         review_response = self.tenant_b["client"].post(
             f"/api/saude/emergency_accesses/{access_id}/review/"
         )
-        self.assertEqual(review_response.status_code, 200)
+        self.assertEqual(review_response.status_code, 202)
         self.assertIsNotNone(review_response.data["data"]["reviewed_at"])
 
     def test_emergency_access_generic_create_is_blocked(self):

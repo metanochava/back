@@ -113,7 +113,10 @@
     page-break-inside: avoid;
   }
 
+  .box--list { page-break-inside: auto; }
+
   .box-title {
+    page-break-after: avoid;
     font-weight: bold;
     color: #0f766e;
     margin-bottom: 4px;
@@ -441,7 +444,11 @@
         Sem informação clínica registada.
       {% endif %}
     </div>
+  </div>
 
+  <!-- the exam list may continue on the next page (only each exam stays whole):
+       one unbreakable box with every exam was pushed to page 2, leaving page 1 empty -->
+  <div class="box box--list">
 
       <div class="box-title">
           Exames Solicitados
@@ -522,8 +529,8 @@
   <div class="signature">
     <div class="signature-line">
 
-      {% if pedido.consulta.employee.person.full_name %}
-        {{ pedido.consulta.employee.person.full_name }}
+      {% if signer_name %}
+        <strong class="signer-name">{{ signer_name }}</strong>
       {% else %}
         Médico Solicitante
       {% endif %}

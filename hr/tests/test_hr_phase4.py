@@ -427,26 +427,26 @@ def test_recruitment_api_flow(bootstrap_tenant):
     response = client.post(
         f"/api/hr/applications/{application.id}/move/", {"status": "screening"}
     )
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
 
     response = client.post(
         f"/api/hr/applications/{application.id}/move/", {"status": "shortlisted"}
     )
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
 
     response = client.post(
         f"/api/hr/applications/{application.id}/schedule_interview/",
         {"scheduled_at": "2026-04-10T10:00:00Z"},
     )
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
 
     response = client.post(
         f"/api/hr/applications/{application.id}/move/", {"status": "offered"}
     )
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
 
     response = client.post(f"/api/hr/applications/{application.id}/hire/")
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
 
     application.refresh_from_db()
     assert application.status == ApplicationStatus.HIRED

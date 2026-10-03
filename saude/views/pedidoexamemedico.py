@@ -1,6 +1,6 @@
 
 from django_resaas.saas.core.base.views import BaseAPIView
-from saude.services.document_edit_policy import DocumentEditWindowMixin
+from saude.services.document_edit_policy import DocumentEditWindowMixin, author_name
 from django_resaas.saas.core.base.views import registerView
 from saude.models.pedidoexamemedico import PedidoExameMedico
 from saude.serializers.pedidoexamemedico import PedidoExameMedicoSerializer
@@ -112,6 +112,7 @@ class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
             qr_b64=make_qr_b64(str(pedido.id)),
             barcode_b64=make_barcode_b64(str(pedido.id)),
             paciente=paciente,
+            signer_name=author_name(pedido),
         )
 
 

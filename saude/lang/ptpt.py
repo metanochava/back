@@ -1767,4 +1767,6 @@ key_value = {
     "Heart rate, pulse and SpO₂": "Frequência cardíaca, pulso e SpO₂",
     "Temperature and respiratory rate": "Temperatura e frequência respiratória",
     "Blood glucose and pain": "Glicemia e dor",
+    "Vital signs history": "Histórico de sinais vitais",
+    "Rejected": "Rejeitado",
 }

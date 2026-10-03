@@ -70,7 +70,7 @@ class PortalAccessTests(TestCase):
     def test_grant_makes_the_patient_a_member_and_returns_a_temporary_password_once(self):
         response = _grant(self.tenant, self.maria)
 
-        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(response.status_code, 202, response.data)
         self.assertEqual(response.data["username"], self.maria.person.user.username)
         self.assertTrue(response.data["temporary_password"])
         self.maria.refresh_from_db()
@@ -112,7 +112,7 @@ class PortalAccessTests(TestCase):
 
         revoked = _client_with(self.tenant, RECEPTION).post(f"/api/saude/pacientes/{self.maria.id}/revoke_portal_access/")
 
-        self.assertEqual(revoked.status_code, 200)
+        self.assertEqual(revoked.status_code, 202)
         self.assertIn(client.get(f"{ME}summary/").status_code, (403, 404))
         self.assertFalse(EntityUser.objects.filter(entity=self.tenant["entity"], user=self.maria.person.user).exists())
 
@@ -254,7 +254,7 @@ class PatientProfileTests(TestCase):
         return BranchUserGroup.objects.filter(user=self.user, group=self.profile)
 
     def test_grant_assigns_the_patient_profile_at_the_patients_branch(self):
-        self.assertEqual(_grant(self.tenant, self.maria).status_code, 200)
+        self.assertEqual(_grant(self.tenant, self.maria).status_code, 202)
 
         assignment = self._assignments().get()
         self.assertEqual(assignment.branch_id, self.maria.branch_id)
@@ -273,7 +273,7 @@ class PatientProfileTests(TestCase):
         _grant(self.tenant, self.maria)
         _client_with(self.tenant, RECEPTION).post(f"/api/saude/pacientes/{self.maria.id}/revoke_portal_access/")
 
-        self.assertEqual(_grant(self.tenant, self.maria).status_code, 200)
+        self.assertEqual(_grant(self.tenant, self.maria).status_code, 202)
         self.assertEqual(self._assignments().count(), 1)
 
     def test_a_missing_patient_profile_is_an_explicit_error(self):

@@ -148,7 +148,7 @@ class StructuredResultTests(LabFixture):
     def test_valid_values_are_stored_typed_with_snapshot_and_flag(self):
         response = self.record(_client_with(self.tenant, TECHNICIAN), {**self.VALID, "hb": "11.0", "note": "Hemolysed"})
 
-        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(response.status_code, 202, response.data)
         values = {v.parameter_code: v for v in ResultParameterValue.objects.all()}
         self.assertEqual(values["hb"].value_numeric, Decimal("11.0"))
         self.assertEqual(values["hb"].flag, ResultParameterValue.LOW)
@@ -223,7 +223,7 @@ class ValidationReleaseTests(LabFixture):
     def _validated_result(self):
         self.record(_client_with(self.tenant, TECHNICIAN), self.VALID)
         result = ResultadoExameMedico.objects.get()
-        self.assertEqual(_client_with(self.tenant, SCIENTIST).post(f"{RESULTS}{result.id}/validate/").status_code, 200)
+        self.assertEqual(_client_with(self.tenant, SCIENTIST).post(f"{RESULTS}{result.id}/validate/").status_code, 202)
         return result
 
     def test_validated_result_cannot_be_rerecorded(self):
@@ -242,7 +242,7 @@ class ValidationReleaseTests(LabFixture):
         self.assertEqual(scientist.post(f"{RESULTS}{result.id}/release/").status_code, 409)
         scientist.post(f"{RESULTS}{result.id}/validate/")
         self.assertEqual(_client_with(self.tenant, TECHNICIAN).post(f"{RESULTS}{result.id}/release/").status_code, 403)
-        self.assertEqual(scientist.post(f"{RESULTS}{result.id}/release/").status_code, 200)
+        self.assertEqual(scientist.post(f"{RESULTS}{result.id}/release/").status_code, 202)
 
         result.refresh_from_db()
         self.assertTrue(result.released)
@@ -293,16 +293,16 @@ class CollectionTests(LabFixture):
         item = _item(self.tenant, self.patient, self.exame)
         client = _client_with(self.tenant, TECHNICIAN)
 
-        self.assertEqual(client.post(f"{ITEMS}{item.id}/collect/").status_code, 200)
+        self.assertEqual(client.post(f"{ITEMS}{item.id}/collect/").status_code, 202)
         item.refresh_from_db()
         self.assertEqual((item.estado_exame, item.collected_by), ("colhido", self.tenant["user"]))
 
         self.assertEqual(client.post(f"{ITEMS}{item.id}/reject_sample/", {}, format="json").status_code, 400)
-        self.assertEqual(client.post(f"{ITEMS}{item.id}/reject_sample/", {"reason": "Clotted"}, format="json").status_code, 200)
+        self.assertEqual(client.post(f"{ITEMS}{item.id}/reject_sample/", {"reason": "Clotted"}, format="json").status_code, 202)
         item.refresh_from_db()
         self.assertEqual((item.estado_exame, item.rejection_reason), ("recolha_necessaria", "Clotted"))
 
-        self.assertEqual(client.post(f"{ITEMS}{item.id}/collect/").status_code, 200)
+        self.assertEqual(client.post(f"{ITEMS}{item.id}/collect/").status_code, 202)
         item.refresh_from_db()
         self.assertEqual(item.estado_exame, "colhido")
         self.assertEqual(item.rejection_reason, "Clotted")
@@ -478,7 +478,7 @@ class FreeFormReportTests(LabFixture):
             "file": SimpleUploadedFile("laudo.pdf", b"%PDF-1.4 test", content_type="application/pdf"),
         })
 
-        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual(response.status_code, 202, response.data)
         result = ResultadoExameMedico.objects.get(item_pedido=self.item)
         self.assertEqual((result.valor_resultado, result.tipo, result.numero_revisao), ("Negativo", "File", 1))
         self.assertEqual(result.paciente_id, self.patient.id)

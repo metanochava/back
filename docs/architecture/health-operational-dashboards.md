@@ -811,6 +811,28 @@ views' `perform_update`: `PATCH` and `PUT`).
   banner and disables saving.
 - Tests: `saude/tests/test_document_edit_policy.py`.
 
+### Signed PDFs: the author's name on the signature line
+
+The PDFs a professional signs print, above the role on the signature line, the
+name of **who created the document** - the same author as the edit rule above
+(`created_by`): certificate (`atestadomedico.html`), medical report
+(`relatoriomedico.html`), referral (`guiatransferencia.html`) and exam request
+(`pedidoexamemedico.html`).
+
+- `author_name(document)` (`saude/services/document_edit_policy.py`):
+  `created_by` -> its Person's `full_name`; a user without a Person -> its
+  username; a document without `created_by` (older rows) -> the doctor of its
+  consultation (`consulta.employee.person`). The view passes it as `signer_name`.
+- With no name known, the line keeps only the role (the exam request keeps
+  "Médico Solicitante").
+- The lab result PDF is unchanged: it is signed by **who validated** it
+  (`validated_by`), not by who created it.
+- Exam request paging: the exam list is its own box that may continue on the
+  next page (`.box--list`), each exam staying whole; before, clinical
+  information and every exam were one unbreakable box, pushed whole to page 2
+  when long, leaving page 1 empty.
+- Tests: `saude/tests/test_document_signer.py`.
+
 ### Clinical Summary: allergies, conditions, medication in place
 
 In the patient record's **Clinical Summary**, current allergies

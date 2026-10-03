@@ -255,7 +255,7 @@ def test_check_in_creates_open_attendance(bootstrap_tenant):
     client = tenant["client"]
 
     response = client.post(f"/api/hr/employees/{employee.id}/check_in/")
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
     assert response.data["check_in"] is not None
     assert response.data["check_out"] is None
 
@@ -295,7 +295,7 @@ def test_check_in_then_check_out_flow(bootstrap_tenant):
     client.post(f"/api/hr/employees/{employee.id}/check_in/")
     response = client.post(f"/api/hr/employees/{employee.id}/check_out/")
 
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
     assert response.data["check_out"] is not None
 
 
@@ -321,7 +321,7 @@ def test_check_in_uses_given_source(bootstrap_tenant):
     response = client.post(
         f"/api/hr/employees/{employee.id}/check_in/", {"source": AttendanceSource.WEB}
     )
-    assert response.status_code == 200, response.data
+    assert response.status_code == 202, response.data
     assert response.data["source"]["value"] == AttendanceSource.WEB
 
 

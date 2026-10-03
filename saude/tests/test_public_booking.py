@@ -215,7 +215,7 @@ class StaffConfirmationTests(PublicBookingTestCase):
     def test_confirming_creates_the_appointment(self):
         response = self._confirm(self.patient)
 
-        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.status_code, 202, response.content)
         self.request.refresh_from_db()
         agenda = Agenda.objects.get()
         self.assertEqual(self.request.status, "confirmed")
@@ -246,7 +246,7 @@ class StaffConfirmationTests(PublicBookingTestCase):
         response = self.staff.post(f"/api/saude/appointmentrequests/{self.request.id}/reject/",
                                    {"reason": "Doctor away"}, format="json")
 
-        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.status_code, 202, response.content)
         self.request.refresh_from_db()
         self.assertEqual((self.request.status, self.request.rejection_reason), ("rejected", "Doctor away"))
         slots = self._get("availability/", doctor=str(self.doctor.id), date=self.day.isoformat()).json()

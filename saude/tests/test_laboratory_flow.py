@@ -112,7 +112,7 @@ class LaboratoryCheckInAndCollectionTests(TestCase):
         client = _client_with(self.tenant, RECEPTION)
         url = f"{PEDIDOS}{self.pedido.id}/check_in/"
 
-        self.assertEqual(client.post(url).status_code, 200)
+        self.assertEqual(client.post(url).status_code, 202)
         self.pedido.refresh_from_db()
         first = self.pedido.checked_in_at
         self.assertIsNotNone(first)
@@ -194,7 +194,7 @@ class ResultValidationTests(TestCase):
         self.assertEqual(_client_with(self.tenant, TECHNICIAN).post(url).status_code, 403)
 
         scientist = _client_with(self.tenant, SCIENTIST)
-        self.assertEqual(scientist.post(url).status_code, 200)
+        self.assertEqual(scientist.post(url).status_code, 202)
         again = scientist.post(url)
         self.assertEqual(again.status_code, 409)
         self.assertEqual(again.data["error"]["code"], "result_already_validated")
