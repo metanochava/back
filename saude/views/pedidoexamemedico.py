@@ -119,10 +119,11 @@ class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
 
 
 
-    @action(
-        detail=True,
-        methods=["get"],
-    )
+    # The request's exams with their results (laboratory, results upload). A
+    # read of the request: view_pedidoexamemedico - a plain @action had no
+    # permission, so BaseAPIView refused it to everyone but Root.
+    @resaas_action(detail=True, methods=["get"], label="Exam request items", icon="list",
+                   permission="view_pedidoexamemedico", visible=False)
     def items(self, request, *args, **kwargs):
 
         pedido = self.get_object()
@@ -171,14 +172,10 @@ class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
 
         
            
-    @action(
-        detail=True,
-        methods=['GET'],
-    )
+    # list_resultadoexamemedico: a plain @action had no permission (BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=True, methods=['GET'], label="Results of the request", permission="list_resultadoexamemedico", visible=False)
     def resultados(self, request, *args, **kwargs):
-        entity = Entity.objects.get(id=self.get_object().entity.id)
-        pedido = self.get_object()
-        paciente = pedido.patient
+        pedido = self.get_object()   # tenant-scoped
 
         resultados = ResultadoExameMedico.objects.filter(
             item_pedido__pedido=pedido

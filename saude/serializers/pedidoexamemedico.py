@@ -16,6 +16,13 @@ class PedidoExameMedicoSerializer(BaseSerializer):
         read_only_fields = ["paciente", "origin"]
     
 
+    # the request's patient: its own (a direct request) or its consultation's.
+    # Read only - pages that show the patient header use it.
+    patient_id = serializers.SerializerMethodField()
+    def get_patient_id(self, obj):
+        patient_id = obj.paciente_id or (obj.consulta.paciente_id if obj.consulta_id else None)
+        return str(patient_id) if patient_id else None
+
     # =========================
     # 👤 EMPLOYEE + PROFILE
     # =========================

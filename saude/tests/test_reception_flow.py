@@ -112,6 +112,30 @@ class ReceptionCheckInOutTests(TestCase):
         self.assertEqual(actions["check_out"]["request"]["endpoint"], "saude/agendas/{id}/check_out/")
         self.assertEqual(rows[0]["estado"], "marcada")
 
+    def test_the_queue_links_to_the_patient_list_and_its_dialog(self):
+        """One click: list_paciente; double click: the same list in a dialog
+        (dblclick_action). Both need list_paciente."""
+        client = _client_with(self.tenant, FRONT_DESK + ["list_paciente"])
+
+        widget = next(
+            w for w in client.get("/api/django_resaas/dashboard/saude_reception/").json()["dashboard"]["widgets"]
+            if w["name"] == "reception_queue"
+        )
+        patients = {a["name"]: a for a in widget["actions"]}["patients"]
+
+        self.assertEqual(patients["route"], {"name": "list_paciente"})
+        self.assertEqual(patients["dblclick_action"]["dialog"], "saude.patient_list")
+
+    def test_without_list_paciente_there_is_no_patient_list_button(self):
+        client = _client_with(self.tenant, FRONT_DESK)
+
+        widget = next(
+            w for w in client.get("/api/django_resaas/dashboard/saude_reception/").json()["dashboard"]["widgets"]
+            if w["name"] == "reception_queue"
+        )
+
+        self.assertNotIn("patients", [a["name"] for a in widget["actions"]])
+
     def test_without_the_permission_the_queue_hides_the_buttons(self):
         client = _client_with(self.tenant, RECEPTION)
 

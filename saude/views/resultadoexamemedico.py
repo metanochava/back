@@ -4,7 +4,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django_resaas.saas.core.decorators.action import resaas_action
+from django_resaas.saas.core.base.permissions import isPermited
+from django_resaas.saas.core.exceptions import ResaasAPIException
+from rest_framework import status
 from saude.services import exam_request_service, lab_result_service
+from saude.models.paciente import Paciente
 
 from django_resaas.saas.core.base.views import (
     BaseAPIView,
@@ -117,19 +121,33 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     # EXPLORER
     ##########################################################
 
-    @action(
-        detail=False,
-        methods=["GET", "POST"],
-    )
+    # The results explorer (folders and files of results). GET lists them:
+    # list_resultadoexamemedico; POST creates a folder / file: also
+    # add_resultadoexamemedico (checked below). A plain @action had no
+    # permission, so BaseAPIView refused both to everyone but Root.
+    @resaas_action(detail=False, methods=["GET", "POST"], label="Results explorer", icon="folder",
+                   permission="list_resultadoexamemedico", visible=False)
     def explorer(self, request):
+
+        # The explorer is always ONE patient's results: `paciente` (query on
+        # GET, body on POST) is required and must be a patient of the caller's
+        # Entity - never the results of every patient.
+        paciente = (request.GET.get("paciente") if request.method == "GET" else request.data.get("paciente"))
+        if not paciente:
+            raise ResaasAPIException(
+                "The patient is required.", code="patient_required",
+                details={"paciente": ["This field is required."]}, status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        if not Paciente.objects.filter(id=paciente, entity_id=request.entity_id).exists():
+            raise ResaasAPIException(
+                "Patient not found.", code="patient_not_found", status_code=status.HTTP_404_NOT_FOUND,
+            )
 
         ##################################################
         # LISTAGEM
         ##################################################
 
         if request.method == "GET":
-
-            paciente = request.GET.get("paciente")
 
             pai = request.GET.get("pai")
 
@@ -242,6 +260,11 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
         # CRIAR PASTA / FICHEIRO
         ##################################################
 
+        if not isPermited(request=request, role="add_resultadoexamemedico"):
+            raise ResaasAPIException(
+                "Permission denied", code="permission_denied", status_code=status.HTTP_403_FORBIDDEN,
+            )
+
         serializer = self.get_serializer(
 
             data=request.data
@@ -254,8 +277,17 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
 
         )
 
+        # a folder inside another patient's folder is refused (the tree is per patient)
+        pai = serializer.validated_data.get("pai")
+        if pai is not None and str(pai.paciente_id) != str(paciente):
+            raise ResaasAPIException(
+                "The folder belongs to another patient.", code="folder_of_another_patient",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+
         resultado = serializer.save(
 
+            paciente_id=paciente,
             entity_id=request.entity_id,
 
             branch_id=request.branch_id,
@@ -282,10 +314,9 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     # RENOMEAR
     ##########################################################
 
-    @action(
-        detail=True,
-        methods=["PATCH"],
-    )
+    # Rename: change_resultadoexamemedico (a plain @action had no permission:
+    # BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=True, methods=["PATCH"], label="Rename", permission="change_resultadoexamemedico", visible=False)
     def rename(self, request, *args, **kwargs):
 
         obj = self.get_object()
@@ -323,10 +354,9 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     # MOVER
     ##########################################################
 
-    @action(
-        detail=True,
-        methods=["PATCH"],
-    )
+    # Move: change_resultadoexamemedico (a plain @action had no permission:
+    # BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=True, methods=["PATCH"], label="Move", permission="change_resultadoexamemedico", visible=False)
     def move(self, request, *args, **kwargs):
 
         obj = self.get_object()
@@ -417,10 +447,9 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     # ENVIAR PARA LIXEIRA
     ##########################################################
 
-    @action(
-        detail=True,
-        methods=["DELETE"],
-    )
+    # Delete: delete_resultadoexamemedico (a plain @action had no permission:
+    # BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=True, methods=["DELETE"], label="Delete", permission="delete_resultadoexamemedico", visible=False)
     def delete(self, request, *args, **kwargs):
 
         obj = self.get_object()
@@ -469,10 +498,9 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     # BREADCRUMB
     ##########################################################
 
-    @action(
-        detail=True,
-        methods=["GET"],
-    )
+    # Breadcrumb: view_resultadoexamemedico (a plain @action had no permission:
+    # BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=True, methods=["GET"], label="Breadcrumb", permission="view_resultadoexamemedico", visible=False)
     def breadcrumb(self, request, *args, **kwargs):
 
         pasta = self.get_object()
@@ -565,10 +593,9 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     # FAVORITO
     ##########################################################
 
-    @action(
-        detail=True,
-        methods=["PATCH"],
-    )
+    # Favourite: change_resultadoexamemedico (a plain @action had no permission:
+    # BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=True, methods=["PATCH"], label="Favourite", permission="change_resultadoexamemedico", visible=False)
     def favorite(self, request, *args, **kwargs):
 
         obj = self.get_object()
@@ -637,10 +664,9 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     # LIXEIRA
     ##########################################################
 
-    @action(
-        detail=False,
-        methods=["GET"],
-    )
+    # Trash: list_resultadoexamemedico (a plain @action had no permission:
+    # BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=False, methods=["GET"], label="Trash", permission="list_resultadoexamemedico", visible=False)
     def trash(self, request):
 
         queryset = (
@@ -697,10 +723,9 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     # DOWNLOAD
     ##########################################################
 
-    @action(
-        detail=True,
-        methods=["GET"],
-    )
+    # Download: view_resultadoexamemedico (a plain @action had no permission:
+    # BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=True, methods=["GET"], label="Download", permission="view_resultadoexamemedico", visible=False)
     def download(self, request, *args, **kwargs):
 
         resultado = self.get_object()
@@ -763,10 +788,9 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     # PREVIEW
     ##########################################################
 
-    @action(
-        detail=True,
-        methods=["GET"],
-    )
+    # Preview: view_resultadoexamemedico (a plain @action had no permission:
+    # BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=True, methods=["GET"], label="Preview", permission="view_resultadoexamemedico", visible=False)
     def preview(self, request, *args, **kwargs):
 
         resultado = self.get_object()
@@ -815,10 +839,9 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     # INFO
     ##########################################################
 
-    @action(
-        detail=True,
-        methods=["GET"],
-    )
+    # Information: view_resultadoexamemedico (a plain @action had no permission:
+    # BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=True, methods=["GET"], label="Information", permission="view_resultadoexamemedico", visible=False)
     def info(self, request, *args, **kwargs):
 
         obj = self.get_object()
@@ -855,10 +878,9 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     # FAVORITOS
     ##########################################################
 
-    @action(
-        detail=False,
-        methods=["GET"],
-    )
+    # Favourites: list_resultadoexamemedico (a plain @action had no permission:
+    # BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=False, methods=["GET"], label="Favourites", permission="list_resultadoexamemedico", visible=False)
     def favorites(self, request):
 
         queryset = (

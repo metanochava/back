@@ -1,6 +1,7 @@
 from django_resaas.saas.core.base.views import BaseAPIView
 from django_resaas.saas.core.base.views import registerView
 from rest_framework.decorators import action
+from django_resaas.saas.core.decorators.action import resaas_action
 from rest_framework.response import Response
 
 from saude.models.episodioclinico import EpisodioClinico
@@ -18,11 +19,8 @@ class EpisodioClinicoAPIView(BaseAPIView):
     from rest_framework.decorators import action
     from rest_framework.response import Response
 
-    @action(
-        detail=False,
-        methods=["GET"],
-        url_path="consulta/(?P<consulta_id>[^/.]+)"
-    )
+    # list_episodioclinico: a plain @action had no permission (BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=False, methods=['GET'], url_path='consulta/(?P<consulta_id>[^/.]+)', label="Clinical episodes of the consultation", permission="list_episodioclinico", visible=False)
     def consulta(self, request, consulta_id=None):
 
         queryset = self.filter_queryset(

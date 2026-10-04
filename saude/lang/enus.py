@@ -967,4 +967,42 @@ key_value = {
     "Other articles": "Other articles",
     "Back to the blog": "Back to the blog",
     "min read": "min read",
+    # saude reception queue
+    "Patients (double click: open in a window)": "Patients (double click: open in a window)",
+    # latest vital signs card (consultation)
+    "Vital signs chart": "Vital signs chart",
+    # exam request page
+    "Add exam class": "Add exam class",
+    # exam request items action
+    "Exam request items": "Exam request items",
+    # results explorer actions
+    "Results explorer": "Results explorer",
+    "Rename": "Rename",
+    "Move": "Move",
+    "Favourite": "Favourite",
+    "Delete": "Delete",
+    "Breadcrumb": "Breadcrumb",
+    "Preview": "Preview",
+    "Information": "Information",
+    "Trash": "Trash",
+    "Favourites": "Favourites",
+    # saude actions given a permission
+    "Prescriptions": "Prescriptions",
+    "Exam requests": "Exam requests",
+    "Transfer referrals": "Transfer referrals",
+    "Medical reports": "Medical reports",
+    "History": "History",
+    "Patient consultations": "Patient consultations",
+    "Start consultation": "Start consultation",
+    "Diagnoses of the consultation": "Diagnoses of the consultation",
+    "Clinical episodes of the consultation": "Clinical episodes of the consultation",
+    "Procedures of the consultation": "Procedures of the consultation",
+    "Results of the request": "Results of the request",
+    # file preview dialog
+    "Open in a new tab": "Open in a new tab",
+    "This file cannot be previewed here.": "This file cannot be previewed here.",
+    # results explorer counts
+    "Folders": "Folders",
+    # results page without a patient
+    "Open a patient to see their results.": "Open a patient to see their results.",
 }
