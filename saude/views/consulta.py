@@ -46,24 +46,12 @@ class ConsultaAPIView(DocumentEditWindowMixin, BaseAPIView):
         return Response(consultation_service.intake_context(request, request.query_params.get("paciente")))
 
 
-    @action(detail=True, methods=["GET"])
-    def receitas(self, request, pk=None):
-        pass
-
-    @action(detail=True, methods=["GET"])
-    def exames(self, request, pk=None):
-        pass
-
-    @action(detail=True, methods=["GET"])
-    def transferencias(self, request, pk=None):
-        pass
-
-    @action(detail=True, methods=["GET"])
-    def relatorios(self, request, pk=None):
-        pass
 
 
 
+    # (the consultation's prescriptions / exam requests / referrals / reports
+    # are listed through each resource with ?consulta= - ConsultationDocumentsList;
+    # the unimplemented receitas/exames/transferencias/relatorios stubs were removed)
 
     # ==========================================
     # PDF
@@ -112,15 +100,15 @@ class ConsultaAPIView(DocumentEditWindowMixin, BaseAPIView):
     # HISTÓRICO DO PACIENTE
     # ==========================================
 
-    @action(
-        detail=True,
-        methods=["GET"],
-    )
+    # list_consulta: a plain @action had no permission (BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=True, methods=['GET'], label="History", permission="list_consulta", visible=False)
     def historico(self, request, *args, **kwargs):
 
         consulta = self.get_object()
 
-        rows = Consulta.objects.filter(
+        # the tenant-scoped queryset, never Consulta.objects (another Entity /
+        # Branch must not show up)
+        rows = self.get_queryset().filter(
             paciente=consulta.paciente
         ).exclude(
             id=consulta.id
@@ -137,14 +125,12 @@ class ConsultaAPIView(DocumentEditWindowMixin, BaseAPIView):
     # CONSULTAS POR PACIENTE
     # ==========================================
 
-    @action(
-        detail=False,
-        methods=["GET"],
-        url_path="paciente/(?P<paciente_id>[^/.]+)"
-    )
+    # list_consulta: a plain @action had no permission (BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=False, methods=['GET'], url_path='paciente/(?P<paciente_id>[^/.]+)', label="Patient consultations", permission="list_consulta", visible=False)
     def paciente(self, request, paciente_id=None):
 
-        rows = Consulta.objects.filter(
+        # tenant-scoped (get_queryset), never Consulta.objects
+        rows = self.get_queryset().filter(
             paciente_id=paciente_id
         )
 
@@ -159,22 +145,24 @@ class ConsultaAPIView(DocumentEditWindowMixin, BaseAPIView):
     # CRIAR CONSULTA A PARTIR DE AGENDAMENTO
     # ==========================================
 
-    @action(
-        detail=False,
-        methods=["POST"]
-    )
+    # add_consulta: a plain @action had no permission (BaseAPIView refused it to everyone but Root)
+    @resaas_action(detail=False, methods=['POST'], label="Start consultation", permission="add_consulta", visible=False)
     def iniciar(self, request):
 
         agenda_id = request.data.get("agenda")
 
+        # only an appointment of the caller's own Entity and Branch (an id of
+        # another tenant is a 404, never a consultation created there)
         agenda = get_object_or_404(
             Agenda,
-            id=agenda_id
+            id=agenda_id,
+            entity_id=request.entity_id,
+            branch_id=request.branch_id,
         )
 
         consulta = Consulta.objects.create(
             paciente=agenda.paciente,
-            employee=agenda.employee,
+            employee=agenda.medico,
             entity=agenda.entity,
             branch=agenda.branch,
             created_by=request.user,
@@ -182,7 +170,7 @@ class ConsultaAPIView(DocumentEditWindowMixin, BaseAPIView):
         )
 
         agenda.consulta = consulta
-        agenda.estado = 3  # concluída
+        agenda.estado = "concluida"  # appointment_flow.COMPLETED (was 3: not a valid state)
         agenda.save()
 
         return Response(

@@ -431,6 +431,21 @@ DASHBOARDS = [
                        "tooltip": "Register patient",
                        "route": {"name": "add_paciente"},
                        "permissions": ["add_paciente"],
+                   }, {
+                       # one click: the patient list page; double click: the same
+                       # list in a dialog (quasar_resaas WidgetContainer)
+                       "name": "patients",
+                       "type": "route",
+                       "icon": "groups",
+                       "tooltip": "Patients (double click: open in a window)",
+                       "route": {"name": "list_paciente"},
+                       "permissions": ["list_paciente"],
+                       "dblclick_action": {
+                           "name": "patients_dialog",
+                           "type": "dialog",
+                           "dialog": "saude.patient_list",
+                           "permissions": ["list_paciente"],
+                       },
                    }]),
             {
                 "name": "reception_calendar",

@@ -1975,4 +1975,36 @@ key_value = {
     "Other articles": "Autres articles",
     "Back to the blog": "Retour au blog",
     "min read": "min de lecture",
+    # saude reception queue
+    "Patients (double click: open in a window)": "Patients (double clic : ouvrir dans une fenêtre)",
+    # latest vital signs card (consultation)
+    "Vital signs chart": "Graphique des signes vitaux",
+    # exam request page
+    "Add exam class": "Ajouter une classe d'examen",
+    # exam request items action
+    "Exam request items": "Examens de la demande",
+    # results explorer actions
+    "Results explorer": "Explorateur de résultats",
+    "Move": "Déplacer",
+    "Favourite": "Favori",
+    "Breadcrumb": "Fil d'Ariane",
+    "Trash": "Corbeille",
+    "Favourites": "Favoris",
+    # saude actions given a permission
+    "Exam requests": "Demandes d'examen",
+    "Transfer referrals": "Lettres de transfert",
+    "History": "Historique",
+    "Patient consultations": "Consultations du patient",
+    "Start consultation": "Démarrer la consultation",
+    "Diagnoses of the consultation": "Diagnostics de la consultation",
+    "Clinical episodes of the consultation": "Épisodes cliniques de la consultation",
+    "Procedures of the consultation": "Actes de la consultation",
+    "Results of the request": "Résultats de la demande",
+    # file preview dialog
+    "Open in a new tab": "Ouvrir dans un nouvel onglet",
+    "This file cannot be previewed here.": "Ce fichier ne peut pas être prévisualisé ici.",
+    # results explorer counts
+    "Folders": "Dossiers",
+    # results page without a patient
+    "Open a patient to see their results.": "Ouvrez un patient pour voir ses résultats.",
 }

@@ -295,3 +295,140 @@ class LaboratoryProfilesTests(TestCase):
         # the dead ParamentroResultadoExameMedico codenames were replaced by
         # the real ExamParameter / ExamReferenceRange ones
         self.assertNotIn("Medical Laboratory Scientist", report["permissions_missing"])
+
+
+class ExamRequestItemsTests(TestCase):
+    """GET pedidoexamemedicos/{id}/items/ (the request's exams with their
+    results) is a read of the request: the Medical Laboratory Technician
+    profile reaches it with view_pedidoexamemedico. It had no permission,
+    so it answered 403 to everyone but Root."""
+
+    def setUp(self):
+        self.tenant = bootstrap_tenant("lab-items", modules=("saude", "hr"))
+        patient = _patient(self.tenant, "Items")
+        self.pedido = PedidoExameMedico.objects.create(paciente=patient, origin="direct", **_audit(self.tenant))
+        ItemPedidoExameMedico.objects.create(pedido=self.pedido, exame=_exame(self.tenant), **_audit(self.tenant))
+
+    def test_the_lab_technician_profile_reads_the_items(self):
+        technician = next(p for p in SAUDE_PROFILES if p["name"] == "Medical Laboratory Technician")["permissions"]
+
+        response = _client_with(self.tenant, technician).get(f"{PEDIDOS}{self.pedido.id}/items/")
+
+        self.assertEqual(response.status_code, 200, response.content)
+
+    def test_the_request_tells_its_patient(self):
+        """patient_id (read only): the patient header of view_pedidoexamemedico
+        uses it - the route :id is the request, not the patient."""
+        response = _client_with(self.tenant, ["view_pedidoexamemedico"]).get(f"{PEDIDOS}{self.pedido.id}/")
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(response.json()["patient_id"], str(self.pedido.paciente_id))
+
+    def test_without_view_pedidoexamemedico_it_is_refused(self):
+        response = _client_with(self.tenant, ["view_paciente"]).get(f"{PEDIDOS}{self.pedido.id}/items/")
+
+        self.assertEqual(response.status_code, 403)
+
+
+class ResultsExplorerPermissionTests(TestCase):
+    """GET/POST resultadoexamemedicos/explorer/ (folders and files of results):
+    listing needs list_resultadoexamemedico, creating also
+    add_resultadoexamemedico. It was a plain @action with no permission, so it
+    answered 403 to everyone but Root (Medical Laboratory Scientist).
+    It is always ONE patient's results: `paciente` is required and must be a
+    patient of the caller's Entity."""
+
+    URL = f"{RESULTS}explorer/"
+
+    def setUp(self):
+        self.tenant = bootstrap_tenant("lab-explorer", modules=("saude", "hr"))
+        self.scientist = next(p for p in SAUDE_PROFILES if p["name"] == "Medical Laboratory Scientist")["permissions"]
+        self.maria = _patient(self.tenant, "Maria")
+        self.rui = _patient(self.tenant, "Rui")
+
+    def _list(self, client, patient):
+        return client.get(self.URL, {"paciente": str(patient.id)})
+
+    def test_the_scientist_profile_lists_and_creates_a_folder(self):
+        client = _client_with(self.tenant, self.scientist)
+
+        listed = self._list(client, self.maria)
+        created = client.post(self.URL, {"tipo": "Folder", "nome": "Hematology", "paciente": str(self.maria.id)}, format="json")
+
+        self.assertEqual(listed.status_code, 200, listed.content)
+        self.assertIn(created.status_code, (201, 202), created.content)
+        self.assertEqual(ResultadoExameMedico.objects.get(nome="Hematology").paciente_id, self.maria.id)
+
+    def test_only_the_patients_own_results_are_listed(self):
+        client = _client_with(self.tenant, self.scientist)
+        client.post(self.URL, {"tipo": "Folder", "nome": "Maria folder", "paciente": str(self.maria.id)}, format="json")
+        client.post(self.URL, {"tipo": "Folder", "nome": "Rui folder", "paciente": str(self.rui.id)}, format="json")
+
+        rows = self._list(client, self.maria).json()
+        rows = rows.get("data", rows) if isinstance(rows, dict) else rows
+
+        self.assertEqual([r["nome"] for r in rows], ["Maria folder"])
+
+    def test_the_patient_is_required(self):
+        client = _client_with(self.tenant, self.scientist)
+
+        listed = client.get(self.URL)
+        created = client.post(self.URL, {"tipo": "Folder", "nome": "No one"}, format="json")
+
+        self.assertEqual(listed.status_code, 400)
+        self.assertEqual(listed.json()["error"]["code"], "patient_required")
+        self.assertEqual(created.status_code, 400)
+        self.assertFalse(ResultadoExameMedico.objects.filter(nome="No one").exists())
+
+    def test_a_patient_of_another_entity_is_404(self):
+        other = bootstrap_tenant("lab-explorer-other", modules=("saude", "hr"))
+        theirs = _patient(other, "Ana")
+
+        response = self._list(_client_with(self.tenant, self.scientist), theirs)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_a_folder_cannot_go_inside_another_patients_folder(self):
+        client = _client_with(self.tenant, self.scientist)
+        client.post(self.URL, {"tipo": "Folder", "nome": "Rui root", "paciente": str(self.rui.id)}, format="json")
+        rui_folder = ResultadoExameMedico.objects.get(nome="Rui root")
+
+        response = client.post(self.URL, {"tipo": "Folder", "nome": "Sneaky", "paciente": str(self.maria.id),
+                                          "pai": str(rui_folder.id)}, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"]["code"], "folder_of_another_patient")
+
+    def test_an_uploaded_file_is_stored_and_listed_at_once(self):
+        """multipart upload (the page sends FormData): the file is stored with
+        its extension / mime type and the very next listing shows it."""
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        client = _client_with(self.tenant, self.scientist)
+        upload = SimpleUploadedFile("hemograma.PNG", b"\x89PNG\r\n\x1a\n fake", content_type="image/png")
+
+        created = client.post(self.URL, {"tipo": "File", "nome": "hemograma.PNG", "paciente": str(self.maria.id),
+                                         "file": upload}, format="multipart")
+
+        self.assertIn(created.status_code, (201, 202), created.content)
+        stored = ResultadoExameMedico.objects.get(nome="hemograma.PNG")
+        self.assertTrue(stored.file)
+        self.assertEqual((stored.extensao, stored.mime_type), (".png", "image/png"))
+
+        rows = self._list(client, self.maria).json()
+        rows = rows.get("data", rows) if isinstance(rows, dict) else rows
+        listed = next(r for r in rows if r["nome"] == "hemograma.PNG")
+        self.assertTrue(listed["file"]["url"])
+        self.assertEqual(listed["icon"], "image")
+
+    def test_listing_without_add_cannot_create(self):
+        client = _client_with(self.tenant, ["list_resultadoexamemedico", "view_resultadoexamemedico"])
+
+        self.assertEqual(self._list(client, self.maria).status_code, 200)
+        refused = client.post(self.URL, {"tipo": "Folder", "nome": "X", "paciente": str(self.maria.id)}, format="json")
+
+        self.assertEqual(refused.status_code, 403)
+        self.assertFalse(ResultadoExameMedico.objects.filter(nome="X").exists())
+
+    def test_without_list_it_is_refused(self):
+        self.assertEqual(self._list(_client_with(self.tenant, ["view_paciente"]), self.maria).status_code, 403)

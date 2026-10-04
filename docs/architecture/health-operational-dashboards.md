@@ -79,7 +79,7 @@ even listed). Providers: `saude/dashboard_flow_providers.py`.
 | | `checked_in_today` | stat | `view_agenda` | today's appointments with `checked_in_at` |
 | | `waiting_now` | stat | `view_agenda` | today's appointments in `em_espera` |
 | | `average_waiting` | stat | `view_agenda` | average check-in -> service start, today (minutes) |
-| | `reception_queue` | table | `view_agenda` | today's appointments by scheduled time; row actions: check in (`check_in_agenda`, scheduled/confirmed rows), check out (`check_out_agenda`, waiting/in-progress rows), open patient (`view_paciente`); toolbar: register patient (`add_paciente`) |
+| | `reception_queue` | table | `view_agenda` | today's appointments by scheduled time; row actions: check in (`check_in_agenda`, scheduled/confirmed rows), check out (`check_out_agenda`, waiting/in-progress rows), open patient (`view_paciente`); toolbar: register patient (`add_paciente`); patients (`list_paciente`) - one click opens `list_paciente`, a double click the same list in a full-screen dialog (`dblclick_action` → `saude.patient_list`, `PatientListDialog.vue`, the list shared with the page in `PacienteList.vue`) |
 | | `reception_calendar` | calendar | `view_agenda` | every appointment of the unit (all doctors, "patient — doctor"), 30 days back and 90 ahead, cancelled excluded; status colours as the queue badges; click → patient record (`view_paciente`); shares the row with `reception_queue` from md up (queue 8 + calendar 4) |
 | Nursing | `waiting_now` | stat | `view_agenda` | as above |
 | | `vitals_pending` | stat | `view_agenda` + `view_dadovital` | waiting, no vital signs since check-in |
@@ -640,7 +640,7 @@ Nurses and, with `add_dadovital`, doctors record them.
 
 ### Editing the last record
 
-The dialog's **Record** tab offers **Edit last record** for the patient's most
+The dialog's **Record** tab offers **Edit last record** (next to the "Vital signs" section title) for the patient's most
 recent record. It loads the values into the form; **Save changes** sends
 `PATCH dadovitals/{id}/` instead of creating a new record (**New record** goes
 back to recording a new one). Deltas against the previous record are hidden
@@ -704,6 +704,100 @@ also lists the alerts. These are decision support: the dialog says so, and
 nothing is stored besides the measurements. After saving, the dashboard's
 widgets reload, so the counters and the queue update.
 
+### Patient header buttons follow the permissions
+
+Every button of `PacienteHeaderPage.vue` is shown only when the user may use
+it (UX only - each page and endpoint checks again):
+
+| Button | Shown with |
+|---|---|
+| Clinical shortcuts (consultation, prescription, certificate, referral, exam request, results, report) | the target route's own `meta.requiredRole` (`add_consulta`, `add_receitamedica`, ..., `list_resultadoexamemedico`) - the same check as the router guard |
+| Name / photo / NID link to the patient record | `view_paciente` |
+| Record vital signs | `add_dadovital` |
+| Appointment schedule | `add_agenda` |
+| Menu: Edit data | `change_paciente` |
+| Menu: Patient card (PDF) | `pdf_paciente` |
+
+### Exam request view (`view_pedidoexamemedico`) for the laboratory
+
+- `GET pedidoexamemedicos/{id}/items/` (the request's exams with their results,
+  used by the results upload: `AddResultadoModal`, `RightMenu`) is protected by
+  `view_pedidoexamemedico`. It was a plain `@action` with no permission, which
+  `BaseAPIView` refuses to everyone but Root (403 "Permission is not defined
+  for this action").
+- The request answers `patient_id` (read only): its own patient (direct
+  request) or its consultation's. `PedidoexamemedicoVPage` passes it to the
+  patient header - the route `:id` is the request, not the patient.
+- Both laboratory profiles hold `list_resultadoexamemedico`, required by the
+  results list page (`list_resultadopedidoexamemedico` route).
+- `resultadoexamemedicos/explorer/` (folders and files of results, the results
+  list page) needs `list_resultadoexamemedico`; creating a folder / file through
+  it (POST) also `add_resultadoexamemedico`. The explorer's other actions have
+  explicit permissions too: rename / move / favourite `change_`, delete
+  `delete_`, breadcrumb / download / preview / info `view_`, trash / favourites
+  `list_resultadoexamemedico`. All were plain `@action`s (403 to everyone but
+  Root).
+- The other former plain `@action`s now carry their own permission
+  (`resaas_action(permission=...)`):
+
+  | Endpoint | Permission |
+  |---|---|
+  | `consultas/{id}/historico/` (the patient's other consultations) | `list_consulta` |
+  | `consultas/paciente/{paciente_id}/` | `list_consulta` |
+  | `consultas/iniciar/` (POST: consultation from an appointment) | `add_consulta` |
+  | `diagnosticos/consulta/{id}/` | `list_diagnostico` |
+  | `episodiosclinicos/consulta/{id}/` | `list_episodioclinico` |
+  | `procedimentos/consulta/{id}/` | `list_procedimento` |
+  | `pedidoexamemedicos/{id}/resultados/` | `list_resultadoexamemedico` |
+
+  Fixed on the way: `historico` and `paciente` read `Consulta.objects` (other
+  Entities / Branches) - now the tenant-scoped queryset; `iniciar` took an
+  appointment of any tenant by id, read a non-existent `agenda.employee` and
+  wrote an invalid state - now the caller's Entity/Branch only (404 otherwise),
+  `agenda.medico`, `"concluida"`; `diagnosticos/.../consulta/` failed
+  (`Response` imported inside the class). The unimplemented stubs
+  `consultas/{id}/receitas|exames|transferencias|relatorios/` (`pass`, 500) were
+  removed: those documents are listed with `?consulta=` (ConsultationDocumentsList).
+  Tests: `saude/tests/test_protected_consultation_actions.py`.
+- The results list page (`list_resultadopedidoexamemedico`) shows only the
+  **current patient's** results - the patient of `pacienteStore` (`Paciente.row`,
+  persisted, as the other clinical pages); with none open it says so. The
+  explorer always sends `paciente`, and the backend requires it:
+  `explorer/` without `paciente` is `400 patient_required`, a patient of
+  another Entity `404 patient_not_found`; a created folder / file is the
+  patient's, and a folder inside another patient's folder is
+  `400 folder_of_another_patient`. File upload sends multipart (it used to send
+  `file: undefined` in JSON, so no file was ever stored). After an upload the
+  list reloads and the new file opens in the preview at once.
+- `ExplorerItem.vue` reads `tipo` as the choice the API returns
+  (`{id: 'Folder'|'File'}`) and takes the icon from the serializer's `icon`;
+  it used to call `.toLowerCase()` on the `file` object, which threw and left
+  those files out of the grid.
+- On the results list page (`list_resultadopedidoexamemedico`), clicking a
+  file opens `FilePreviewDialog.vue` (full screen): image, PDF and text in
+  place, video / audio with their players, anything else offers the download;
+  the bar has "open in a new tab" and "download". The type comes from the
+  item's `mime_type` / `extensao`; the URL is the stored media file the
+  explorer already returned (nothing else is fetched). Media files are served
+  without `X-Frame-Options`, so PDFs and text show in an iframe.
+- Tests: `saude/tests/test_laboratory_flow.py` (`ExamRequestItemsTests`,
+  `ResultsExplorerPermissionTests`).
+
+### Exam request page (`add_pedidoexamemedico`): add buttons follow the permissions
+
+`PedidoexamemedicoSEPage.vue` shows each add button only with its own
+permission (UX only - every endpoint checks again):
+
+| Button | Shown / enabled with |
+|---|---|
+| Add exam type | `add_tipoexamemedico` |
+| "+" on an exam type (add a class) | `add_classeexamemedico` |
+| "+" on an exam class (add an exam) | `add_examemedico` |
+| Save request | `add_pedidoexamemedico` **and** `add_itempedidoexamemedico` (the request and its items are separate POSTs) |
+
+Without a catalogue permission the "+" is replaced by a plain icon, so the
+catalogue still reads the same.
+
 ### Recording from the patient header
 
 `PacienteHeaderPage.vue` has a **Record vital signs** icon (`monitor_heart`).
@@ -731,7 +825,10 @@ A professional form (`ConsultaSEPage.vue`), not the generic CRUD form:
   (`GET dadovitals/?paciente=&ordering=-created_at&page_size=1`), each value
   with the same adult reference bands as the recording dialog, BMI / MAP /
   pulse pressure / shock index, the alerts, when and by whom it was recorded,
-  and a badge when it is older than 24 h.
+  and a badge when it is older than 24 h. Next to **Refresh**, a chart button
+  (`view_dadovital`, UX only) opens a full-screen modal with every recorded
+  vital sign of the patient over time in one chart (`VitalSignsCharts`,
+  `mode="all"`, `GET dadovitals/history/`).
 - **Form:** chief complaint and history (required), diagnosis, plan, bound to
   the `Consulta` store form, each an `s-editor` (rich text, like the other
   clinical documents). They are stored as HTML and the PDF renders them as
@@ -1092,3 +1189,39 @@ the permission to `DASHBOARD_PERMISSIONS`, and grant it to the profiles.
 
 Tests: `saude/tests/test_operational_dashboards.py`, `saude/tests/test_laboratory_flow.py`,
 `saude/tests/test_structured_lab_results.py`, `saude/tests/test_patient_portal.py`.
+
+## Profiles: every feature reaches the people who use it
+
+The saude profiles live in `saude/profiles.py` (`SAUDE_PROFILES`).
+`group_creator` applies them on every `migrate` (`post_migrate`). It **only
+adds** permissions, never removes them, so dev and production are updated with
+`python manage.py migrate`.
+
+**Rules:**
+- The profile files are the **source of truth**: a permission is never granted
+  only in the database. When a group in dev or production holds permissions its
+  profile does not list, they are codified in the profile file. On 2026-10-04
+  the Doctor group held 257 permissions (dev and production) that
+  `saude/profiles.py` did not list - including `hard_delete_*`, `restore_*` and
+  `delete_consulta`; they are now listed there (a marked block at the end of the
+  Doctor profile), `add_itemreceita` for the Pharmacist, and 20 for the Medical Laboratory Scientist (results and parameter values: PDF, delete / restore / hard delete; read access to patients, people, contacts, entity and entity type). Whether doctors
+  should keep the destructive ones is a separate decision.
+- A feature is not done until its permissions are in the profiles that
+use it. A route `requiredRole`, an action `permission=` or a dashboard
+`permissions` that no profile holds can only be used by Root.
+`saude/tests/test_profiles_cover_features.py` fails when a saude dashboard /
+widget / action or a `resaas_action` requires a permission that no saude
+profile grants.
+
+Audit of 2026-10-04 (every codename required by the saude pages and backend
+was checked against the profiles):
+
+| Profile | Added |
+|---|---|
+| Doctor | `list_` / `delete_` of `alergiacorrente`, `doencacorrente`, `medicacaocorrente` (Clinical Summary of the patient record); `view_dashboard_saude_medicacao`, `_documentos_medicos`, `_exames`, `_historico_clinico` |
+| Nurse | `list_alergiacorrente`, `list_doencacorrente`, `list_medicacaocorrente`, `delete_medicacaocorrente` |
+| Medical Receptionist | `view_/change_person`; `list_/view_/change_/delete_` of `personcontact` and `document`; `list_/view_documenttype` (editing a patient) |
+| Medical Laboratory Technician | `list_resultadoexamemedico`, `view_dashboard_saude_exames` |
+| Medical Laboratory Scientist | `list_resultadoexamemedico`; `list_/add_/change_examemedico`; `view_dashboard_saude_exames` |
+| Pharmacist | `add_/change_medicamento`, `view_dashboard_saude_medicacao` |
+| Healthcare Administrator | Clinical Summary lists; `add_/change_` of `medico` and `horariomedico`; `list_/add_/change_examemedico`; `list_/view_/add_/change_medicamento`; `view_saude_dashboard` and the four statistics dashboards |
