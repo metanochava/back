@@ -2007,4 +2007,8 @@ key_value = {
     "Folders": "Pastas",
     # results page without a patient
     "Open a patient to see their results.": "Abra um paciente para ver os resultados dele.",
+    # exam request: priority of each exam
+    "Very urgent": "Muito urgente",
+    "Instructions and notes": "Instruções e notas",
+    "Set the priority of every exam": "Definir a prioridade de todos os exames",
 }

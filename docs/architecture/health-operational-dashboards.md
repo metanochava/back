@@ -798,6 +798,15 @@ permission (UX only - every endpoint checks again):
 Without a catalogue permission the "+" is replaced by a plain icon, so the
 catalogue still reads the same.
 
+Each added exam shows its **priority** as three buttons (Normal grey, Urgent
+orange, Very urgent red) and, folded under "Instructions and notes", its
+instructions and notes; with more than one exam a control above the list sets
+the priority of all of them. They are sent per item
+(`itempedidoexamemedicos/`: `prioridade` `normal|urgente|muito_urgente`,
+`instrucoes`, `observacao`) - before, the form holding them was never on the
+page, so every exam went as Normal. While searching the catalogue, every type
+and class found opens and the matching text is highlighted (`s-highlight`).
+
 ### Recording from the patient header
 
 `PacienteHeaderPage.vue` has a **Record vital signs** icon (`monitor_heart`).

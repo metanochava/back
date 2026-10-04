@@ -1005,4 +1005,9 @@ key_value = {
     "Folders": "Folders",
     # results page without a patient
     "Open a patient to see their results.": "Open a patient to see their results.",
+    # exam request: priority of each exam
+    "Very urgent": "Very urgent",
+    "Instructions and notes": "Instructions and notes",
+    "Set the priority of every exam": "Set the priority of every exam",
+    "Remove": "Remove",
 }
