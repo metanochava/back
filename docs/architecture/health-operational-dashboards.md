@@ -983,7 +983,9 @@ the API still exist. Tests: `saude/tests/test_clinical_summary.py`.
 (`DashBoarde`, with the patient's name: `show-patient`) — shows each
 consultation in full (`ConsultationCard.vue`): date, doctor and its three sections — chief complaint
 and history, diagnosis, plan (empty ones hidden) — so they can be read without
-opening each one. The rich text is shown through `clinicalHtml.js`
+opening each one. Same layout as the form (`ConsultaSEPage`) and the PDF
+(`consultamedicabody.html`): the complaint across the whole width, **diagnosis
+and plan side by side** (from md up; one alone takes the row). The rich text is shown through `clinicalHtml.js`
 (`sanitizeClinicalHtml`): an allowlist of the editor's formatting tags, with
 every attribute removed and `script`/`iframe`/`svg`... dropped.
 Every `v-html` of user-written clinical text in `dev/front` goes through it:

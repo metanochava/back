@@ -369,6 +369,24 @@
     font-style:italic;
 
 }
+
+/* the requested exams in two columns, small type (saves space: many exams per page) */
+.exam-list{
+    column-count:2;
+    column-gap:10px;
+}
+.exam-list .exam-item{
+    margin-bottom:3px;
+    padding:2px 5px;
+    border-left-width:2px;
+    break-inside:avoid;
+    page-break-inside:avoid;
+}
+.exam-list .exam-name{ font-size:7px; }
+.exam-list .exam-num{ min-width:10px; height:10px; line-height:10px; font-size:6px; margin-right:3px; }
+.exam-list .exam-priority,
+.exam-list .exam-detail{ font-size:6.5px; line-height:1.25; }
+.exam-list .empty{ column-span:all; }
 </style>
 </head>
 
@@ -455,6 +473,8 @@
       </div>
 
  
+      <!-- two columns, small type: many exams fit on one page -->
+      <div class="exam-list">
       {% for item in items %}
 
         <div class="exam-item">
@@ -503,6 +523,7 @@
           </div>
 
       {% endfor %}
+      </div>
 
   </div>
 
