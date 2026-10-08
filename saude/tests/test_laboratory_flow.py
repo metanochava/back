@@ -8,6 +8,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from django_resaas.saas.core.utils.group_creator import group_creator
+from django_resaas.saas.models.audit_log import AuditLog
 from django_resaas.saas.models.group import Group
 from django_resaas.saas.models.person import Person
 
@@ -140,14 +141,25 @@ class LaboratoryCheckInAndCollectionTests(TestCase):
     def test_collection_time_is_stamped_and_gives_the_lab_waiting_time(self):
         exam_request_service.check_in(self.pedido, now=timezone.now() - timedelta(minutes=12))
 
+        response = _client_with(self.tenant, TECHNICIAN + ["collect_itempedidoexamemedico"]).post(
+            f"{ITEMS}{self.item.id}/collect/"
+        )
+
+        self.assertEqual(response.status_code, 202, response.data)
+        self.item.refresh_from_db()
+        self.assertIsNotNone(self.item.data_colheita)
+        self.assertEqual(exam_request_service.lab_waiting_minutes(self.pedido, self.item.data_colheita), 12)
+
+    def test_the_exam_state_cannot_be_changed_by_a_patch(self):
+        """Lab phase 9: estado_exame is read-only; only the actions change it."""
         response = _client_with(self.tenant, TECHNICIAN).patch(
-            f"{ITEMS}{self.item.id}/", {"estado_exame": "colhido"}, format="json"
+            f"{ITEMS}{self.item.id}/", {"estado_exame": "concluido", "observacao": "Fasting"}, format="json"
         )
 
         self.assertEqual(response.status_code, 200, response.data)
         self.item.refresh_from_db()
-        self.assertIsNotNone(self.item.data_colheita)
-        self.assertEqual(exam_request_service.lab_waiting_minutes(self.pedido, self.item.data_colheita), 12)
+        self.assertEqual(self.item.estado_exame, "pendente")
+        self.assertEqual(self.item.observacao, "Fasting")
 
 
 class ResultValidationTests(TestCase):
@@ -163,12 +175,13 @@ class ResultValidationTests(TestCase):
         return {"paciente": str(self.patient.id), "item_pedido": str(self.item.id),
                 "nome": "Hemoglobin", "valor_resultado": "13.5", **extra}
 
-    def test_recording_without_validation_rights_cannot_validate(self):
-        response = _client_with(self.tenant, TECHNICIAN).post(RESULTS, self._payload(validado=True), format="json")
+    def test_validado_in_a_payload_does_not_validate(self):
+        """Lab phase 10: `validado` is read-only - validating is only the
+        validate action (its own permission, lock, audit)."""
+        response = _client_with(self.tenant, SCIENTIST).post(RESULTS, self._payload(validado=True), format="json")
 
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.data["error"]["code"], "permission_denied")
-        self.assertFalse(ResultadoExameMedico.objects.exists())
+        self.assertEqual(response.status_code, 201, response.data)
+        self.assertFalse(ResultadoExameMedico.objects.get().validado)
 
     def test_a_technician_records_an_unvalidated_result(self):
         response = _client_with(self.tenant, TECHNICIAN).post(RESULTS, self._payload(), format="json")
@@ -176,11 +189,47 @@ class ResultValidationTests(TestCase):
         self.assertEqual(response.status_code, 201, response.data)
         self.assertFalse(ResultadoExameMedico.objects.get().validado)
 
-    def test_validation_metadata_is_set_by_the_server(self):
-        response = _client_with(self.tenant, SCIENTIST).post(RESULTS, self._payload(
-            validado=True, data_validacao="2000-01-01T00:00:00Z"), format="json")
+    def test_a_result_for_another_patient_than_its_exam_item_is_rejected(self):
+        """Lab phase 9: relation validation - the generic CRUD cannot attach
+        patient B's result to patient A's exam item."""
+        other = _patient(self.tenant, "Other")
+
+        response = _client_with(self.tenant, TECHNICIAN).post(
+            RESULTS, self._payload(paciente=str(other.id)), format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["error"]["code"], "result_patient_mismatch")
+        self.assertIn("paciente", response.data["error"]["details"])
+        self.assertFalse(ResultadoExameMedico.objects.exists())
+
+    def test_the_patient_follows_the_exam_item_when_omitted(self):
+        payload = self._payload()
+        payload.pop("paciente")
+
+        response = _client_with(self.tenant, TECHNICIAN).post(RESULTS, payload, format="json")
 
         self.assertEqual(response.status_code, 201, response.data)
+        self.assertEqual(ResultadoExameMedico.objects.get().paciente_id, self.patient.id)
+
+    def test_moving_a_result_to_another_patient_is_rejected(self):
+        created = _client_with(self.tenant, TECHNICIAN).post(RESULTS, self._payload(), format="json")
+        other = _patient(self.tenant, "Other")
+
+        response = _client_with(self.tenant, TECHNICIAN).patch(
+            f"{RESULTS}{created.data['id']}/", {"paciente": str(other.id)}, format="json")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(ResultadoExameMedico.objects.get().paciente_id, self.patient.id)
+
+    def test_validation_metadata_is_set_by_the_server(self):
+        scientist = _client_with(self.tenant, SCIENTIST)
+        created = scientist.post(RESULTS, self._payload(
+            validado=True, data_validacao="2000-01-01T00:00:00Z"), format="json")
+        self.assertEqual(created.status_code, 201, created.data)
+        self.assertIsNone(ResultadoExameMedico.objects.get().data_validacao)
+
+        self.assertEqual(scientist.post(f"{RESULTS}{created.data['id']}/validate/").status_code, 202)
+
         result = ResultadoExameMedico.objects.get()
         self.assertTrue(result.validado)
         self.assertEqual(result.validado_por, self.tenant["user"])
@@ -188,7 +237,8 @@ class ResultValidationTests(TestCase):
 
     def test_validate_action_needs_its_permission_and_runs_once(self):
         result = ResultadoExameMedico.objects.create(
-            paciente=self.patient, item_pedido=self.item, nome="Glucose", **_audit(self.tenant))
+            paciente=self.patient, item_pedido=self.item, nome="Glucose", valor_resultado="5.4",
+            **_audit(self.tenant))
         url = f"{RESULTS}{result.id}/validate/"
 
         self.assertEqual(_client_with(self.tenant, TECHNICIAN).post(url).status_code, 403)
@@ -213,6 +263,108 @@ class ResultValidationTests(TestCase):
         self.assertEqual(unchanged.status_code, 200, unchanged.data)
         result.refresh_from_db()
         self.assertEqual(result.valor_resultado, "5.1")
+
+
+class ValidationReleasePhaseTests(TestCase):
+    """Lab phase 10: validate locks, needs content, completes the exam item
+    and is audited; amend reopens it; release needs validation."""
+
+    def setUp(self):
+        self.tenant = bootstrap_tenant("lab-phase10", modules=("saude", "hr"))
+        self.patient = _patient(self.tenant, "Val")
+        pedido = PedidoExameMedico.objects.create(paciente=self.patient, origin="direct", **_audit(self.tenant))
+        self.item = ItemPedidoExameMedico.objects.create(
+            pedido=pedido, exame=_exame(self.tenant), estado_exame="processamento", **_audit(self.tenant))
+        self.scientist = _client_with(self.tenant, SCIENTIST + [
+            "release_resultadoexamemedico", "amend_resultadoexamemedico"])
+
+    def _result(self, **extra):
+        return ResultadoExameMedico.objects.create(
+            paciente=self.patient, item_pedido=self.item, nome="Glucose", tipo=ResultadoExameMedico.FILE,
+            **extra, **_audit(self.tenant))
+
+    def test_an_empty_result_cannot_be_validated(self):
+        result = self._result()
+
+        response = self.scientist.post(f"{RESULTS}{result.id}/validate/")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["error"]["code"], "empty_result")
+        result.refresh_from_db()
+        self.assertFalse(result.validado)
+
+    def test_validating_completes_the_exam_item_and_is_audited(self):
+        result = self._result(valor_resultado="5.4")
+
+        self.assertEqual(self.scientist.post(f"{RESULTS}{result.id}/validate/").status_code, 202)
+
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.estado_exame, "concluido")
+        log = AuditLog.objects.get(object_id=str(result.id), action="LAB_RESULT_VALIDATED")
+        self.assertEqual(log.details, {"revision": 1, "item_from": "processamento", "item_to": "concluido"})
+
+    def test_release_needs_validation_and_the_patient_sees_only_released(self):
+        from saude.services import patient_portal_service
+
+        result = self._result(valor_resultado="5.4")
+        not_yet = self.scientist.post(f"{RESULTS}{result.id}/release/")
+        self.assertEqual(not_yet.status_code, 409)
+        self.assertEqual(patient_portal_service.results(self.patient), [])
+
+        self.scientist.post(f"{RESULTS}{result.id}/validate/")
+        self.assertEqual(patient_portal_service.results(self.patient), [])   # validated, not released
+
+        self.assertEqual(self.scientist.post(f"{RESULTS}{result.id}/release/").status_code, 202)
+        self.assertEqual(len(patient_portal_service.results(self.patient)), 1)
+        self.assertEqual(AuditLog.objects.get(object_id=str(result.id), action="LAB_RESULT_RELEASED").details,
+                         {"revision": 1})
+
+    def test_amending_reopens_the_exam_until_the_new_revision_is_validated(self):
+        result = self._result(valor_resultado="5.4")
+        self.scientist.post(f"{RESULTS}{result.id}/validate/")
+
+        amended = self.scientist.post(f"{RESULTS}{result.id}/amend/", {"reason": "Typo"}, format="json")
+
+        self.assertEqual(amended.status_code, 201, amended.data)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.estado_exame, "processamento")
+        log = AuditLog.objects.get(object_id=str(result.id), action="LAB_RESULT_AMENDED")
+        self.assertEqual(log.details, {"reason": "Typo", "revision": 1, "new_revision": 2,
+                                       "item_from": "concluido", "item_to": "processamento"})
+
+        self.assertEqual(self.scientist.post(f"{RESULTS}{amended.data['id']}/validate/").status_code, 202)
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.estado_exame, "concluido")
+
+    def test_amending_keeps_the_value_and_the_attachment(self):
+        result = self._result(valor_resultado="5.4")
+        ResultadoExameMedico.objects.filter(pk=result.pk).update(
+            file="resultados_exames/glucose.pdf", tamanho=1234, extensao=".pdf", mime_type="application/pdf")
+        self.scientist.post(f"{RESULTS}{result.id}/validate/")
+
+        amended = self.scientist.post(f"{RESULTS}{result.id}/amend/", {"reason": "Typo"}, format="json")
+
+        revision = ResultadoExameMedico.objects.get(pk=amended.data["id"])
+        self.assertEqual(revision.valor_resultado, "5.4")
+        self.assertEqual((revision.file.name, revision.tamanho, revision.extensao),
+                         ("resultados_exames/glucose.pdf", 1234, ".pdf"))
+
+    def test_a_folder_cannot_be_validated(self):
+        folder = ResultadoExameMedico.objects.create(paciente=self.patient, nome="Scans",
+                                                     tipo=ResultadoExameMedico.FOLDER, **_audit(self.tenant))
+
+        response = self.scientist.post(f"{RESULTS}{folder.id}/validate/")
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["error"]["code"], "empty_result")
+
+    def test_a_result_saved_by_the_generic_form_validates(self):
+        """The generic form does not send `tipo`: such a result keeps the
+        model default "Folder" but has an exam item and a value."""
+        result = self._result(valor_resultado="5.4")
+        ResultadoExameMedico.objects.filter(pk=result.pk).update(tipo=ResultadoExameMedico.FOLDER)
+
+        self.assertEqual(self.scientist.post(f"{RESULTS}{result.id}/validate/").status_code, 202)
 
 
 class LaboratoryDashboardTests(TestCase):
@@ -273,6 +425,68 @@ class LaboratoryDashboardTests(TestCase):
 
         self.assertEqual(_widget(client, "saude_laboratory", "lab_queue").data["data"]["rows"], [])
         self.assertEqual(_widget(client, "saude_laboratory", "results_to_validate_count").data["data"]["value"], 0)
+
+
+class LaboratoryDashboardPhase15Tests(TestCase):
+    """Lab phase 15: Patients Waiting, Average Waiting Time, Completed Today,
+    Released Today - from real data, tenant scoped, permission gated."""
+
+    def setUp(self):
+        self.tenant = bootstrap_tenant("lab-dash15", modules=("saude", "hr"))
+        self.exame = _exame(self.tenant)
+        now = timezone.now()
+
+        def request(name, checked_in_minutes=None, state="pendente", collected_minutes=None):
+            pedido = PedidoExameMedico.objects.create(
+                paciente=_patient(self.tenant, name), origin="direct",
+                checked_in_at=now - timedelta(minutes=checked_in_minutes) if checked_in_minutes else None,
+                **_audit(self.tenant))
+            item = ItemPedidoExameMedico.objects.create(
+                pedido=pedido, exame=self.exame, estado_exame=state,
+                data_colheita=now - timedelta(minutes=collected_minutes) if collected_minutes else None,
+                **_audit(self.tenant))
+            return pedido, item
+
+        request("Waiting", checked_in_minutes=15)                                     # waiting
+        request("NotArrived")                                                          # not checked in
+        request("Collected", checked_in_minutes=40, state="colhido", collected_minutes=30)   # waited 10
+        request("Collected2", checked_in_minutes=50, state="colhido", collected_minutes=30)  # waited 20
+        _, done = request("Done", state="concluido")
+        _, done_yesterday = request("DoneYesterday", state="concluido")
+        ResultadoExameMedico.objects.create(
+            paciente=done.pedido.paciente, item_pedido=done, nome="Glucose", valor_resultado="5",
+            validado=True, data_validacao=now, released=True, released_at=now, **_audit(self.tenant))
+        ResultadoExameMedico.objects.create(
+            paciente=done_yesterday.pedido.paciente, item_pedido=done_yesterday, nome="Glucose", valor_resultado="5",
+            validado=True, data_validacao=now - timedelta(days=1), released=True,
+            released_at=now - timedelta(days=1), **_audit(self.tenant))
+
+    def _value(self, client, widget):
+        return _widget(client, "saude_laboratory", widget).data["data"]
+
+    def test_the_new_cards(self):
+        client = _client_with(self.tenant, SCIENTIST)
+
+        self.assertEqual(self._value(client, "patients_waiting")["value"], 1)
+        self.assertEqual(self._value(client, "average_waiting")["value"], 15)
+        self.assertEqual(self._value(client, "completed_today")["value"], 1)
+        self.assertEqual(self._value(client, "released_today")["value"], 1)
+
+    def test_without_data_the_average_is_a_dash(self):
+        other = bootstrap_tenant("lab-dash15-empty", modules=("saude", "hr"))
+        client = _client_with(other, SCIENTIST)
+
+        self.assertEqual(self._value(client, "average_waiting"), {"value": None, "formatted_value": "-"})
+        self.assertEqual(self._value(client, "patients_waiting")["value"], 0)
+        self.assertEqual(self._value(client, "completed_today")["value"], 0)
+
+    def test_cards_follow_their_permissions(self):
+        client = _client_with(self.tenant, ["view_dashboard_saude_laboratory", "view_pedidoexamemedico"])
+        names = {w["name"] for w in client.get("/api/django_resaas/dashboard/saude_laboratory/").data["dashboard"]["widgets"]}
+
+        self.assertIn("average_waiting", names)
+        self.assertFalse({"patients_waiting", "completed_today", "released_today"} & names)
+        self.assertEqual(_widget(client, "saude_laboratory", "released_today").status_code, 403)
 
 
 class LaboratoryProfilesTests(TestCase):

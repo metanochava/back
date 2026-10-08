@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import status as http_status
@@ -48,6 +49,20 @@ def _as_drf_validation_error(exc):
     return DRFValidationError(
         exc.messages if hasattr(exc, "messages") else str(exc)
     )
+
+
+def _query_dates(params):
+    """?from=&to= as dates (YYYY-MM-DD). A value that is not a date is a
+    ValueError - parse_date() alone returns None and the filter would be
+    silently dropped."""
+    out = []
+    for key in ("from", "to"):
+        raw = (params.get(key) or "").strip()
+        value = parse_date(raw) if raw else None
+        if raw and value is None:
+            raise ValueError(key)
+        out.append(value)
+    return tuple(out)
 
 
 @registerView("pacientes")
@@ -308,7 +323,7 @@ class PacienteAPIView(BaseAPIView):
             self._lab_values(request).filter(result__validado=True, result__na_lixeira=False)
         )
         rows = (
-            values.values("parameter_code", "parameter_name", "unit", "data_type")
+            values.values("parameter_code", "parameter_name", "unit", "data_type", "parameter__graphable")
             .order_by("parameter_code", "-recorded_at")
         )
         seen, parameters = set(), []
@@ -320,9 +335,45 @@ class PacienteAPIView(BaseAPIView):
                 "code": row["parameter_code"],
                 "name": row["parameter_name"],
                 "unit": row["unit"],
-                "graphable": row["data_type"] in ExamParameter.NUMERIC_TYPES,
+                # numeric and graphable (a deleted parameter: its numeric snapshot decides)
+                "graphable": row["data_type"] in ExamParameter.NUMERIC_TYPES
+                and row["parameter__graphable"] is not False,
             })
         return Response(parameters)
+
+    @resaas_action(methods=["get"], detail=True, label="Lab summary", icon="science",
+                   permission="lab_evolution_paciente", visible=False)
+    def lab_summary(self, request, *args, **kwargs):
+        """The patient's open exams and latest RELEASED results with the
+        previous value of each parameter (lab phase 13, consultation panel).
+        Data only: no interpretation."""
+        return Response(lab_result_service.doctor_summary(self.get_object(), request.entity_id))
+
+    @resaas_action(methods=["get"], detail=True, label="Lab history", icon="history",
+                   permission="lab_evolution_paciente", visible=False)
+    def lab_history(self, request, *args, **kwargs):
+        """?exam=<id>&parameter=<code>&from=&to=&page=&page_size= - the
+        patient's validated exam results with their snapshot values, newest
+        first, filtered and paginated in the database (lab phase 11)."""
+        patient = self.get_object()
+        params = request.query_params
+        try:
+            date_from, date_to = _query_dates(params)
+            page, page_size = int(params.get("page") or 1), int(params.get("page_size") or 20)
+        except ValueError:
+            return fail(request, "Invalid filter.", status=400)
+
+        exam_id = params.get("exam") or None
+        if exam_id:
+            try:
+                uuid.UUID(str(exam_id))
+            except ValueError:
+                return fail(request, "Invalid filter.", status=400)
+
+        return Response(lab_result_service.history(
+            patient, request.entity_id, exam_id=exam_id, parameter_code=params.get("parameter") or None,
+            date_from=date_from, date_to=date_to, page=page, page_size=page_size,
+        ))
 
     @resaas_action(methods=["get"], detail=True, label="Lab evolution", icon="show_chart",
                    visible=False)
@@ -335,8 +386,7 @@ class PacienteAPIView(BaseAPIView):
             return fail(request, "parameter is required.", status=400)
 
         try:
-            date_from = parse_date(request.query_params.get("from") or "")
-            date_to = parse_date(request.query_params.get("to") or "")
+            date_from, date_to = _query_dates(request.query_params)
         except ValueError:
             return fail(request, "Invalid date.", status=400)
 

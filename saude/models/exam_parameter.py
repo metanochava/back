@@ -15,6 +15,7 @@ class ExamParameter(BaseModel):
     TEXT = "text"
     BOOLEAN = "boolean"
     CHOICE = "choice"
+    DATE = "date"
 
     DATA_TYPES = [
         (DECIMAL, "Decimal"),
@@ -23,6 +24,7 @@ class ExamParameter(BaseModel):
         (BOOLEAN, "Yes / No"),
         # positive/negative, blood group, ... are choices
         (CHOICE, "Choice"),
+        (DATE, "Date"),
     ]
 
     NUMERIC_TYPES = (DECIMAL, INTEGER)
@@ -57,6 +59,10 @@ class ExamParameter(BaseModel):
     # shown to the patient once the result is released
     patient_visible = models.BooleanField(default=True)
 
+    # offered as a time series (doctor's evolution, patient's trends). Only
+    # numeric parameters can be charted: see is_graphable.
+    graphable = models.BooleanField(default=True)
+
     class Meta:
         verbose_name = "Exam Parameter"
         verbose_name_plural = "Exam Parameters"
@@ -71,6 +77,10 @@ class ExamParameter(BaseModel):
     @property
     def is_numeric(self):
         return self.data_type in self.NUMERIC_TYPES
+
+    @property
+    def is_graphable(self):
+        return self.graphable and self.is_numeric
 
     def clean(self):
         errors = {}

@@ -7,6 +7,9 @@ an appointment (`Agenda`). There is no dashboard API, store or page per
 profile: the engine serves them, and the home page shows the ones the user is
 allowed to see as tabs.
 
+> The laboratory (requests, queue, results, validation, history, its dashboard's
+> data and security) is documented in [Health laboratory](health-laboratory.md).
+
 ```
 Authenticated user
   -> signed tenant context (Entity + Branch + active Group)
@@ -21,8 +24,7 @@ Authenticated user
 |---|---|
 | Reception, Nursing, Doctor dashboards | Implemented and tested |
 | Waiting time / appointment delay | Implemented and tested |
-| Laboratory: exam-only flow, lab check-in, collection time, result validation, dashboard | Implemented and tested |
-| Laboratory: exam parameters, reference ranges, structured results with snapshots, release, amendment, sample rejection, TAT, history and evolution | Implemented and tested (see *Structured laboratory results*) |
+| Laboratory: requests (doctor / exam only), queue, collection, structured results, record / validate / release, amendment, history, charts, doctor and patient views, dashboard, security audit, performance | Implemented and tested - see [Health laboratory](health-laboratory.md) |
 | Pharmacy, Administrator | Next phases |
 | Cashier / billing | Blocked: no invoice, receipt or cash register exists, and `saude` does not generate charges. Needs a decision on where they live (`sales` or a finance module). |
 | Patient portal (self-service area) | Implemented and tested (see *Patient portal*) |
@@ -65,6 +67,13 @@ have, but are no longer seeded.
 > every Entity that uses them, and is a platform-level operation (see
 > django_resaas *Permissions -> Managing group permissions*).
 
+The dashboard permissions the profiles reference are created by
+`saude/signals/permissions.py` on `migrate`. That includes `view_saude_dashboard`
+(the old saude dashboard, granted to the Healthcare Administrator), which used to
+exist only where the app scaffolding had created it (content type
+`saude.sidebar`). It is now created on `migrate` with that same content type, so
+an existing row is reused and a fresh database has it (lab phase 18).
+
 ## Widgets, permissions and endpoints
 
 All data comes from
@@ -98,17 +107,27 @@ even listed). Providers: `saude/dashboard_flow_providers.py`.
 | | `pending_collection` | stat | `view_itempedidoexamemedico` | items `pendente`/`agendado` |
 | | `in_process` | stat | `view_itempedidoexamemedico` | items `colhido`/`processamento` |
 | | `results_to_validate_count` | stat | `view_resultadoexamemedico` | results linked to an exam item, not validated, not in the trash |
-| | `lab_queue` | table | `view_pedidoexamemedico` + `view_itempedidoexamemedico` | requests with open items, checked-in first (then urgent); patient, arrival, lab waiting, exams, origin, status; actions: open request, open patient |
+| | `lab_queue` | table | `view_pedidoexamemedico` + `view_itempedidoexamemedico` | requests with open items, checked-in first (then urgent); patient, arrival, lab waiting, exams, origin, status; actions: patient arrived at the laboratory (only before check-in), open request, open patient |
 | | `results_to_validate` | list | `view_resultadoexamemedico` + `validate_resultadoexamemedico` | oldest unvalidated results. Only users who can validate see it. |
 | | `results_to_record` | stat | `view_itempedidoexamemedico` | items `colhido`/`processamento` without any result |
 | | `results_to_release` | stat | `view_resultadoexamemedico` + `release_resultadoexamemedico` | validated, not released (latest revision) |
 | | `average_tat` | stat | `view_resultadoexamemedico` | average collection -> release of results released today |
 | | `recollection_required` | stat | `view_itempedidoexamemedico` | items in `recolha_necessaria` |
+| | `patients_waiting` | stat | `view_pedidoexamemedico` + `view_itempedidoexamemedico` | requests checked in at the laboratory with nothing collected yet and an item `pendente`/`agendado` (lab phase 15) |
+| | `average_waiting` | stat | `view_pedidoexamemedico` | average **laboratory** waiting (check-in -> first collection) of requests checked in today and collected; `-` without data. Never the doctor's waiting time |
+| | `completed_today` | stat | `view_itempedidoexamemedico` + `view_resultadoexamemedico` | items `concluido` whose result was validated today (validation completes the item) |
+| | `released_today` | stat | `view_resultadoexamemedico` | exam results released today |
 | | `attention` | list | `view_itempedidoexamemedico` + `view_resultadoexamemedico` | rejected samples; unreleased values flagged critical by a **configured** critical range |
 
+The Laboratory stat cards are 12 (three rows of four from `md` up, the grid rule
+of `DashboardValidator`), all from real data and scoped to the signed
+Entity/Branch: each card is returned only to users holding its permissions
+(`403` on the widget otherwise).
+
 Queue actions open existing screens: appointments are checked in from the
-patient record (`view_paciente`, `AgendaConsultaDialog`). The engine's actions
-navigate; they do not call APIs.
+patient record (`view_paciente`, `AgendaConsultaDialog`). Most of the engine's
+actions navigate; the `request` actions (reception check-in/out, the laboratory
+check-in) call their PROTECTED endpoint.
 
 ## Multi-tenancy and scope
 
@@ -203,280 +222,11 @@ Only one waiting time is measured today: reception -> consultation. Waiting
 times of other services (laboratory, pharmacy, cashier) will come with those
 phases, on their own records.
 
-## Laboratory flow
+## Laboratory
 
-Two entry flows, one request model (`PedidoExameMedico`):
-
-| Flow | How | Stored |
-|---|---|---|
-| Doctor request | from a consultation (`consulta` in the payload, or, as before, a clinician's request is attached to their consultation of the day with the patient) | `origin="consultation"`, `consulta`, `paciente` |
-| Exam only | `POST /api/saude/pedidoexamemedicos/` with `{"paciente": id, "origin": "direct"}` (also when the requester has no employment in the Branch) | `origin="direct"`, **no consultation**, `paciente` |
-
-- `paciente` and `consulta` are looked up **inside the current Entity**. An id
-  from another Entity is `404 patient_not_found` / `consultation_not_found`.
-  A consultation of another patient is `400 consultation_patient_mismatch`.
-  (Before this phase the patient was looked up without tenant scope, and a
-  requester without employment got a 500.)
-- `paciente` and `origin` are read-only after creation. Requests created before
-  this phase have their patient only through the consultation. Read it with
-  `pedido.patient`, and filter with `PedidoExameMedico.patient_filter(p)`
-  (used by the patient timeline). No data migration is needed.
-- **Laboratory check-in**:
-  `POST /api/saude/pedidoexamemedicos/{id}/check_in/` (`@resaas_action`,
-  **PROTECTED**, permission `check_in_pedidoexamemedico`, scoped object:
-  another Entity's request is `404`). It sets `checked_in_at` once;
-  repeating it keeps the first time.
-- **Collection**: when an item moves to `colhido` the server sets
-  `data_colheita` (unless the client recorded the real time).
-- **Laboratory waiting time** = `checked_in_at -> first data_colheita` of the
-  request (or up to now while nothing is collected).
-
-Results (`ResultadoExameMedico`):
-
-- Recording needs `add`/`change_resultadoexamemedico`. **Validating needs
-  `validate_resultadoexamemedico`**, on both paths:
-  `POST /api/saude/resultadoexamemedicos/{id}/validate/` (`@resaas_action`), or
-  `validado: true` in a create/update payload (the existing result screen
-  sends the checkbox). Without the permission: `403 permission_denied`.
-- `validado_por` and `data_validacao` are always set by the server (read-only
-  in the API).
-- A **validated result is never silently overwritten**: an update that changes
-  any value is `409 result_already_validated` (`error.details.fields`).
-  Re-sending the same values, as a whole-form save does, is accepted.
-  Validating twice is `409`. Correction and amendment of a validated result
-  (the model already has `numero_revisao`) is future work.
-
-## Structured laboratory results
-
-Code: `saude/models/exam_parameter.py`, `saude/models/result_parameter_value.py`,
-`saude/services/lab_result_service.py`, `saude/services/exam_request_service.py`.
-Tests: `saude/tests/test_structured_lab_results.py`.
-
-```
-ExameMedico (existing catalogue, per Entity/Branch)
-  -> ExamParameter (code, type, unit, order, required, active, choices, patient_visible)
-       -> ExamReferenceRange (sex?, age band?, low/high, critical_low/high?, label)
-ItemPedidoExameMedico (one exam of a request)
-  -> ResultadoExameMedico (existing header: report, PDF/attachment, revision, validation, release)
-       -> ResultParameterValue (one per parameter: typed value + snapshot + flag)
-```
-
-### Exam definition
-
-| Field | Meaning |
-|---|---|
-| `code` | stable technical key, unique per exam; history and evolution follow it |
-| `name`, `unit`, `order` | as shown on the form and the report |
-| `data_type` | `decimal`, `integer`, `text`, `boolean` (yes/no), `choice` (positive/negative, blood group, ...) |
-| `decimal_places` | `decimal` only: the most decimal places a value may have |
-| `choices` | `choice` only: the allowed values, e.g. `["Positive", "Negative"]` |
-| `required`, `active` | an inactive parameter disappears from new forms; old values keep their snapshot |
-| `patient_visible` | shown to the patient once released (patient area: next phase) |
-
-Numeric parameters (`decimal`, `integer`) are the ones that can be charted.
-
-**Reference ranges** (`ExamReferenceRange`, numeric parameters only) are laboratory
-configuration. **No clinical value is seeded or defaulted anywhere.** For each
-value the most specific active range that matches the patient's sex
-(`Person.gender`) and age in days (`Person.date_of_birth`) applies: a range with
-a sex beats one without, and a range with an age band beats one without. With no
-matching range, the value has **no flag**. Critical limits are optional and only
-flag what the laboratory configured.
-
-Creating an exam: `ExameMedico` (existing screens) -> add its parameters
-(`/api/saude/examparameters/`, `add_examparameter`) -> add reference ranges where
-validated (`/api/saude/examreferenceranges/`, `add_examreferencerange`) -> the
-result form of every item of that exam is built from them.
-
-### Standard catalogue (`seed_exam_catalogue`)
-
-A new Entity does not have to build its catalogue by hand:
-
-```bash
-python manage.py seed_exam_catalogue --entity Amal --dry-run   # validate and count, write nothing
-python manage.py seed_exam_catalogue --entity Amal             # --branch <name|id> when it has several
-```
-
-It creates about 165 exams with their parameters (code, type, unit, decimal
-places, choices, required), organised as:
-
-| Type | Classes |
-|---|---|
-| Laboratório | Hematologia, Hemostase, Imuno-hematologia, Bioquímica, Endocrinologia, Marcadores tumorais, Imunologia e serologia, Biologia molecular, Microbiologia, Parasitologia, Urina, Líquidos biológicos, Anatomia patológica |
-| Imagiologia | Radiologia, Ecografia, Tomografia computorizada, Ressonância magnética, Mamografia, Densitometria óssea |
-| Exames funcionais | Cardiologia, Pneumologia, Neurofisiologia, Audiologia |
-| Endoscopia | Endoscopia digestiva |
-
-- **Real configuration, safe in production.** Additive and idempotent: types and
-  classes are matched by name, exams by name (unique per Entity), parameters by
-  `code`. Only what is missing is created; nothing existing is changed or
-  deleted. An exam the laboratory renamed, moved, deactivated or edited keeps its
-  configuration, and only gains the parameters it is missing.
-- **Tenant explicit.** `--entity` is required; `--branch` too when the Entity has
-  several Branches. Nothing is written to another Entity.
-- **No reference ranges, no critical limits.** Reference intervals depend on the
-  method, the analyser and the population and must be verified by each
-  laboratory (CLSI EP28, ISO 15189). Until the laboratory adds them, values are
-  recorded without a flag (see above).
-- **Language.** Names, units and choices are Entity data shown as-is on the
-  request and result screens. The standard catalogue is written in Portuguese
-  (Mozambique); the laboratory can rename or extend it on the existing screens.
-- **Codes.** `ExameMedico.codigo` is the catalogue's internal code (`HEM-01`,
-  `BIO-15`, ...), not a LOINC code. Terminology mappings are future work.
-
-Code: `saude/services/catalogos/exam_catalogue.py` (data),
-`saude/services/exam_catalogue_service.py`,
-`saude/management/commands/seed_exam_catalogue.py`.
-Tests: `saude/tests/test_exam_catalogue.py`.
-
-### Recording (dynamic form)
-
-- `GET /api/saude/itempedidoexamemedicos/{id}/result_form/` (`view_itempedidoexamemedico`):
-  the patient, the collection time and the exam's active parameters in order,
-  each with its applicable reference and current value.
-- `POST .../{id}/record_result/` (`record_result_itempedidoexamemedico`),
-  body `{"values": {"hb": "14.2", "malaria": "Negative"}, "observacao"?, "laudo"?}`.
-  The server validates everything. Unknown or other-exam parameters, missing
-  required ones, non-numbers, fractions in an integer, too many decimals and values
-  outside the choices are rejected with `400 invalid_result_values`, one message
-  per field in `error.details`. Nothing is stored unless all values are valid.
-- The first recording creates the result header (revision 1) with the values.
-  Recording again **replaces the draft** until it is validated. After validation
-  the answer is `409 result_already_validated`.
-- **Snapshot**: every value stores the parameter code, name, type, unit, the
-  reference low/high/label used and the flag. Renaming a parameter or changing a
-  range later never rewrites old results (tested).
-- Values are relational and typed (`value_numeric` Decimal, `value_text`,
-  `value_boolean`), not JSON, so history and charts query them directly.
-
-### Free-form report (the second way)
-
-The result screen (`AddResultadoModal.vue`, "Results" of an exam request) offers
-both ways on each exam's card, on the **same** result record (the item's current
-revision):
-
-- **Record result** opens the structured form above (`record_result`).
-- The card itself takes a free-form report: a value, findings, an observation
-  and/or an attached file (PDF, image, ...), saved with
-  `POST .../{id}/record_report/` (multipart: `valor_resultado`?, `laudo`?,
-  `observacao`?, `file`?), under the same permission
-  `record_result_itempedidoexamemedico`.
-
-`record_report` creates the result header when there is none (type `File`,
-revision `N+1`, patient and exam name from the item, collection time from the
-item, result time = now) or updates the current draft. It never touches the
-structured values, and `record_result` keeps the report text, so an exam can
-have both. The same rules apply: a validated result answers
-`409 result_already_validated` (amend it), a request with nothing to save
-`400 empty_result`, a value longer than 200 characters `400 invalid_result_values`,
-and an item of another Entity `404`. Each recording is audited
-(`LAB_RESULT_RECORDED`). Validate and Release are shown on the card only in the
-state and with the permission the backend accepts.
-
-### Validation, release, amendment
-
-| Step | Endpoint | Permission | Rule |
-|---|---|---|---|
-| Record | `record_result` (structured) or `record_report` (free-form) | `record_result_itempedidoexamemedico` | draft, editable |
-| Validate | `resultadoexamemedicos/{id}/validate/` (or the checkbox on the result screen) | `validate_resultadoexamemedico` | then immutable |
-| Release | `resultadoexamemedicos/{id}/release/` | `release_resultadoexamemedico` | only after validation; `released`, `released_by`, `released_at` set by the server and read-only in the API |
-| Amend | `resultadoexamemedicos/{id}/amend/` `{"reason"}` | `amend_resultadoexamemedico` | only the latest validated revision; creates revision N+1 (copy of the values, unvalidated). The validated one stays unchanged and is superseded. |
-
-`numero_revisao` of a structured result is set by the server. History and
-evolution use only the **latest revision of each exam item**. A superseded
-revision is the record of the correction, not a second measurement. Recording,
-validation, release, amendment, collection and rejection are written to the audit
-log (`LAB_RESULT_RECORDED`, `LAB_RESULT_VALIDATED`, `LAB_RESULT_RELEASED`,
-`LAB_RESULT_AMENDED`, `LAB_SAMPLE_COLLECTED`, `LAB_SAMPLE_REJECTED`).
-
-**Legacy results** (free-text `valor_resultado`, report, PDF) are untouched and
-still shown. They are never converted into structured values, so they do not
-appear in evolution charts.
-
-### Collection and sample rejection
-
-- `POST itempedidoexamemedicos/{id}/collect/` (`collect_itempedidoexamemedico`):
-  from `pendente`, `agendado` or `recolha_necessaria` to `colhido`. It sets
-  `data_colheita` and `collected_by`.
-- `POST .../{id}/reject_sample/` `{"reason"}` (`reject_sample_itempedidoexamemedico`):
-  from `colhido` or `processamento` to **`recolha_necessaria`**. It keeps
-  `rejected_at` and `rejection_reason` (the last one on the item, every one in the
-  audit log). A new `collect` starts again.
-- There is no separate Sample model. Collection is per exam item; sharing one
-  sample between several exams needs a domain decision first.
-
-### Frontend (dev/front)
-
-The actions come from the schema (`@resaas_action`) and each one only appears
-when the user has its permission (UX only). The backend still checks the permission
-(`403`) and the state (`409`).
-
-| Where | Action | How |
-|---|---|---|
-| Exam request list (`PedidoexamemedicoLPage`, AutoCrud) | Check in | `autorequest=True`: AutoCrud posts and reloads |
-| Exam item list (`ItemPedidoexamemedicoLPage`, AutoCrud) | Collect | `autorequest=True` |
-| | Reject sample | `sDialog` prompt for the reason -> `reject_sample` -> list reload |
-| | Record result | opens `ExamResultDialog` (also opened from `AddResultadoModal`) |
-| `ExamResultDialog` footer | Validate / Release / Amend | shown by the state in `result_form.result` (`validated`, `released`) and `User.can('<action>_resultadoexamemedico')`. Amend asks for the reason and then shows the new revision |
-
-`result_form` is a data endpoint for the dialog. It is declared `visible=False`, so
-it is not a menu entry.
-
-### Waiting time vs turnaround time
-
-- **Laboratory waiting** = laboratory check-in -> first collection (e.g.
-  10:02 -> 10:20 = 18 min).
-- **TAT** = collection (`data_colheita`) -> release (`released_at`) (e.g.
-  10:25 -> 13:40 = 3h 15m). Shown on the Laboratory dashboard as the average of
-  results released today.
-
-### History and evolution
-
-- `GET /api/saude/pacientes/{id}/lab_parameters/`: the parameters the patient
-  has validated values for, marked `graphable` when numeric.
-- `GET /api/saude/pacientes/{id}/lab_evolution/?parameter=<code>&from=&to=`:
-  `{"parameter": {code, name, unit, numeric}, "points": [{result, date, value, unit, reference, flag}], "comparison": {current, previous, change}}`.
-  Only validated results, the latest revision of each item, ordered by result
-  date, filtered in the database. Values only, with no interpretation.
-- Both are **PROTECTED** by `lab_evolution_paciente`. The patient is the URL
-  resource (`get_object()`, scoped to the current Entity/Branch), so another
-  Entity's patient is `404`. Values are limited to that patient and to the
-  current Entity.
-
-### Frontend (`dev/front`)
-
-- `pages/saude/components/ExamResultDialog.vue`: one generic form for every
-  exam, built from `result_form`: numbers, text, choice (select), yes/no
-  (toggle), the unit as a suffix, the reference as a hint, flags. It becomes
-  read-only once validated, and shows server field errors on each field. An exam
-  without parameters records only the observation and the report. Opened from
-  the results dialog (`AddResultadoModal`, "Record result" per exam).
-- `pages/saude/components/LabEvolutionDialog.vue`: pick a parameter and a
-  period. It shows the comparison (previous, current, change), a line chart
-  (the engine's `LineChartWidget`; only numeric parameters with 2 or more points,
-  never built from text) and the table of points. Opened from the patient record
-  ("Lab evolution" button, shown with `lab_evolution_paciente`).
-
-### Laboratory profiles (defaults)
-
-| Permission | Technician | Scientist |
-|---|:-:|:-:|
-| `collect_itempedidoexamemedico`, `reject_sample_itempedidoexamemedico`, `record_result_itempedidoexamemedico`, `view_examparameter` | yes | yes |
-| `validate_resultadoexamemedico`, `release_resultadoexamemedico`, `amend_resultadoexamemedico` | - | yes |
-| `add/change_examparameter`, `view/add/change_examreferencerange`, `lab_evolution_paciente` | - | yes |
-
-The Doctor profile has `lab_evolution_paciente`.
-
-### Known limitations
-
-- Patient area (released results and trends for the patient) is the next phase.
-  `released` and `patient_visible` are already in place for it.
-- No unit conversion, and no critical-result notification workflow beyond the
-  dashboard's *Attention Required* list.
-- The legacy results dialog's own "Save result" button calls a function that
-  doesn't exist in `AddResultadoModal.vue`. This predates the change and is
-  reported separately; the new "Record result" button next to it uses the
-  structured flow.
+The laboratory (exam requests, collection, structured results, validation,
+release, history, charts, the Laboratory dashboard's data and its security) is
+documented in **[Health laboratory](health-laboratory.md)**.
 
 ## Patient portal
 
@@ -494,7 +244,10 @@ Code: `saude/services/patient_portal_service.py`, `saude/views/patient_portal.py
   `BranchUserGroup(user, Paciente.branch, Patient)`, plus the Entity's
   `EntityGroup` link to the profile. All of it is idempotent: repeating the grant,
   or granting again after a revoke, restores the same rows and creates no duplicate.
-  Nothing else the user has is changed. It also sets `Paciente.portal_access`,
+  Nothing else the user has is changed. Revoking removes the Patient profile and
+  then every membership left with no profile other than **Guest** (the core
+  profile every member holds), taking that Guest assignment with it; a granted
+  again membership gets Guest back. Granting also sets `Paciente.portal_access`,
   with who and when (server-controlled, read-only). The Patient Group is the one
   seeded by `group_creator()`. If it is missing, the grant fails with
   `409 patient_profile_missing` instead of creating a partial configuration.
@@ -543,8 +296,8 @@ body is ignored, so patient A cannot even ask for patient B's data (tested with
 | `summary` | name, next appointment, pending exams, results released in the last 30 days, prescriptions count |
 | `appointments` | upcoming and previous (date, time, doctor, status) |
 | `exams` | own exam items with a patient-facing status; "Result available" once released |
-| `results` | **released** results only (latest revision), with values of `patient_visible` parameters (value, unit, reference, flag) and the report |
-| `trends` | numeric, patient-visible parameters with released values; `?parameter=<code>&from=&to=` gives the series (released only) |
+| `results` | **released** results only (latest *released* revision), with values of `patient_visible` parameters (value, unit, reference, flag), the free-form `value` (`valor_resultado`, for results without structured values) and the report |
+| `trends` | numeric, **graphable**, patient-visible parameters with released values; `?parameter=<code>&from=&to=` gives the series (released only) |
 | `prescriptions` | own prescriptions with medicines, dosage, quantity, instructions |
 | `vitals` | latest and last 10 vital-sign records |
 
@@ -552,6 +305,10 @@ Scope is the Entity of the context, across its Branches. A person who is a
 patient in two Entities sees, in each, only that Entity's data, and only where
 access was granted. Validation metadata, internal notes and non-visible
 parameters are not returned. Unreleased or superseded results never appear.
+Only a newer **released** revision supersedes (lab phase 14): while an amendment
+is being corrected (revision N+1 not yet released) the patient keeps seeing
+revision N, in `results` and in `trends`; once N+1 is released it replaces N.
+The doctor's consultation panel (`lab_summary`) follows the same rule.
 
 ### Patient dashboard (`saude_patient`)
 
@@ -717,95 +474,6 @@ it (UX only - each page and endpoint checks again):
 | Appointment schedule | `add_agenda` |
 | Menu: Edit data | `change_paciente` |
 | Menu: Patient card (PDF) | `pdf_paciente` |
-
-### Exam request view (`view_pedidoexamemedico`) for the laboratory
-
-- `GET pedidoexamemedicos/{id}/items/` (the request's exams with their results,
-  used by the results upload: `AddResultadoModal`, `RightMenu`) is protected by
-  `view_pedidoexamemedico`. It was a plain `@action` with no permission, which
-  `BaseAPIView` refuses to everyone but Root (403 "Permission is not defined
-  for this action").
-- The request answers `patient_id` (read only): its own patient (direct
-  request) or its consultation's. `PedidoexamemedicoVPage` passes it to the
-  patient header - the route `:id` is the request, not the patient.
-- Both laboratory profiles hold `list_resultadoexamemedico`, required by the
-  results list page (`list_resultadopedidoexamemedico` route).
-- `resultadoexamemedicos/explorer/` (folders and files of results, the results
-  list page) needs `list_resultadoexamemedico`; creating a folder / file through
-  it (POST) also `add_resultadoexamemedico`. The explorer's other actions have
-  explicit permissions too: rename / move / favourite `change_`, delete
-  `delete_`, breadcrumb / download / preview / info `view_`, trash / favourites
-  `list_resultadoexamemedico`. All were plain `@action`s (403 to everyone but
-  Root).
-- The other former plain `@action`s now carry their own permission
-  (`resaas_action(permission=...)`):
-
-  | Endpoint | Permission |
-  |---|---|
-  | `consultas/{id}/historico/` (the patient's other consultations) | `list_consulta` |
-  | `consultas/paciente/{paciente_id}/` | `list_consulta` |
-  | `consultas/iniciar/` (POST: consultation from an appointment) | `add_consulta` |
-  | `diagnosticos/consulta/{id}/` | `list_diagnostico` |
-  | `episodiosclinicos/consulta/{id}/` | `list_episodioclinico` |
-  | `procedimentos/consulta/{id}/` | `list_procedimento` |
-  | `pedidoexamemedicos/{id}/resultados/` | `list_resultadoexamemedico` |
-
-  Fixed on the way: `historico` and `paciente` read `Consulta.objects` (other
-  Entities / Branches) - now the tenant-scoped queryset; `iniciar` took an
-  appointment of any tenant by id, read a non-existent `agenda.employee` and
-  wrote an invalid state - now the caller's Entity/Branch only (404 otherwise),
-  `agenda.medico`, `"concluida"`; `diagnosticos/.../consulta/` failed
-  (`Response` imported inside the class). The unimplemented stubs
-  `consultas/{id}/receitas|exames|transferencias|relatorios/` (`pass`, 500) were
-  removed: those documents are listed with `?consulta=` (ConsultationDocumentsList).
-  Tests: `saude/tests/test_protected_consultation_actions.py`.
-- The results list page (`list_resultadopedidoexamemedico`) shows only the
-  **current patient's** results - the patient of `pacienteStore` (`Paciente.row`,
-  persisted, as the other clinical pages); with none open it says so. The
-  explorer always sends `paciente`, and the backend requires it:
-  `explorer/` without `paciente` is `400 patient_required`, a patient of
-  another Entity `404 patient_not_found`; a created folder / file is the
-  patient's, and a folder inside another patient's folder is
-  `400 folder_of_another_patient`. File upload sends multipart (it used to send
-  `file: undefined` in JSON, so no file was ever stored). After an upload the
-  list reloads and the new file opens in the preview at once.
-- `ExplorerItem.vue` reads `tipo` as the choice the API returns
-  (`{id: 'Folder'|'File'}`) and takes the icon from the serializer's `icon`;
-  it used to call `.toLowerCase()` on the `file` object, which threw and left
-  those files out of the grid.
-- On the results list page (`list_resultadopedidoexamemedico`), clicking a
-  file opens `FilePreviewDialog.vue` (full screen): image, PDF and text in
-  place, video / audio with their players, anything else offers the download;
-  the bar has "open in a new tab" and "download". The type comes from the
-  item's `mime_type` / `extensao`; the URL is the stored media file the
-  explorer already returned (nothing else is fetched). Media files are served
-  without `X-Frame-Options`, so PDFs and text show in an iframe.
-- Tests: `saude/tests/test_laboratory_flow.py` (`ExamRequestItemsTests`,
-  `ResultsExplorerPermissionTests`).
-
-### Exam request page (`add_pedidoexamemedico`): add buttons follow the permissions
-
-`PedidoexamemedicoSEPage.vue` shows each add button only with its own
-permission (UX only - every endpoint checks again):
-
-| Button | Shown / enabled with |
-|---|---|
-| Add exam type | `add_tipoexamemedico` |
-| "+" on an exam type (add a class) | `add_classeexamemedico` |
-| "+" on an exam class (add an exam) | `add_examemedico` |
-| Save request | `add_pedidoexamemedico` **and** `add_itempedidoexamemedico` (the request and its items are separate POSTs) |
-
-Without a catalogue permission the "+" is replaced by a plain icon, so the
-catalogue still reads the same.
-
-Each added exam shows its **priority** as three buttons (Normal grey, Urgent
-orange, Very urgent red) and, folded under "Instructions and notes", its
-instructions and notes; with more than one exam a control above the list sets
-the priority of all of them. They are sent per item
-(`itempedidoexamemedicos/`: `prioridade` `normal|urgente|muito_urgente`,
-`instrucoes`, `observacao`) - before, the form holding them was never on the
-page, so every exam went as Normal. While searching the catalogue, every type
-and class found opens and the matching text is highlighted (`s-highlight`).
 
 ### Recording from the patient header
 

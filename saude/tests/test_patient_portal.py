@@ -160,6 +160,37 @@ class PortalDataTests(TestCase):
         self.assertEqual([v["code"] for v in results[0]["values"]], ["hb"])
         self.assertEqual(results[0]["values"][0]["value"], "13.1")
 
+    def test_an_amendment_in_progress_does_not_hide_the_released_result(self):
+        """Lab phase 14: only a newer RELEASED revision supersedes, in My
+        Results and in My Health Trends."""
+        self._result(self.maria, "11.0")
+        released = self._result(self.maria, "12.0")
+        revision = lab_result_service.amend_result(_fake_request(self.tenant), released, "Typo")
+
+        results = self.client_maria.get(f"{ME}results/").data
+        points = self.client_maria.get(f"{ME}trends/", {"parameter": "hb"}).data["points"]
+        self.assertEqual(sorted(r["values"][0]["value"] for r in results), ["11", "12"])
+        self.assertEqual([p["value"] for p in points], ["11", "12"])
+
+        lab_result_service.record_result(_fake_request(self.tenant), revision.item_pedido, {"hb": "12.5"})
+        ResultadoExameMedico.objects.filter(pk=revision.pk).update(
+            validado=True, released=True, released_at=timezone.now())
+
+        results = self.client_maria.get(f"{ME}results/").data
+        points = self.client_maria.get(f"{ME}trends/", {"parameter": "hb"}).data["points"]
+        self.assertEqual(sorted(r["values"][0]["value"] for r in results), ["11", "12.5"])
+        self.assertEqual([p["value"] for p in points], ["11", "12.5"])
+
+    def test_a_free_form_result_shows_its_value(self):
+        item = _item(self.tenant, self.maria, self.exame, estado_exame="concluido")
+        ResultadoExameMedico.objects.create(
+            paciente=self.maria, item_pedido=item, nome="Malaria", valor_resultado="Negative",
+            validado=True, released=True, released_at=timezone.now(), **_audit(self.tenant))
+
+        result = self.client_maria.get(f"{ME}results/").data[0]
+
+        self.assertEqual((result["value"], result["values"]), ("Negative", []))
+
     def test_another_patients_data_is_never_returned_whatever_the_query(self):
         self._result(self.carlos, "8.0")
         Agenda.objects.create(paciente=self.carlos, data=timezone.localdate(), hora_inicio="10:00", **_audit(self.tenant))
@@ -275,6 +306,9 @@ class PatientProfileTests(TestCase):
 
         self.assertEqual(_grant(self.tenant, self.maria).status_code, 202)
         self.assertEqual(self._assignments().count(), 1)
+        # the restored membership holds Guest again (django_resaas guest profile)
+        self.assertTrue(BranchUserGroup.objects.filter(
+            user=self.user, branch_id=self.maria.branch_id, group__name="Guest").exists())
 
     def test_a_missing_patient_profile_is_an_explicit_error(self):
         self.profile.delete()
@@ -292,6 +326,9 @@ class PatientProfileTests(TestCase):
         _client_with(self.tenant, RECEPTION).post(f"/api/saude/pacientes/{self.maria.id}/revoke_portal_access/")
 
         self.assertFalse(self._assignments().exists())
+        # Guest alone does not keep the membership, and goes with it
+        self.assertFalse(BranchUserGroup.objects.filter(
+            user=self.user, branch__entity=self.tenant["entity"], group__name="Guest").exists())
         self.assertFalse(BranchUser.objects.filter(user=self.user, branch__entity=self.tenant["entity"]).exists())
         self.assertFalse(EntityUser.objects.filter(user=self.user, entity=self.tenant["entity"]).exists())
 

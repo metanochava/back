@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Count, Q
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -41,11 +41,21 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
         ResultadoExameMedico.objects
         .select_related(
             "pai",
-            "paciente",
-            "item_pedido",
+            "paciente__person",
+            "item_pedido__exame",
             "emitido_por",
             "validado_por",
+            "released_by",
+            # every row's relation labels (lab phase 17: one query each before)
+            "entity",
+            "branch",
+            "created_by",
+            "updated_by",
         )
+        # children_count / has_children without two COUNTs per row (lab phase 17)
+        .annotate(_children_count=Count(
+            "filhos", filter=Q(filhos__na_lixeira=False, filhos__deleted_at__isnull=True),
+        ))
     )
 
     serializer_class = ResultadoExameMedicoSerializer
@@ -90,6 +100,26 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
             updated_by=self.request.user,
 
         )
+
+    ##########################################################
+    # DELETE GUARDS (lab phase 16): a validated result is never
+    # deleted, trashed or hard-deleted - it is amended
+    ##########################################################
+
+    def perform_destroy(self, instance):
+        exam_request_service.forbid_deleting_validated(instance)
+        super().perform_destroy(instance)
+
+    # same action as BaseAPIView.hard_delete (re-declared: an override
+    # without the decorator would drop the route); hard_delete_<model>
+    @resaas_action(detail=True, methods=["delete"], url_path="hard_delete")
+    def hard_delete(self, request, pk=None):
+        instance = ResultadoExameMedico.all_objects.filter(
+            pk=pk, entity_id=request.entity_id, branch_id=request.branch_id,
+        ).first()
+        if instance is not None:
+            exam_request_service.forbid_deleting_validated(instance)
+        return super().hard_delete(request, pk=pk)
 
     ##########################################################
     # VALIDATE
@@ -453,6 +483,9 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     def delete(self, request, *args, **kwargs):
 
         obj = self.get_object()
+
+        # a validated result is never moved to the trash (lab phase 16)
+        exam_request_service.forbid_deleting_validated(obj)
 
         #
         # não apagar pasta com conteúdo

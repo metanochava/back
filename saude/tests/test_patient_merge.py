@@ -355,7 +355,8 @@ class PatientMergeEndpointTests(TestCase):
         from rest_framework.test import APIClient
 
         guest_group, _ = Group.objects.get_or_create(name="Guest")
-        BranchUserGroup.objects.create(
+        # every branch member already holds Guest (django_resaas guest profile)
+        BranchUserGroup.objects.get_or_create(
             user=self.tenant_b["user"],
             branch=self.tenant_b["branch"],
             group=guest_group,

@@ -35,7 +35,6 @@ from django_resaas.saas.models.group import Group
 
 from saude.models.agenda import Agenda
 from saude.models.dadovital import DadoVital
-from saude.models.exam_parameter import ExamParameter
 from saude.models.itempedidoexamemedico import ItemPedidoExameMedico
 from saude.models.paciente import Paciente
 from saude.models.pedidoexamemedico import PedidoExameMedico
@@ -57,6 +56,11 @@ NEW_RESULT_DAYS = 30
 
 # the profile granted by the portal (saude/profiles.py PATIENT_PROFILES)
 PATIENT_PROFILE_NAME = "Patient"
+# every branch member holds the Guest profile (django_resaas
+# guest_profile_service.GUEST); it is not a working relationship, so it never
+# keeps a membership alive on revoke. Kept local so this module does not need
+# that django_resaas version to import.
+GUEST_PROFILE_NAME = "Guest"
 
 
 # ============================================================
@@ -151,12 +155,15 @@ def revoke(request, paciente):
             ):
                 assignment.delete()
 
-        other_profiles = BranchUserGroup.objects.filter(user=user, branch__entity_id=paciente.entity_id)
+        assignments = BranchUserGroup.objects.filter(user=user, branch__entity_id=paciente.entity_id)
+        other_profiles = assignments.exclude(group__name=GUEST_PROFILE_NAME)
         is_admin = paciente.entity.admins.filter(id=user.id).exists()
 
-        # branch memberships left without any profile
+        # branch memberships left without any profile but Guest
         for membership in BranchUser.objects.filter(user=user, branch__entity_id=paciente.entity_id):
             if not is_admin and not other_profiles.filter(branch_id=membership.branch_id).exists():
+                for guest in assignments.filter(branch_id=membership.branch_id, group__name=GUEST_PROFILE_NAME):
+                    guest.delete()
                 membership.delete()
 
         if not is_admin and not other_profiles.exists():
@@ -199,8 +206,11 @@ def _own_requests(paciente):
 
 
 def _released_results(paciente):
+    # superseded only by a newer RELEASED revision: an amendment still being
+    # corrected never hides what the patient already had (lab phase 14)
     newer = ResultadoExameMedico.objects.filter(
         item_pedido_id=OuterRef("item_pedido_id"), numero_revisao__gt=OuterRef("numero_revisao"),
+        released=True, na_lixeira=False,
     )
     return (
         ResultadoExameMedico.objects.filter(
@@ -281,6 +291,8 @@ def results(paciente, limit=20):
             "exam": r.item_pedido.exame.nome if r.item_pedido_id else r.nome,
             "released_at": r.released_at.isoformat() if r.released_at else None,
             "report": r.laudo or None,
+            # a free-form result's value (no structured values)
+            "value": r.valor_resultado or None,
             "values": [
                 {
                     "code": v.parameter_code,
@@ -300,8 +312,9 @@ def results(paciente, limit=20):
 
 def trend_parameters(paciente):
     values = lab_result_service.current_revision_values(
-        _visible_values(paciente).filter(result__released=True, result__na_lixeira=False,
-                                         data_type__in=ExamParameter.NUMERIC_TYPES)
+        _visible_values(paciente).filter(lab_result_service.GRAPHABLE_VALUES,
+                                         result__released=True, result__na_lixeira=False),
+        released_only=True,
     )
     seen, out = set(), []
     for row in values.values("parameter_code", "parameter_name", "unit").order_by("parameter_code", "-recorded_at"):
@@ -312,8 +325,10 @@ def trend_parameters(paciente):
 
 
 def trend(paciente, code, date_from=None, date_to=None):
+    # only what trend_parameters() offers: graphable values
     return lab_result_service.evolution(
-        _visible_values(paciente), code, date_from=date_from, date_to=date_to, released_only=True,
+        _visible_values(paciente).filter(lab_result_service.GRAPHABLE_VALUES),
+        code, date_from=date_from, date_to=date_to, released_only=True,
     )
 
 

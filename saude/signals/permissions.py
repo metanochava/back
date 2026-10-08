@@ -114,4 +114,17 @@ def create_and_grant_dashboard_permissions(sender, **kwargs):
         )
         created.append(perm)
 
+    # The old saude dashboard (DashBoarde.vue, sidebar entry / route
+    # 'view_saude_dashboard', granted to Healthcare Administrator by
+    # saude/profiles.py) was only created by the app scaffolding, under a
+    # "sidebar" content type - never on a fresh database. Created here with
+    # that SAME content type, so an existing row is reused, never duplicated.
+    sidebar_type, _ = ContentType.objects.get_or_create(app_label="saude", model="sidebar")
+    perm, _ = Permission.objects.get_or_create(
+        codename="view_saude_dashboard",
+        content_type=sidebar_type,
+        defaults={"name": "Can view saude dashboard"},
+    )
+    created.append(perm)
+
     root_group.permissions.add(*created)

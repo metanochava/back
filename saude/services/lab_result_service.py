@@ -19,11 +19,11 @@ Rules
   same exam item (amend); the previous one stays, superseded.
 - Every step is recorded in the audit log (audit_service).
 """
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
 
 from django.db import transaction
-from django.db.models import Exists, OuterRef
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from rest_framework import status
 
@@ -33,6 +33,12 @@ from django_resaas.saas.core.services import audit_service
 from saude.models.exam_parameter import ExamParameter, ExamReferenceRange
 from saude.models.resultadoexamemedico import ResultadoExameMedico
 from saude.models.result_parameter_value import ResultParameterValue
+
+# values that can be charted: numeric, and their parameter is graphable (a
+# value whose parameter was deleted keeps only its snapshot: numeric decides)
+GRAPHABLE_VALUES = Q(data_type__in=ExamParameter.NUMERIC_TYPES) & (
+    Q(parameter__isnull=True) | Q(parameter__graphable=True)
+)
 
 TRUE_VALUES = {True, "true", "True", "1", 1, "yes", "Yes"}
 FALSE_VALUES = {False, "false", "False", "0", 0, "no", "No"}
@@ -119,6 +125,7 @@ def form_schema(item):
                 "data_type": p.data_type,
                 "unit": p.unit,
                 "required": p.required,
+                "graphable": p.is_graphable,
                 "decimal_places": p.decimal_places,
                 "choices": p.choices or [],
                 "reference": _range_dict(applicable_range(p, patient)),
@@ -134,7 +141,8 @@ def form_schema(item):
 # ============================================================
 
 def _coerce(parameter, raw):
-    """(value_numeric, value_text, value_boolean) or a field error text."""
+    """(value_numeric, value_text, value_boolean, value_date) or a field
+    error text."""
 
     if raw is None or (isinstance(raw, str) and raw.strip() == ""):
         return None
@@ -153,21 +161,29 @@ def _coerce(parameter, raw):
         if (kind == ExamParameter.DECIMAL and parameter.decimal_places is not None
                 and -number.as_tuple().exponent > parameter.decimal_places):
             return f"Use at most {parameter.decimal_places} decimal places."
-        return (number, None, None)
+        return (number, None, None, None)
 
     if kind == ExamParameter.BOOLEAN:
         if raw in TRUE_VALUES:
-            return (None, None, True)
+            return (None, None, True, None)
         if raw in FALSE_VALUES:
-            return (None, None, False)
+            return (None, None, False, None)
         return "Choose yes or no."
 
     if kind == ExamParameter.CHOICE:
         if str(raw) not in [str(c) for c in parameter.choices or []]:
             return "Choose one of the allowed values."
-        return (None, str(raw), None)
+        return (None, str(raw), None, None)
 
-    return (None, str(raw), None)
+    if kind == ExamParameter.DATE:
+        if isinstance(raw, date):
+            return (None, None, None, raw)
+        try:
+            return (None, None, None, date.fromisoformat(str(raw).strip()[:10]))
+        except ValueError:
+            return "Enter a valid date (YYYY-MM-DD)."
+
+    return (None, str(raw), None, None)
 
 
 def _validate_values(item, values):
@@ -212,6 +228,9 @@ def record_result(request, item, values, *, observacao=None, laudo=None):
     (not yet validated) result. A validated result is never changed: amend
     it first."""
 
+    from saude.services.exam_request_service import forbid_cancelled
+
+    forbid_cancelled(item)
     cleaned = _validate_values(item, values)
     patient = item.pedido.patient
     now = timezone.now()
@@ -282,6 +301,9 @@ def record_report(request, item, *, valor_resultado=None, laudo=None, observacao
 
     Collection and result times are the server's (item.data_colheita, now)."""
 
+    from saude.services.exam_request_service import forbid_cancelled
+
+    forbid_cancelled(item)
     given = {"valor_resultado": valor_resultado, "laudo": laudo, "observacao": observacao}
     if all(value in (None, "") for value in given.values()) and not file:
         raise _error("Enter a value, a report, an observation or a file.", "empty_result")
@@ -328,7 +350,7 @@ def record_report(request, item, *, valor_resultado=None, laudo=None, observacao
 
 
 def _build_value(result, parameter, coerced, patient, on_date, request, now):
-    numeric, text, boolean = coerced
+    numeric, text, boolean, day = coerced
     rng = applicable_range(parameter, patient, on_date)
 
     return ResultParameterValue(
@@ -344,6 +366,7 @@ def _build_value(result, parameter, coerced, patient, on_date, request, now):
         value_numeric=numeric,
         value_text=text,
         value_boolean=boolean,
+        value_date=day,
         flag=compute_flag(numeric, rng),
         recorded_by=request.user,
         recorded_at=now,
@@ -373,7 +396,8 @@ def release_result(request, result):
     result.save(update_fields=["released", "released_by", "released_at", "updated_at"])
 
     audit_service.record(action="LAB_RESULT_RELEASED", target=result, actor=request.user,
-                         request=request, entity_id=request.entity_id)
+                         request=request, entity_id=request.entity_id,
+                         details={"revision": result.numero_revisao})
     return result
 
 
@@ -410,12 +434,23 @@ def amend_result(request, result, reason):
         data_resultado=now,
         observacao=f"Amendment of revision {result.numero_revisao}: {reason}",
         laudo=result.laudo,
+        # a free-form result's value comes along too (before lab phase 10 it
+        # was dropped, leaving an empty revision); the attachment below
+        valor_resultado=result.valor_resultado,
         emitido_por=request.user,
         entity_id=result.entity_id,
         branch_id=result.branch_id,
         created_by=request.user,
         updated_by=request.user,
     )
+
+    if result.file:
+        # same stored file and its metadata, without save() (which would
+        # re-read the file from storage)
+        ResultadoExameMedico.objects.filter(pk=revision.pk).update(
+            file=result.file.name, tamanho=result.tamanho,
+            extensao=result.extensao, mime_type=result.mime_type,
+        )
 
     copies = []
     for value in result.parameter_values.all():
@@ -427,8 +462,18 @@ def amend_result(request, result, reason):
         copies.append(value)
     ResultParameterValue.objects.bulk_create(copies)
 
+    # the exam is open again until the new revision is validated
+    details = {"reason": str(reason).strip(), "revision": result.numero_revisao,
+               "new_revision": revision.numero_revisao}
+    from saude.models.itempedidoexamemedico import ItemPedidoExameMedico
+    locked = ItemPedidoExameMedico.objects.select_for_update().get(pk=item.pk)
+    if locked.estado_exame == "concluido":
+        locked.estado_exame = "processamento"
+        locked.save(update_fields=["estado_exame", "updated_at"])
+        details.update({"item_from": "concluido", "item_to": "processamento"})
+
     audit_service.record(action="LAB_RESULT_AMENDED", target=result, actor=request.user,
-                         request=request, entity_id=request.entity_id)
+                         request=request, entity_id=request.entity_id, details=details)
     return revision
 
 
@@ -436,14 +481,20 @@ def amend_result(request, result, reason):
 # HISTORY / EVOLUTION
 # ============================================================
 
-def current_revision_values(queryset):
+def current_revision_values(queryset, *, released_only=False):
     """Values of the latest revision of each exam item only (a superseded
-    revision is history of the correction, not a second measurement)."""
+    revision is history of the correction, not a second measurement).
+
+    released_only (views of RELEASED results - patient, consultation panel):
+    only a newer RELEASED revision supersedes, so an amendment still being
+    corrected never hides the result already released (lab phase 14)."""
 
     newer = ResultadoExameMedico.objects.filter(
         item_pedido_id=OuterRef("result__item_pedido_id"),
         numero_revisao__gt=OuterRef("result__numero_revisao"),
     )
+    if released_only:
+        newer = newer.filter(released=True, na_lixeira=False)
     return queryset.annotate(_superseded=Exists(newer)).filter(_superseded=False)
 
 
@@ -456,7 +507,7 @@ def evolution(values_queryset, parameter_code, date_from=None, date_to=None, *, 
         parameter_code=parameter_code,
         result__validado=True,
         result__na_lixeira=False,
-    ))
+    ), released_only=released_only)
     if released_only:
         qs = qs.filter(result__released=True, parameter__patient_visible=True)
     if date_from:
@@ -464,9 +515,11 @@ def evolution(values_queryset, parameter_code, date_from=None, date_to=None, *, 
     if date_to:
         qs = qs.filter(result__data_resultado__date__lte=date_to)
 
-    values = list(qs.select_related("result").order_by("result__data_resultado", "result__created_at"))
+    values = list(qs.select_related("result", "parameter").order_by("result__data_resultado", "result__created_at"))
     numeric = bool(values) and all(v.data_type in ExamParameter.NUMERIC_TYPES for v in values)
     last = values[-1] if values else None
+    # charted only when numeric and the (current) parameter is graphable
+    graphable = numeric and (last.parameter is None or last.parameter.graphable)
 
     return {
         "parameter": {
@@ -474,6 +527,7 @@ def evolution(values_queryset, parameter_code, date_from=None, date_to=None, *, 
             "name": last.parameter_name if last else None,
             "unit": last.unit if last else None,
             "numeric": numeric,
+            "graphable": graphable,
         },
         "points": [
             {
@@ -487,6 +541,166 @@ def evolution(values_queryset, parameter_code, date_from=None, date_to=None, *, 
             for v in values
         ],
     }
+
+
+HISTORY_PAGE_SIZE = 20
+HISTORY_MAX_PAGE_SIZE = 50
+
+
+def history(patient, entity_id, *, exam_id=None, parameter_code=None, date_from=None, date_to=None,
+            page=1, page_size=HISTORY_PAGE_SIZE):
+    """Validated exam results of ONE patient (lab phase 11), newest first,
+    latest revision of each exam item only, each with its SNAPSHOT values
+    (what was recorded, never today's configuration). Filtered and paginated
+    in the database: by exam, by parameter (results that have it) and by
+    result date."""
+
+    newer = ResultadoExameMedico.objects.filter(
+        item_pedido_id=OuterRef("item_pedido_id"), numero_revisao__gt=OuterRef("numero_revisao"),
+    )
+    qs = (
+        ResultadoExameMedico.objects
+        .filter(paciente=patient, entity_id=entity_id, item_pedido__isnull=False,
+                validado=True, na_lixeira=False)
+        .annotate(_superseded=Exists(newer)).filter(_superseded=False)
+    )
+    if exam_id:
+        qs = qs.filter(item_pedido__exame_id=exam_id)
+    if parameter_code:
+        qs = qs.filter(parameter_values__parameter_code=parameter_code).distinct()
+    if date_from:
+        qs = qs.filter(data_resultado__date__gte=date_from)
+    if date_to:
+        qs = qs.filter(data_resultado__date__lte=date_to)
+
+    page_size = max(1, min(int(page_size or HISTORY_PAGE_SIZE), HISTORY_MAX_PAGE_SIZE))
+    page = max(1, int(page or 1))
+    total = qs.count()
+    rows = (
+        qs.select_related("item_pedido__exame", "validado_por")
+        .prefetch_related("parameter_values")
+        .order_by("-data_resultado", "-created_at")[(page - 1) * page_size: page * page_size]
+    )
+
+    return {
+        "results": [
+            {
+                "id": str(r.id),
+                "exam": {"id": str(r.item_pedido.exame_id), "name": r.item_pedido.exame.nome},
+                "date": (r.data_resultado or r.created_at).isoformat(),
+                "revision": r.numero_revisao,
+                "released": r.released,
+                "validated_at": r.data_validacao.isoformat() if r.data_validacao else None,
+                "value": r.valor_resultado,
+                "values": [
+                    {"code": v.parameter_code, "name": v.parameter_name, **_value_dict(v)}
+                    for v in sorted(r.parameter_values.all(), key=lambda v: v.parameter_name)
+                ],
+            }
+            for r in rows
+        ],
+        "pagination": {"page": page, "page_size": page_size, "total": total},
+    }
+
+
+SUMMARY_RESULTS = 5
+NEW_RESULT_DAYS = 7
+OPEN_ITEM_STATES = ("pendente", "agendado", "colhido", "processamento", "recolha_necessaria")
+
+
+def doctor_summary(patient, entity_id, now=None):
+    """What the doctor needs about ONE patient's laboratory inside a
+    consultation (lab phase 13) - data only, never an interpretation or a
+    diagnosis:
+
+    - pending: the patient's open exam items (any requester), oldest first;
+    - recent: the latest RELEASED results (released = made available to the
+      requester), each structured value with the previous released value of
+      the same parameter and the change - a fixed number of queries.
+    """
+    from saude.models.itempedidoexamemedico import ItemPedidoExameMedico
+    from saude.models.pedidoexamemedico import PedidoExameMedico
+
+    now = now or timezone.now()
+    labels = dict(ItemPedidoExameMedico._meta.get_field("estado_exame").choices)
+
+    pending_qs = (
+        ItemPedidoExameMedico.objects
+        .filter(PedidoExameMedico.patient_filter(patient, prefix="pedido__"),
+                entity_id=entity_id, estado_exame__in=OPEN_ITEM_STATES)
+        .select_related("exame", "pedido")
+        .order_by("pedido__created_at", "exame__nome")[:20]
+    )
+    pending = [
+        {
+            "id": str(i.id),
+            "exam": i.exame.nome,
+            "state": i.estado_exame,
+            "state_label": labels.get(i.estado_exame, i.estado_exame),
+            "priority": i.prioridade,
+            "requested_at": i.pedido.created_at.isoformat() if i.pedido.created_at else None,
+        }
+        for i in pending_qs
+    ]
+
+    released = current_revision_values(ResultParameterValue.objects.filter(
+        result__paciente=patient, entity_id=entity_id,
+        result__validado=True, result__released=True, result__na_lixeira=False,
+    ), released_only=True)
+    newer = ResultadoExameMedico.objects.filter(
+        item_pedido_id=OuterRef("item_pedido_id"), numero_revisao__gt=OuterRef("numero_revisao"),
+        released=True, na_lixeira=False,
+    )
+    results = list(
+        ResultadoExameMedico.objects
+        .filter(paciente=patient, entity_id=entity_id, item_pedido__isnull=False,
+                validado=True, released=True, na_lixeira=False)
+        .annotate(_superseded=Exists(newer)).filter(_superseded=False)
+        .select_related("item_pedido__exame")
+        .order_by("-released_at", "-created_at")[:SUMMARY_RESULTS]
+    )
+
+    # every released value of the parameters shown, newest first, in ONE query
+    shown = {}
+    for v in released.filter(result_id__in=[r.id for r in results]):
+        shown.setdefault(v.result_id, []).append(v)
+    codes = {v.parameter_code for values in shown.values() for v in values}
+    series = {}
+    for v in (released.filter(parameter_code__in=codes)
+              .select_related("result").order_by("parameter_code", "-result__data_resultado", "-result__created_at")):
+        series.setdefault(v.parameter_code, []).append(v)
+
+    def previous_of(value):
+        history = series.get(value.parameter_code, [])
+        index = next((i for i, h in enumerate(history) if h.pk == value.pk), None)
+        return history[index + 1] if index is not None and index + 1 < len(history) else None
+
+    def change(current, previous):
+        if previous is None or current.value_numeric is None or previous.value_numeric is None:
+            return None
+        return format((current.value_numeric - previous.value_numeric).normalize(), "f")
+
+    recent = []
+    for r in results:
+        values = []
+        for v in sorted(shown.get(r.id, []), key=lambda v: v.parameter_name):
+            prev = previous_of(v)
+            values.append({
+                "code": v.parameter_code, "name": v.parameter_name, **_value_dict(v),
+                "previous": prev.display_value if prev else None,
+                "previous_date": (prev.result.data_resultado or prev.result.created_at).isoformat() if prev else None,
+                "change": change(v, prev),
+            })
+        recent.append({
+            "id": str(r.id),
+            "exam": r.item_pedido.exame.nome,
+            "released_at": r.released_at.isoformat() if r.released_at else None,
+            "new": bool(r.released_at and r.released_at >= now - timedelta(days=NEW_RESULT_DAYS)),
+            "value": r.valor_resultado,
+            "values": values,
+        })
+
+    return {"pending": pending, "recent": recent}
 
 
 def comparison(values_queryset, parameter_code):

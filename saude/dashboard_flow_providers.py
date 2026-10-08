@@ -515,6 +515,8 @@ class LabQueueProvider(FlowProvider):
                 "origin": ORIGIN_LABELS.get(pedido.origin, pedido.origin),
                 "urgent": "Yes" if pedido.urgente else "No",
                 "status": ", ".join(f"{count} {label}" for label, count in states.items()),
+                # machine value for the check-in row action's "when" (not a column)
+                "checked_in": "yes" if pedido.checked_in_at else "no",
             })
 
         return {
@@ -599,6 +601,63 @@ class LabAverageTatTodayProvider(FlowProvider):
             ResultadoExameMedico.objects.filter(released_at__date=_today(), item_pedido__data_colheita__isnull=False)
         ).values_list("item_pedido__data_colheita", "released_at")
         minutes = [m for m in (lab_result_service.turnaround_minutes(c, r) for c, r in released) if m is not None]
+        if not minutes:
+            return _stat(None)
+        average = round(sum(minutes) / len(minutes))
+        return {"value": average, "formatted_value": lab_result_service.format_duration(average)}
+
+
+# ---- lab phase 15: waiting, completed, released, average waiting ----
+
+@register_provider("saude.lab.patients_waiting")
+class LabPatientsWaitingProvider(FlowProvider):
+    """Requests whose patient arrived at the laboratory (check-in) and has
+    nothing collected yet, with an exam still waiting for collection."""
+
+    def resolve(self):
+        return _stat(self.scoped_queryset(
+            PedidoExameMedico.objects.filter(
+                checked_in_at__isnull=False, items__estado_exame__in=PENDING_COLLECTION,
+            ).annotate(first_collection=Min("items__data_colheita")).filter(first_collection__isnull=True)
+        ).distinct().count())
+
+
+@register_provider("saude.lab.completed_today")
+class LabCompletedTodayProvider(FlowProvider):
+    """Exam items completed today: their result was validated today and
+    the item is completed (validation completes it - lab phase 10)."""
+
+    def resolve(self):
+        return _stat(self.scoped_queryset(
+            ItemPedidoExameMedico.objects.filter(
+                estado_exame="concluido", resultados__validado=True,
+                resultados__data_validacao__date=_today(),
+            )
+        ).distinct().count())
+
+
+@register_provider("saude.lab.released_today")
+class LabReleasedTodayProvider(FlowProvider):
+
+    def resolve(self):
+        return _stat(self.scoped_queryset(
+            ResultadoExameMedico.objects.filter(released_at__date=_today(), item_pedido__isnull=False)
+        ).count())
+
+
+@register_provider("saude.lab.average_waiting_today")
+class LabAverageWaitingTodayProvider(FlowProvider):
+    """Average LABORATORY waiting time (check-in -> first collection) of
+    the patients who arrived today and were collected - never the doctor's
+    waiting time (agenda check-in -> consultation)."""
+
+    def resolve(self):
+        rows = self.scoped_queryset(
+            PedidoExameMedico.objects.filter(checked_in_at__date=_today())
+        ).annotate(first_collection=Min("items__data_colheita")).filter(
+            first_collection__isnull=False,
+        ).values_list("checked_in_at", "first_collection")
+        minutes = [max(0, int((collected - arrived).total_seconds() // 60)) for arrived, collected in rows]
         if not minutes:
             return _stat(None)
         average = round(sum(minutes) / len(minutes))

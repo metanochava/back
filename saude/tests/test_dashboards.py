@@ -186,7 +186,8 @@ class SaudeDashboardsTests(TestCase):
         from rest_framework.test import APIClient
 
         guest_group, _ = Group.objects.get_or_create(name="Guest")
-        BranchUserGroup.objects.create(
+        # every branch member already holds Guest (django_resaas guest profile)
+        BranchUserGroup.objects.get_or_create(
             user=self.tenant_a["user"], branch=self.tenant_a["branch"], group=guest_group,
         )
         context = ResaasContextService.issue(
