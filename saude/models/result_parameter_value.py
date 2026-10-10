@@ -11,7 +11,7 @@ class ResultParameterValue(BaseModel):
 
     Values: numeric parameters in value_numeric (queryable: history,
     evolution charts), text and choice in value_text, yes/no in
-    value_boolean.
+    value_boolean, dates in value_date.
     """
 
     LOW = "low"
@@ -57,6 +57,8 @@ class ResultParameterValue(BaseModel):
     value_numeric = models.DecimalField(max_digits=18, decimal_places=6, null=True, blank=True)
     value_text = models.TextField(null=True, blank=True)
     value_boolean = models.BooleanField(null=True, blank=True)
+    # date parameters (data type introduced with the exam configuration phase)
+    value_date = models.DateField(null=True, blank=True)
 
     # interpretation against the snapshot reference (never the value itself)
     flag = models.CharField(max_length=20, choices=FLAG_CHOICES, null=True, blank=True)
@@ -92,6 +94,8 @@ class ResultParameterValue(BaseModel):
             return format(self.value_numeric.normalize(), "f")
         if self.value_boolean is not None:
             return "Yes" if self.value_boolean else "No"
+        if self.value_date is not None:
+            return self.value_date.isoformat()
         return self.value_text
 
     def __str__(self):

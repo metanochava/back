@@ -10,7 +10,8 @@ PRINCÍPIOS
 - As permissões aqui declaradas têm de existir; group_creator() não inventa
   permissions inexistentes.
 - group_creator() é aditivo: acrescenta defaults e preserva permissões
-  personalizadas já atribuídas.
+  personalizadas já atribuídas. Para RETIRAR uma permissão, um perfil lista-a
+  em "revoke" (explícito; nunca em "permissions" ao mesmo tempo).
 - Patient é um perfil real (Group), atribuído pelo grant do portal
   (BranchUserGroup na Branch do Paciente). As suas permissões são só do
   portal (view_patient_portal, view_own_*): nunca permissões clínicas de
@@ -122,11 +123,19 @@ CLINICAL_PROFILES = [
             "hard_delete_receitamedica", "pdf_list_receitamedica", "restore_receitamedica",
             "hard_delete_relatoriomedico", "pdf_list_relatoriomedico", "restore_relatoriomedico",
             "record_result_itempedidoexamemedico",
-            "add_resultadoexamemedico", "amend_resultadoexamemedico", "change_resultadoexamemedico", "delete_resultadoexamemedico", "hard_delete_resultadoexamemedico", "pdf_list_resultadoexamemedico", "release_resultadoexamemedico", "restore_resultadoexamemedico", "validate_resultadoexamemedico",
-            "add_resultparametervalue", "change_resultparametervalue", "delete_resultparametervalue", "hard_delete_resultparametervalue", "list_resultparametervalue", "pdf_list_resultparametervalue", "pdf_resultparametervalue", "restore_resultparametervalue", "view_resultparametervalue",
+            "add_resultadoexamemedico", "change_resultadoexamemedico", "delete_resultadoexamemedico", "pdf_list_resultadoexamemedico", "restore_resultadoexamemedico",
+            "add_resultparametervalue", "change_resultparametervalue", "delete_resultparametervalue", "list_resultparametervalue", "pdf_list_resultparametervalue", "pdf_resultparametervalue", "restore_resultparametervalue", "view_resultparametervalue",
             "reject_sample_itempedidoexamemedico",
             "add_tipoexamemedico", "change_tipoexamemedico", "delete_tipoexamemedico", "hard_delete_tipoexamemedico", "pdf_list_tipoexamemedico", "pdf_tipoexamemedico", "restore_tipoexamemedico",
             "add_vacina", "change_vacina", "delete_vacina", "hard_delete_vacina", "list_vacina", "pdf_list_vacina", "pdf_vacina", "restore_vacina",
+        ],
+        # laboratory phase 5: validating, releasing and amending a lab result
+        # are the laboratory's (Medical Laboratory Scientist), and a result
+        # or its values are never hard-deleted. Taken away where an earlier
+        # version of this file (or the database) granted them.
+        "revoke": [
+            "validate_resultadoexamemedico", "release_resultadoexamemedico", "amend_resultadoexamemedico",
+            "hard_delete_resultadoexamemedico", "hard_delete_resultparametervalue",
         ],
     },
     {
@@ -200,6 +209,8 @@ LABORATORY_PROFILES = [
             "collect_itempedidoexamemedico",
             "reject_sample_itempedidoexamemedico",
             "record_result_itempedidoexamemedico",
+            # laboratory queue (lab phase 7): collected -> processing, cancel an exam
+            "start_processing_itempedidoexamemedico", "cancel_itempedidoexamemedico",
             "view_resultadoexamemedico", "add_resultadoexamemedico",
             # the results list page (list_resultadopedidoexamemedico route)
             "list_resultadoexamemedico",
@@ -219,12 +230,15 @@ LABORATORY_PROFILES = [
             # exam catalogue (types and classes of exam); deleting stays with Admin
             "list_tipoexamemedico", "add_tipoexamemedico", "change_tipoexamemedico",
             "list_classeexamemedico", "add_classeexamemedico", "change_classeexamemedico",
-            "view_examparameter", "add_examparameter", "change_examparameter",
-            "view_examreferencerange", "add_examreferencerange", "change_examreferencerange",
+            # exam configuration (lab phase 6): the list screens need list_*
+            "view_examparameter", "list_examparameter", "add_examparameter", "change_examparameter",
+            "view_examreferencerange", "list_examreferencerange", "add_examreferencerange", "change_examreferencerange",
             "check_in_pedidoexamemedico",
             "collect_itempedidoexamemedico",
             "reject_sample_itempedidoexamemedico",
             "record_result_itempedidoexamemedico",
+            # laboratory queue (lab phase 7): collected -> processing, cancel an exam
+            "start_processing_itempedidoexamemedico", "cancel_itempedidoexamemedico",
             "view_resultadoexamemedico", "add_resultadoexamemedico", "change_resultadoexamemedico",
             "view_resultparametervalue", "add_resultparametervalue", "change_resultparametervalue",
             "validate_resultadoexamemedico",
@@ -242,12 +256,14 @@ LABORATORY_PROFILES = [
             "pdf_resultadoexamemedico", "pdf_list_resultadoexamemedico",
             "delete_resultadoexamemedico", "restore_resultadoexamemedico", "hard_delete_resultadoexamemedico",
             "list_resultparametervalue", "pdf_resultparametervalue", "pdf_list_resultparametervalue",
-            "delete_resultparametervalue", "restore_resultparametervalue", "hard_delete_resultparametervalue",
+            "delete_resultparametervalue", "restore_resultparametervalue",
             # patients and their people / contacts (read)
             "list_paciente", "list_person", "view_person", "list_personcontact", "view_personcontact",
             # entity and entity type (read)
             "list_entity", "view_entity", "list_entitytype", "view_entitytype",
         ],
+        # a recorded value is corrected by amending the result, never hard-deleted
+        "revoke": ["hard_delete_resultparametervalue"],
     },
 ]
 

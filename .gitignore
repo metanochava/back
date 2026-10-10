@@ -55,6 +55,9 @@ Makefile
 
 */migrations/*.py
 !*/migrations/__init__.py
+# saude's migrations are versioned (dev and pro share one history since
+# 2026-10-08: pro was aligned to dev's 0001-0010)
+!saude/migrations/*.py
 */migrations/*.pyc
 current
 previous

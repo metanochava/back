@@ -14,29 +14,34 @@ found".
 
 Results
 - Recording a result needs add/change_resultadoexamemedico; VALIDATING it
-  needs validate_resultadoexamemedico (the `validate` action's
-  permission), whatever path sets it (the action or `validado` in a
-  payload). validado_por / data_validacao are always set by the server.
+  needs validate_resultadoexamemedico and happens only through the
+  `validate` action (`validado` is read-only in the API since lab phase 10).
+  validado_por / data_validacao are always set by the server.
 - A validated result is never silently overwritten: any change to it is a
   409 (result_already_validated).
 """
+from django.db import transaction
 from django.utils import timezone
 from rest_framework import status
 
 from hr.models.employee import Employee
-from django_resaas.saas.core.base.permissions import isPermited
 from django_resaas.saas.core.exceptions import ConflictError, ResaasAPIException
 from django_resaas.saas.core.services import audit_service
 
 from saude.models.consulta import Consulta
+from saude.models.itempedidoexamemedico import ItemPedidoExameMedico
 from saude.models.paciente import Paciente
 from saude.models.pedidoexamemedico import PedidoExameMedico
 
-VALIDATE_PERMISSION = "validate_resultadoexamemedico"
 COLLECTED = "colhido"
+PROCESSING = "processamento"
+COMPLETED = "concluido"
+CANCELLED = "cancelado"
 RECOLLECTION_REQUIRED = "recolha_necessaria"
 COLLECTABLE = ("pendente", "agendado", RECOLLECTION_REQUIRED)
-REJECTABLE = (COLLECTED, "processamento")
+REJECTABLE = (COLLECTED, PROCESSING)
+# an exam can be cancelled until it is completed (a result validated)
+CANCELLABLE = ("pendente", "agendado", COLLECTED, PROCESSING, RECOLLECTION_REQUIRED)
 
 
 def _not_found(message, code):
@@ -125,52 +130,108 @@ def resolve_request_context(request, data):
     return patient, consulta, PedidoExameMedico.ORIGIN_CONSULTATION
 
 
-def check_in(pedido, now=None):
-    """Laboratory arrival - set once (repeating it keeps the first time)."""
+@transaction.atomic
+def check_in(pedido, now=None, request=None):
+    """Laboratory arrival - set once (repeating it keeps the first time and
+    records nothing). The row is locked so two clicks set it once; the
+    arrival is in the audit log."""
+    given = pedido
+    pedido = PedidoExameMedico.objects.select_for_update().get(pk=pedido.pk)
     if not pedido.checked_in_at:
         pedido.checked_in_at = now or timezone.now()
         pedido.save(update_fields=["checked_in_at"])
+        if request is not None:
+            audit_service.record(action="LAB_CHECKED_IN", target=pedido, actor=request.user,
+                                 request=request, entity_id=request.entity_id,
+                                 details={"checked_in_at": pedido.checked_in_at.isoformat()})
+    # the caller's instance sees the arrival too (as before the lock)
+    given.checked_in_at = pedido.checked_in_at
     return pedido
 
 
-def stamp_collection(item, previous_state, now=None):
-    """data_colheita is set by the server when an item becomes 'colhido'
-    (unless the client recorded the real collection time)."""
-    if item.estado_exame == COLLECTED and previous_state != COLLECTED and not item.data_colheita:
-        item.data_colheita = now or timezone.now()
-        item.save(update_fields=["data_colheita"])
+def _locked_item(item):
+    return ItemPedidoExameMedico.objects.select_for_update().get(pk=item.pk)
 
 
+@transaction.atomic
+def start_processing(request, item):
+    """A collected sample goes to processing (the analysis started)."""
+    item = _locked_item(item)
+    if item.estado_exame != COLLECTED:
+        raise ConflictError("Only a collected sample can go to processing.", code="invalid_exam_state")
+
+    item.estado_exame = PROCESSING
+    item.save(update_fields=["estado_exame", "updated_at"])
+    audit_service.record(action="LAB_PROCESSING_STARTED", target=item, actor=request.user,
+                         request=request, entity_id=request.entity_id,
+                         details={"from": COLLECTED, "to": PROCESSING})
+    return item
+
+
+@transaction.atomic
+def cancel(request, item, reason):
+    """The exam will not be done. Needs a reason (kept in the audit log);
+    a completed or already cancelled exam cannot be cancelled."""
+    if not reason or not str(reason).strip():
+        raise ResaasAPIException("A reason is required to cancel an exam.", code="cancel_reason_required",
+                                 details={"reason": ["This field is required."]})
+    item = _locked_item(item)
+    if item.estado_exame not in CANCELLABLE:
+        raise ConflictError("This exam cannot be cancelled in its current state.", code="invalid_exam_state")
+
+    previous = item.estado_exame
+    item.estado_exame = CANCELLED
+    item.save(update_fields=["estado_exame", "updated_at"])
+    audit_service.record(action="LAB_EXAM_CANCELLED", target=item, actor=request.user,
+                         request=request, entity_id=request.entity_id,
+                         details={"from": previous, "to": CANCELLED, "reason": str(reason).strip()})
+    return item
+
+
+@transaction.atomic
 def collect(request, item, now=None):
     """Sample collected (again, after a rejection): who and when are set by
-    the server."""
+    the server. The item row is locked, so two clicks collect once (the
+    second is a 409). Collection is per exam item: one request may need
+    several samples - there is no 1 request = 1 sample assumption."""
+    item = _locked_item(item)
     if item.estado_exame not in COLLECTABLE:
         raise ConflictError("This exam cannot be collected in its current state.", code="invalid_exam_state")
 
+    previous = item.estado_exame
     item.estado_exame = COLLECTED
     item.data_colheita = now or timezone.now()
     item.collected_by = request.user
     item.save(update_fields=["estado_exame", "data_colheita", "collected_by", "updated_at"])
     audit_service.record(action="LAB_SAMPLE_COLLECTED", target=item, actor=request.user,
-                         request=request, entity_id=request.entity_id)
+                         request=request, entity_id=request.entity_id,
+                         details={"from": previous, "to": COLLECTED,
+                                  "collected_at": item.data_colheita.isoformat()})
     return item
 
 
+@transaction.atomic
 def reject_sample(request, item, reason, now=None):
     """Sample not usable: the item goes to 'recolha_necessaria' and keeps
-    the rejection (time and reason); the audit log keeps every rejection."""
+    the LAST rejection (time and reason); every rejection, with its reason
+    and the collection it rejected, stays in the audit log (details)."""
     if not reason or not str(reason).strip():
         raise ResaasAPIException("A reason is required to reject a sample.", code="rejection_reason_required",
                                  details={"reason": ["This field is required."]})
+    item = _locked_item(item)
     if item.estado_exame not in REJECTABLE:
         raise ConflictError("Only a collected sample can be rejected.", code="invalid_exam_state")
 
+    previous = item.estado_exame
     item.estado_exame = RECOLLECTION_REQUIRED
     item.rejected_at = now or timezone.now()
     item.rejection_reason = str(reason).strip()
     item.save(update_fields=["estado_exame", "rejected_at", "rejection_reason", "updated_at"])
     audit_service.record(action="LAB_SAMPLE_REJECTED", target=item, actor=request.user,
-                         request=request, entity_id=request.entity_id)
+                         request=request, entity_id=request.entity_id,
+                         details={"from": previous, "to": RECOLLECTION_REQUIRED,
+                                  "reason": item.rejection_reason,
+                                  "collected_at": item.data_colheita.isoformat() if item.data_colheita else None})
     return item
 
 
@@ -194,12 +255,46 @@ def _changed_fields(instance, validated_data):
     )
 
 
+def _check_result_relations(validated_data, instance=None):
+    """A result belongs to ONE patient: the patient of its exam item's
+    request, and of its parent folder. Fills the patient from the item when
+    the payload has none; a different one is a 400 (lab phase 9)."""
+
+    def effective(field):
+        if field in validated_data:
+            return validated_data[field]
+        return getattr(instance, field, None) if instance is not None else None
+
+    item, patient, parent = effective("item_pedido"), effective("paciente"), effective("pai")
+
+    if item is not None:
+        expected = item.pedido.patient
+        if patient is None and expected is not None:
+            validated_data["paciente"] = patient = expected
+        elif expected is not None and patient.pk != expected.pk:
+            raise ResaasAPIException(
+                "The result must belong to the patient of its exam request.",
+                code="result_patient_mismatch",
+                details={"paciente": ["Does not match the patient of the exam item."]},
+            )
+
+    if parent is not None and patient is not None and parent.paciente_id not in (None, patient.pk):
+        raise ResaasAPIException(
+            "The folder belongs to another patient.",
+            code="folder_of_another_patient",
+            details={"pai": ["Does not belong to this patient."]},
+        )
+
+
 def enforce_result_write(request, validated_data, instance=None):
     """Applies the validation rules to a create/update payload (mutates
-    validated_data: the server owns validado_por / data_validacao)."""
+    validated_data: the server owns validado_por / data_validacao, and the
+    patient follows the exam item)."""
 
     validated_data.pop("validado_por", None)
     validated_data.pop("data_validacao", None)
+
+    _check_result_relations(validated_data, instance)
 
     if instance is not None and instance.validado:
         changed = _changed_fields(instance, validated_data)
@@ -211,26 +306,111 @@ def enforce_result_write(request, validated_data, instance=None):
             )
         return
 
-    if validated_data.get("validado"):
-        if not isPermited(request=request, role=VALIDATE_PERMISSION):
-            raise ResaasAPIException(
-                "You are not allowed to validate results.",
-                code="permission_denied",
-                status_code=status.HTTP_403_FORBIDDEN,
-            )
-        validated_data["validado_por"] = request.user
-        validated_data["data_validacao"] = timezone.now()
 
-
+@transaction.atomic
 def validate_result(request, result):
+    """Clinical validation of a recorded result (lab phase 10): the row is
+    locked (two clicks validate once), it must have content (structured
+    values, a value, a report or a file - so an explorer folder never
+    validates; `tipo` is not used: results saved by the generic form keep
+    the model's default "Folder"), and its exam item is completed.
+    The only way to validate: `validado` is read-only in the API."""
+    from saude.models.resultadoexamemedico import ResultadoExameMedico
+
+    result = ResultadoExameMedico.objects.select_for_update().get(pk=result.pk)
     if result.validado:
         raise ConflictError("This result is already validated.", code="result_already_validated")
+    if result.item_pedido_id:
+        forbid_cancelled(result.item_pedido)
+    has_content = (
+        result.parameter_values.exists()
+        or any(str(v or "").strip() for v in (result.valor_resultado, result.laudo))
+        or bool(result.file)
+    )
+    if not has_content:
+        raise ResaasAPIException("An empty result cannot be validated.", code="empty_result")
 
     result.validado = True
     result.validado_por = request.user
     result.data_validacao = timezone.now()
     result.save(update_fields=["validado", "validado_por", "data_validacao", "updated_at"])
+
+    details = {"revision": result.numero_revisao}
+    if result.item_pedido_id:
+        item = _locked_item(result.item_pedido)
+        if item.estado_exame != COMPLETED:
+            details.update({"item_from": item.estado_exame, "item_to": COMPLETED})
+            item.estado_exame = COMPLETED
+            item.save(update_fields=["estado_exame", "updated_at"])
     audit_service.record(action="LAB_RESULT_VALIDATED", target=result, actor=request.user,
-                         request=request, entity_id=request.entity_id)
+                         request=request, entity_id=request.entity_id, details=details)
     return result
+
+
+# ============================================================
+# TRAIL (lab phase 11)
+# ============================================================
+
+def item_trail(request, item):
+    """Audit trail of one exam item, oldest first: its arrival (request
+    check-in), collections, rejections (each with its reason), processing,
+    cancellation, and its results' recording, validation, release and
+    amendment. Read from AuditLog (django_resaas) inside the current
+    Entity."""
+    from django.db.models import Q
+
+    from django_resaas.saas.models.audit_log import AuditLog
+    from saude.models.resultadoexamemedico import ResultadoExameMedico
+    from saude.services.lab_result_service import _person_of_user
+
+    result_ids = [str(pk) for pk in ResultadoExameMedico.objects.filter(item_pedido=item).values_list("pk", flat=True)]
+    logs = (
+        AuditLog.objects.filter(entity_id=request.entity_id)
+        .filter(
+            Q(model="ItemPedidoExameMedico", object_id=str(item.pk))
+            | Q(model="PedidoExameMedico", object_id=str(item.pedido_id), action="LAB_CHECKED_IN")
+            | Q(model="ResultadoExameMedico", object_id__in=result_ids)
+        )
+        .select_related("user__person")
+        .order_by("created_at")
+    )
+    return [
+        {
+            "action": log.action,
+            "at": log.created_at.isoformat(),
+            "by": _person_of_user(log.user) if log.user_id else None,
+            "details": log.details or {},
+        }
+        for log in logs
+    ]
+
+
+# ============================================================
+# INTEGRITY GUARDS (lab phase 16 - security audit)
+# ============================================================
+
+def forbid_deleting_validated(result):
+    """A validated result is never deleted, trashed or hard-deleted: it is
+    corrected by amending it (a new revision)."""
+    if result.validado:
+        raise ConflictError(
+            "A validated result cannot be deleted. Amend it instead.",
+            code="result_already_validated",
+        )
+
+
+def forbid_deleting_item_with_validated_result(item):
+    from saude.models.resultadoexamemedico import ResultadoExameMedico
+
+    if ResultadoExameMedico.all_objects.filter(item_pedido=item, validado=True).exists():
+        raise ConflictError(
+            "An exam with a validated result cannot be deleted. Cancel it or amend the result.",
+            code="exam_has_validated_result",
+        )
+
+
+def forbid_cancelled(item):
+    """Nothing is recorded or validated for a cancelled exam."""
+    if item.estado_exame == CANCELLED:
+        raise ConflictError("This exam is cancelled.", code="invalid_exam_state")
 

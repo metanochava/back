@@ -577,11 +577,36 @@ DASHBOARDS = [
             _stat("recollection_required", "Recollection Required", "saude.lab.recollection_required",
                   "block", ["view_itempedidoexamemedico"], 44,
                   "Rejected samples waiting for a new collection."),
+            # lab phase 15 - a third row of four cards
+            _stat("patients_waiting", "Patients Waiting", "saude.lab.patients_waiting",
+                  "airline_seat_recline_normal", ["view_pedidoexamemedico", "view_itempedidoexamemedico"], 45,
+                  "Patients who arrived at the laboratory and have nothing collected yet."),
+            _stat("average_waiting", "Average Waiting Time", "saude.lab.average_waiting_today",
+                  "hourglass_bottom", ["view_pedidoexamemedico"], 46,
+                  "Laboratory waiting time (arrival to first collection) of the patients who arrived today."),
+            _stat("completed_today", "Completed Today", "saude.lab.completed_today",
+                  "task_alt", ["view_itempedidoexamemedico", "view_resultadoexamemedico"], 47,
+                  "Exams whose result was validated today."),
+            _stat("released_today", "Released Today", "saude.lab.released_today",
+                  "mark_email_read", ["view_resultadoexamemedico"], 48,
+                  "Results released today to the requester and the patient."),
             {
                 **_queue("lab_queue", "Laboratory Queue", "saude.lab.queue",
                          ["view_pedidoexamemedico", "view_itempedidoexamemedico"], 50,
                          "Requests with open exams, checked-in patients first. Waiting counts from check-in to the first collection."),
                 "row_actions": [
+                    {
+                        # laboratory arrival: starts the laboratory waiting time
+                        "name": "lab_check_in",
+                        "type": "request",
+                        "request": {"method": "POST", "endpoint": "saude/pedidoexamemedicos/{id}/check_in/"},
+                        "when": {"field": "checked_in", "in": ["no"]},
+                        "icon": "login",
+                        "color": "positive",
+                        "tooltip": "Patient arrived at the laboratory",
+                        "success": "Arrival at the laboratory recorded.",
+                        "permissions": ["check_in_pedidoexamemedico"],
+                    },
                     {
                         "name": "open_request",
                         "type": "route",

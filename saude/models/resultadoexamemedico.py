@@ -257,6 +257,11 @@ class ResultadoExameMedico(BaseModel):
 
     @property
     def children_count(self):
+        # annotated by the API querysets (lab phase 17: two COUNTs per row
+        # before); a query only when the row was not annotated
+        annotated = getattr(self, "_children_count", None)
+        if annotated is not None:
+            return annotated
         return self.filhos.filter(
             na_lixeira=False
         ).count()
@@ -334,7 +339,13 @@ class ResultadoExameMedico(BaseModel):
 
     def save(self, *args, **kwargs):
 
-        if self.file:
+        # file metadata only when the file is part of this save: a partial
+        # save (validate, release - update_fields without "file") must not
+        # read the stored file again (a missing file was a 500)
+        update_fields = kwargs.get("update_fields")
+        file_saved = update_fields is None or "file" in update_fields
+
+        if self.file and file_saved:
 
             if not self.nome:
 

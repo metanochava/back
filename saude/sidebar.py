@@ -170,6 +170,18 @@ ALL = [{
                 "route": "list_examemedico",
             },
             {
+                "icon": "tune",
+                "menu": "Exam Parameters",
+                "role": "list_examparameter",
+                "route": "list_examparameter",
+            },
+            {
+                "icon": "straighten",
+                "menu": "Exam Reference Ranges",
+                "role": "list_examreferencerange",
+                "route": "list_examreferencerange",
+            },
+            {
                 "add_role": "add_classeexamemedico",
                 "add_route": "add_classeexamemedico",
                 "icon": "category",

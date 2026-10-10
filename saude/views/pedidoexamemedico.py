@@ -63,7 +63,7 @@ class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
         """Patient arrived for these exams (laboratory waiting starts).
         Idempotent: repeating it keeps the first time."""
 
-        pedido = exam_request_service.check_in(self.get_object())
+        pedido = exam_request_service.check_in(self.get_object(), request=request)
         return all(request, data=self.get_serializer(pedido).data)
 
    

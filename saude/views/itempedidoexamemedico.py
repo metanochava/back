@@ -1,7 +1,10 @@
 
 from django_resaas.saas.core.base.views import BaseAPIView
 from django_resaas.saas.core.base.views import registerView
+from django.db.models import Count, Prefetch, Q
+
 from saude.models.itempedidoexamemedico import ItemPedidoExameMedico
+from saude.models.resultadoexamemedico import ResultadoExameMedico
 from saude.serializers.itempedidoexamemedico import ItemPedidoExameMedicoSerializer
 from rest_framework.decorators import action
 from django_resaas.saas.models.entity import Entity
@@ -18,17 +21,46 @@ from saude.services import exam_request_service, lab_result_service
 
 @registerView('itempedidoexamemedicos')
 class ItemPedidoExameMedicoAPIView(BaseAPIView):
-    queryset = ItemPedidoExameMedico.objects.all()   
+    # lab phase 17: the list measured 7 queries per row (every relation's
+    # label, and the latest result); joined / prefetched once instead
+    queryset = (
+        ItemPedidoExameMedico.objects
+        .select_related(
+            "entity", "branch", "created_by", "updated_by", "collected_by", "exame",
+            "pedido__paciente__person", "pedido__consulta__paciente__person",
+        )
+        .prefetch_related(Prefetch(
+            "resultados",
+            queryset=ResultadoExameMedico.objects.select_related(
+                "entity", "branch", "created_by", "updated_by", "paciente__person",
+                "emitido_por", "validado_por", "released_by", "pai",
+            ).annotate(
+                _children_count=Count("filhos", filter=Q(filhos__na_lixeira=False, filhos__deleted_at__isnull=True)),
+            ).order_by("-numero_revisao"),
+            to_attr="results_latest_first",
+        ))
+    )
     serializer_class = ItemPedidoExameMedicoSerializer
     
-    def perform_update(self, serializer):
-        previous_state = serializer.instance.estado_exame
+    # an exam with a validated result is never deleted (lab phase 16)
+    def perform_destroy(self, instance):
+        exam_request_service.forbid_deleting_item_with_validated_result(instance)
+        super().perform_destroy(instance)
 
-        super().perform_update(serializer)
+    # same action as BaseAPIView.hard_delete (re-declared: an override
+    # without the decorator would drop the route); hard_delete_<model>
+    @resaas_action(detail=True, methods=["delete"], url_path="hard_delete")
+    def hard_delete(self, request, pk=None):
+        instance = ItemPedidoExameMedico.all_objects.filter(
+            pk=pk, entity_id=request.entity_id, branch_id=request.branch_id,
+        ).first()
+        if instance is not None:
+            exam_request_service.forbid_deleting_item_with_validated_result(instance)
+        return super().hard_delete(request, pk=pk)
 
-        # collection time is stamped by the server when the item becomes
-        # "colhido" (saude/services/exam_request_service.py)
-        exam_request_service.stamp_collection(serializer.instance, previous_state)
+    # estado_exame is read-only in the API (lab phase 9): the state only
+    # changes through the laboratory actions below (collect, reject_sample,
+    # start_processing, cancel), each with its own permission and audit.
 
     # ------------------------------------------------------------------
     # Laboratory workflow (saude/services/exam_request_service.py,
@@ -70,7 +102,9 @@ class ItemPedidoExameMedicoAPIView(BaseAPIView):
             observacao=request.data.get("observacao"),
             file=request.FILES.get("file"),
         )
-        item.refresh_from_db()
+        # read again with the view's prefetch: refresh_from_db() would keep
+        # the stale prefetched results (lab phase 17)
+        item = self.get_queryset().get(pk=item.pk)
         return Response(self.get_serializer(item).data)
 
     @resaas_action(detail=True, methods=["post"], label="Collect", icon="colorize", autorequest=True)
@@ -81,4 +115,23 @@ class ItemPedidoExameMedicoAPIView(BaseAPIView):
     @resaas_action(detail=True, methods=["post"], label="Reject sample", icon="block")
     def reject_sample(self, request, *args, **kwargs):
         item = exam_request_service.reject_sample(request, self.get_object(), request.data.get("reason"))
+        return Response(self.get_serializer(item).data)
+
+    # read-only audit trail of the exam (lab phase 11): who collected,
+    # rejected (and why), processed, cancelled, validated, released, amended
+    @resaas_action(detail=True, methods=["get"], label="Exam trail", icon="history",
+                   permission="view_itempedidoexamemedico", visible=False)
+    def trail(self, request, *args, **kwargs):
+        return Response(exam_request_service.item_trail(request, self.get_object()))
+
+    # start_processing_itempedidoexamemedico: collected -> processing
+    @resaas_action(detail=True, methods=["post"], label="Start processing", icon="biotech", autorequest=True)
+    def start_processing(self, request, *args, **kwargs):
+        item = exam_request_service.start_processing(request, self.get_object())
+        return Response(self.get_serializer(item).data)
+
+    # cancel_itempedidoexamemedico: {"reason"} - any state before completed
+    @resaas_action(detail=True, methods=["post"], label="Cancel exam", icon="cancel")
+    def cancel(self, request, *args, **kwargs):
+        item = exam_request_service.cancel(request, self.get_object(), request.data.get("reason"))
         return Response(self.get_serializer(item).data)

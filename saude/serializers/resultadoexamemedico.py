@@ -39,9 +39,10 @@ class ResultadoExameMedicoSerializer(BaseSerializer):
         model = ResultadoExameMedico
 
         fields = "__all__"
-        # validation metadata is set by the server
-        # (exam_request_service.enforce_result_write / validate_result)
-        read_only_fields = ["validado_por", "data_validacao"]
+        # validation is its own action (exam_request_service.validate_result,
+        # validate_resultadoexamemedico): the flag and its metadata are the
+        # server's - read-only in the API since lab phase 10
+        read_only_fields = ["validado", "validado_por", "data_validacao"]
 
     ############################################################
     # FICHEIRO
