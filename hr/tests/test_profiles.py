@@ -146,8 +146,8 @@ def test_hr_adds_its_permissions_to_the_platform_administration_profiles(bootstr
     group_creator(CORE_PROFILES)
     group_creator(HR_PROFILES)
 
-    organization = set(Group.objects.get(name="Organization Administrator").permissions.values_list("codename", flat=True))
-    branch = set(Group.objects.get(name="Branch Administrator").permissions.values_list("codename", flat=True))
+    organization = set(Group.objects.get(name="Admin").permissions.values_list("codename", flat=True))
+    branch = set(Group.objects.get(name="Branch Admin").permissions.values_list("codename", flat=True))
 
     assert {"add_employee", "add_department", "add_branch"} <= organization
     assert {"view_employee", "list_department", "add_branchuser"} <= branch

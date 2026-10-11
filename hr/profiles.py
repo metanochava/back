@@ -131,14 +131,15 @@ HR_PROFILES = [
 # its own to them: group_creator() is additive by profile name.
 HR_PROFILES += [
     {
-        "name": "Organization Administrator",
+        # administers the Entity (it replaced "Organization Administrator")
+        "name": "Admin",
         "permissions": [
             "view_employee", "add_employee", "change_employee", "list_employee",
             "view_department", "add_department", "change_department", "list_department",
         ],
     },
     {
-        "name": "Branch Administrator",
+        "name": "Branch Admin",
         "permissions": [
             "view_employee", "change_employee", "list_employee",
             "view_department", "list_department",
