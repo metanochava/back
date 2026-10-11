@@ -46,7 +46,6 @@ class GoodsReceipt(BaseModel):
 
         routes = {
             "list": "list_goodsreceipt",
-            "view": "view_goodsreceipt",
         }
 
     @property
@@ -84,7 +83,6 @@ class GoodsReceiptLine(BaseModel):
 
         routes = {
             "list": "list_goodsreceiptline",
-            "view": "view_goodsreceiptline",
         }
 
     @property

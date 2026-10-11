@@ -64,9 +64,6 @@ class Supplier(BaseModel):
 
         routes = {
             "list": "list_supplier",
-            "view": "view_supplier",
-            "add": "add_supplier",
-            "change": "change_supplier",
         }
 
     @property

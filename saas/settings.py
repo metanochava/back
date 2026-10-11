@@ -49,6 +49,7 @@ MY_APPS = [
     'django_resaas.notifications',
     'farmacia',
     'purchases',
+    'accounting',
 ]
 
 

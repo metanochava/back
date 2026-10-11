@@ -389,7 +389,13 @@ def receive_order(*, order, user, lines, warehouse_id=None, notes=None, idempote
         "purchases.receipt.posted",
         receipt,
         user,
-        {"order_id": str(order.id), "order_status": new_status, "stock_tracked": track_stock},
+        {
+            "order_id": str(order.id),
+            "order_status": new_status,
+            "stock_tracked": track_stock,
+            "amount": str(sum((line.unit_cost * quantity for line, quantity in received), Decimal("0"))),
+            "reference": order.number,
+        },
     )
     return receipt, True
 

@@ -13,6 +13,7 @@ from django.db import transaction
 from django.db.models import Sum
 from django.core.exceptions import ValidationError
 
+from django_resaas.saas.core.events import EventDispatcher
 from inventory import services as inventory_services
 
 from sales.models import Sale, Payment
@@ -134,6 +135,10 @@ def confirm_sale(*, sale, user):
     sale.updated_by = user
     sale.save(update_fields=["estado", "stock_tracked", "updated_by", "updated_at"])
 
+    # business event (e.g. accounting posts it when a rule exists) - sales
+    # never knows who listens
+    EventDispatcher.emit("sales.sale.confirmed", instance=sale, actor=user, context={"amount": str(sale.total)})
+
     return sale
 
 
@@ -160,6 +165,8 @@ def cancel_sale(*, sale, user):
     sale.estado = Sale.ESTADO_ANULADA
     sale.updated_by = user
     sale.save(update_fields=["estado", "updated_by", "updated_at"])
+
+    EventDispatcher.emit("sales.sale.cancelled", instance=sale, actor=user, context={"amount": str(sale.total)})
 
     return sale
 
@@ -189,6 +196,13 @@ def add_payment(*, sale, valor, forma_pagamento, user, referencia=None):
         branch_id=sale.branch_id,
         created_by=user,
         updated_by=user,
+    )
+
+    EventDispatcher.emit(
+        "sales.payment.received",
+        instance=payment,
+        actor=user,
+        context={"amount": str(valor), "sale_id": str(sale.id), "method": forma_pagamento},
     )
 
     total_pago = sale.pagamentos.aggregate(total=Sum("valor"))["total"] or Decimal("0")

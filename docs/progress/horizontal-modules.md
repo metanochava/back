@@ -9,8 +9,8 @@ framework fixes go to `django_resaas`.
 | 1 | `Document` scoped per Entity (django_resaas `0004_document_entity_scope`) | Done |
 | 1b | Media files: tokens bound to their path, `/media/` through Django + `X-Accel-Redirect` | Done in dev; production pending release |
 | 2 | Purchases - [docs/modules/purchases.md](../modules/purchases.md) | Done in dev |
-| 3 | Accounting (chart of accounts, journals, balanced entries, periods, reversal) | Next |
-| 4 | Sales without a hard dependency on Inventory; taxes | Planned |
+| 3 | Accounting - [docs/modules/accounting.md](../modules/accounting.md) | Done in dev |
+| 4 | Sales without a hard dependency on Inventory; taxes | Next |
 | 5 | CRM (leads, opportunities, stages, activities) | Planned |
 | 6 | Workflow (definitions, steps, approvals; registered actions only) | Planned |
 | 7 | Catalogue/Inventory: variants, price lists, services, lots, expiry, reservations | Planned |
@@ -22,6 +22,9 @@ framework fixes go to `django_resaas`.
   only when installed and active (purchases → inventory).
 - Cross-module references are loose UUIDs validated inside the Entity, never
   foreign keys between modules.
+- Integration between modules goes through `EventDispatcher` events carrying
+  `context.amount`; sales now emits `sales.sale.confirmed`, `sales.sale.cancelled`
+  and `sales.payment.received`.
 
 ## Known issues
 
