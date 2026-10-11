@@ -18,6 +18,7 @@ from rest_framework import status
 
 from django_resaas.saas.core.exceptions import ResaasAPIException
 from django_resaas.saas.core.services.group_access_service import held_codenames
+from django_resaas.saas.core.utils.full_path import FullPath
 from saude.models.agenda import Agenda
 from saude.models.dadovital import DadoVital
 from saude.models.paciente import Paciente
@@ -92,7 +93,7 @@ def resolve_agenda(request, agenda_id):
 require_employee = require_professional
 
 
-def _person(person):
+def _person(person, request):
     if person is None:
         return None
     return {
@@ -100,7 +101,7 @@ def _person(person):
         "full_name": person.full_name,
         "age": person.age,
         "gender": person.gender,
-        "photo": person.photo.url if person.photo else None,
+        "photo": FullPath.url(request, person.photo.url) if person.photo else None,
     }
 
 
@@ -165,12 +166,12 @@ def intake_context(request, agenda_id, paciente_id=None):
         "patient": {
             "id": str(patient.id),
             "nid": patient.nid,
-            "person": _person(patient.person),
+            "person": _person(patient.person, request),
         },
-        "doctor": _person(agenda.medico.person) if agenda and agenda.medico_id else None,
+        "doctor": _person(agenda.medico.person, request) if agenda and agenda.medico_id else None,
         "professional": {
             "id": str(employee.id),
-            "person": _person(employee.person),
+            "person": _person(employee.person, request),
             "position": str(employee.position) if getattr(employee, "position_id", None) else None,
         },
         "tipo": "consulta" if agenda and agenda.consulta_id else "triagem",

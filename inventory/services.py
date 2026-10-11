@@ -9,6 +9,8 @@ Interface pública usada por outros módulos (ex.: sales, farmacia):
     - commit_sale_movements(sale, user)
     - revert_sale_movements(sale, user)
     - commit_dispensation_movements(dispensation, user)
+    - commit_purchase_receipt_movements(...)  (purchases)
+    - get_warehouse_snapshot(warehouse_id, entity_id)
     - revert_dispensation_movements(dispensation, user)
     - finalize_inventory_count(inventory_count, user)
 
@@ -284,16 +286,23 @@ def transfer_stock(
 # 📖 LEITURA PÚBLICA (para outros módulos, ex.: sales)
 # =========================================================
 
-def get_product_snapshot(product_id):
+def get_product_snapshot(product_id, entity_id=None):
     """
     Leitura pública para outros módulos tirarem um snapshot pontual
     de um produto (ex.: sales guarda nome/código no momento da venda)
     sem importar inventory.models.Product diretamente.
+
+    entity_id, when given, limits the lookup to that Entity's products
+    (None = any Entity, the historical behaviour kept for sales).
     """
 
+    products = Product.objects.all()
+    if entity_id is not None:
+        products = products.filter(entity_id=entity_id)
+
     try:
-        product = Product.objects.get(id=product_id)
-    except Product.DoesNotExist:
+        product = products.get(id=product_id)
+    except (Product.DoesNotExist, ValueError, ValidationError):
         return None
 
     return {
@@ -310,6 +319,21 @@ def get_warehouse_name(warehouse_id):
 
     warehouse = Warehouse.objects.filter(id=warehouse_id).first()
     return warehouse.nome if warehouse else None
+
+
+def get_warehouse_snapshot(warehouse_id, entity_id):
+    """{"id", "nome"} of an Entity's warehouse, or None (unknown id or
+    another Entity's warehouse)."""
+
+    if not warehouse_id:
+        return None
+
+    try:
+        warehouse = Warehouse.objects.filter(id=warehouse_id, entity_id=entity_id).first()
+    except (ValueError, ValidationError):
+        return None
+
+    return {"id": warehouse.id, "nome": warehouse.nome} if warehouse else None
 
 
 # =========================================================
@@ -462,6 +486,52 @@ def revert_dispensation_movements(*, dispensation_id, warehouse_id, items, entit
         movimentos.append(movement)
 
     return movimentos
+
+
+# =========================================================
+# 📥 INTEGRATION WITH PURCHASES
+# =========================================================
+
+@transaction.atomic
+def commit_purchase_receipt_movements(*, receipt_id, warehouse_id, items, entity_id, branch_id, user):
+    """
+    Inbound movements of a posted goods receipt (purchases). Same shape as
+    commit_sale_movements, with the purchase cost on each movement.
+
+    items: iterable of dicts {"product_id", "quantity", "unit_cost"}.
+    Warehouse and products are looked up inside entity_id only - an id of
+    another Entity is refused, never moved. All or nothing.
+
+    'purchases' calls this - it never creates StockMovement itself.
+    """
+
+    warehouse = Warehouse.objects.filter(id=warehouse_id, entity_id=entity_id).first()
+    if warehouse is None:
+        raise ValidationError("Warehouse not found.")
+
+    movements = []
+
+    for item in items:
+        product = Product.objects.filter(id=item["product_id"], entity_id=entity_id).first()
+        if product is None:
+            raise ValidationError("Product not found.")
+
+        movement, _ = apply_movement(
+            product=product,
+            warehouse=warehouse,
+            tipo=StockMovement.TIPO_ENTRADA,
+            quantidade=Decimal(item["quantity"]),
+            custo_unitario=item.get("unit_cost"),
+            documento_origem_tipo="purchase_receipt",
+            documento_origem_id=receipt_id,
+            entity_id=entity_id,
+            branch_id=branch_id,
+            user=user,
+        )
+
+        movements.append(movement)
+
+    return movements
 
 
 # =========================================================

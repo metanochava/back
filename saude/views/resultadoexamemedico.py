@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from django_resaas.saas.core.decorators.action import resaas_action
 from django_resaas.saas.core.base.permissions import isPermited
+from django_resaas.saas.core.utils.full_path import FullPath
 from django_resaas.saas.core.exceptions import ResaasAPIException
 from rest_framework import status
 from saude.services import exam_request_service, lab_result_service
@@ -797,7 +798,7 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
 
                 "nome": resultado.nome,
 
-                "url": resultado.file.url,
+                "url": FullPath.url(request, resultado.file.url),
 
                 "mime_type": resultado.mime_type,
 
@@ -858,7 +859,7 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
 
             data={
 
-                "url": resultado.file.url,
+                "url": FullPath.url(request, resultado.file.url),
 
                 "mime_type": resultado.mime_type,
 
