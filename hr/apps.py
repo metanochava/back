@@ -76,9 +76,12 @@ def create_hr_groups(sender, **kwargs):
         return
 
     from django_resaas.saas.core.utils.group_creator import group_creator
+    from django_resaas.saas.profiles import CORE_RENAMES
     from hr.profiles import HR_PROFILES
 
-    group_creator(HR_PROFILES)
+    # adds to the core profiles too: rename "Branch Administrator" first if
+    # this receiver runs before django_resaas's
+    group_creator(HR_PROFILES, rename_from=CORE_RENAMES)
 
 
 class HrConfig(AppConfig):

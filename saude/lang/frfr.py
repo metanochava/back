@@ -2105,4 +2105,11 @@ key_value = {
     "This exam is cancelled.": "Cet examen est annulé.",
     "An exam cannot be moved to another request.": "Un examen ne peut pas être déplacé vers une autre demande.",
     "The exam cannot be changed after collection or a result.": "L'examen ne peut pas être modifié après le prélèvement ou un résultat.",
+    "Documentation of RESAAS, the multi-tenant platform behind our systems: a guide, the backend and frontend reference, search and code examples.": "Documentation de RESAAS, la plateforme multi-locataire derrière nos systèmes : un guide, la référence du backend et du frontend, une recherche et des exemples de code.",
+    "Platform": "Plateforme",
+    "Multi-tenant": "Multi-locataire",
+    "Back to top": "Retour en haut",
+    "Health system": "Système de santé",
+    "The health system Clínica Amal works with: patient records, appointments, a laboratory with structured results and their evolution, pharmacy and sales.": "Le système de santé avec lequel travaille la Clínica Amal : dossier patient, rendez-vous, laboratoire avec résultats structurés et leur évolution, pharmacie et ventes.",
+    "Patient records": "Dossier patient",
 }

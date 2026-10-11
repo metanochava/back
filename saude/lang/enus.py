@@ -1112,4 +1112,12 @@ key_value = {
     "This exam is cancelled.": "This exam is cancelled.",
     "An exam cannot be moved to another request.": "An exam cannot be moved to another request.",
     "The exam cannot be changed after collection or a result.": "The exam cannot be changed after collection or a result.",
+    "Documentation of RESAAS, the multi-tenant platform behind our systems: a guide, the backend and frontend reference, search and code examples.": "Documentation of RESAAS, the multi-tenant platform behind our systems: a guide, the backend and frontend reference, search and code examples.",
+    "Platform": "Platform",
+    "Multi-tenant": "Multi-tenant",
+    "Documentation": "Documentation",
+    "Back to top": "Back to top",
+    "Health system": "Health system",
+    "The health system Clínica Amal works with: patient records, appointments, a laboratory with structured results and their evolution, pharmacy and sales.": "The health system Clínica Amal works with: patient records, appointments, a laboratory with structured results and their evolution, pharmacy and sales.",
+    "Patient records": "Patient records",
 }
