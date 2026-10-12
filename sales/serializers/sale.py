@@ -27,5 +27,6 @@ class SaleSerializer(BaseSerializer):
             "stock_tracked",
             "subtotal",
             "desconto_total",
+            "tax_total",
             "total",
         ]

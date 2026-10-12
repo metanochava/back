@@ -33,6 +33,7 @@ from hr.models.employee_specialty import EmployeeSpecialty
 from django_resaas.saas.core.events import EventDispatcher
 from django_resaas.saas.core.exceptions import ConflictError, ResaasAPIException
 from django_resaas.saas.core.services.site_service import site_host
+from django_resaas.saas.core.utils.full_path import FullPath
 from saude.models.agenda import Agenda
 from saude.models.appointment_request import AppointmentRequest
 from saude.models.horariomedico import HorarioMedico
@@ -87,11 +88,11 @@ def _specialties(employee):
 
 
 def _photo_url(person, request):
-    """The doctor's own photo (Person.photo) as an absolute URL - the site is
-    served from another host - or None."""
+    """The doctor's own photo (Person.photo) as an absolute, signed URL (the
+    site is served from another host and media needs a token) - or None."""
     if not person.photo:
         return None
-    return request.build_absolute_uri(person.photo.url) if request else person.photo.url
+    return FullPath.url(request, person.photo.url, temporary=False)
 
 
 def public_doctors(entity, request=None):

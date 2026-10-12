@@ -3,6 +3,7 @@ from .customercontact import CustomerContactSerializer
 from .sale import SaleSerializer
 from .saleitem import SaleItemSerializer
 from .payment import PaymentSerializer
+from .tax import TaxSerializer
 
 __all__ = [
     "CustomerSerializer",
@@ -10,4 +11,5 @@ __all__ = [
     "SaleSerializer",
     "SaleItemSerializer",
     "PaymentSerializer",
+    "TaxSerializer",
 ]

@@ -47,7 +47,7 @@ def create_inventory_dashboard_permissions(sender, **kwargs):
     # ainda não tiverem sido sincronizadas nesta execução, ficam
     # concedidas na próxima).
     action_perms = Permission.objects.filter(
-        codename__in=["finalizar_inventorycount"]
+        codename__in=["finalizar_inventorycount", "expiring_batch", "release_stockreservation", "price_product"]
     )
     if action_perms.exists():
         root_group.permissions.add(*action_perms)

@@ -15,7 +15,9 @@ class SaleItem(BaseModel):
     # no momento da venda via inventory.services.get_product_snapshot(),
     # não uma FK: o histórico de vendas não pode mudar se o produto for
     # renomeado depois.
-    product_id = models.UUIDField()
+    # optional: a sale line can be a service or an Entity without the
+    # inventory module - then product_nome is the description of the line
+    product_id = models.UUIDField(null=True, blank=True)
 
     product_nome = models.CharField(
         max_length=200,
@@ -45,6 +47,21 @@ class SaleItem(BaseModel):
         default=0
     )
 
+    tax = models.ForeignKey(
+        "sales.Tax",
+        on_delete=models.PROTECT,
+        related_name="sale_items",
+        null=True,
+        blank=True,
+    )
+
+    # copy of tax.rate when the line was written (history never changes)
+    tax_rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0
+    )
+
     class Meta:
         verbose_name = "Item de Venda"
         verbose_name_plural = "Itens de Venda"
@@ -70,6 +87,12 @@ class SaleItem(BaseModel):
     @property
     def subtotal(self):
         return (self.quantidade * self.preco_unitario) - self.desconto_valor
+
+    @property
+    def tax_amount(self):
+        from decimal import ROUND_HALF_UP, Decimal
+
+        return (self.subtotal * self.tax_rate / Decimal("100")).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     def __str__(self):
         return f"{self.product_nome} x{self.quantidade}"

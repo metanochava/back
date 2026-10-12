@@ -16,6 +16,15 @@ class InventoryCountLine(BaseModel):
         related_name="linhas_contagem"
     )
 
+    batch = models.ForeignKey(
+        "inventory.Batch",
+        on_delete=models.PROTECT,
+        related_name="+",
+        null=True,
+        blank=True,
+        verbose_name="Lot",
+    )
+
     quantidade_contada = models.DecimalField(
         max_digits=16,
         decimal_places=3

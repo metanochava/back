@@ -100,4 +100,25 @@ key_value = {
     "Revenue": "Recettes",
     "Average ticket": "Ticket moyen",
 
+    # taxes
+    'Tax': 'Taxe',
+    'Taxes': 'Taxes',
+    'Rate': 'Taux',
+    'Tax rate': 'Taux de taxe',
+    'Tax total': 'Total des taxes',
+    'Tax amount': 'Montant de la taxe',
+    'This tax is not active.': "Cette taxe n'est pas active.",
+    'Enter a percentage between 0 and 100.': 'Saisissez un pourcentage entre 0 et 100.',
+    'A tax used in sales cannot be deleted; make it inactive.': 'Une taxe utilisée dans des ventes ne peut pas être supprimée ; désactivez-la.',
+    'A line cannot be moved to another sale.': 'Une ligne ne peut pas être déplacée vers une autre vente.',
+
+    # stock reservations
+    'Reserve stock': 'Réserver le stock',
+    'Hold the stock of this draft sale until it is confirmed or cancelled': "Bloquer le stock de cette vente brouillon jusqu'à sa confirmation ou annulation",
+    'Only a draft sale can reserve stock.': 'Seule une vente brouillon peut réserver du stock.',
+    'Choose a warehouse (with the inventory module active) to reserve stock.': 'Choisissez un entrepôt (avec le module inventaire actif) pour réserver du stock.',
+    'Error reserving stock.': 'Erreur lors de la réservation du stock.',
+
+    # catalogue: services, variants, price lists
+    "Price of a product for this sale's customer": "Prix d'un produit pour le client de cette vente",
 }

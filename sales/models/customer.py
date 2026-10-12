@@ -68,6 +68,13 @@ class Customer(BaseModel):
         default=True
     )
 
+    # loose reference to inventory.PriceList: the prices this customer gets
+    price_list_id = models.UUIDField(
+        "Price list",
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         verbose_name = "Cliente"
         verbose_name_plural = "Clientes"

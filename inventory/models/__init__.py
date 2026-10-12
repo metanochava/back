@@ -7,6 +7,9 @@ from .stockitem import StockItem
 from .stockmovement import StockMovement
 from .inventorycount import InventoryCount
 from .inventorycountline import InventoryCountLine
+from .batch import Batch, BatchStock
+from .reservation import StockReservation
+from .pricelist import PriceList, PriceListItem
 
 __all__ = [
     "Warehouse",
@@ -18,4 +21,9 @@ __all__ = [
     "StockMovement",
     "InventoryCount",
     "InventoryCountLine",
+    "Batch",
+    "BatchStock",
+    "StockReservation",
+    "PriceList",
+    "PriceListItem",
 ]

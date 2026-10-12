@@ -37,7 +37,7 @@ def create_sales_dashboard_permissions(sender, **kwargs):
     root_group.permissions.add(*created)
 
     action_perms = Permission.objects.filter(
-        codename__in=["confirmar_sale", "anular_sale", "pagar_sale", "disponibilidade_sale"]
+        codename__in=["confirmar_sale", "anular_sale", "pagar_sale", "disponibilidade_sale", "reservar_sale", "preco_sale"]
     )
     if action_perms.exists():
         root_group.permissions.add(*action_perms)

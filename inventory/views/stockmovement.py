@@ -39,6 +39,7 @@ class StockMovementAPIView(BaseAPIView):
                 custo_unitario=data.get("custo_unitario"),
                 documento_origem_tipo=data.get("documento_origem_tipo"),
                 documento_origem_id=data.get("documento_origem_id"),
+                batch=data.get("batch"),
                 entity_id=request.entity_id,
                 branch_id=request.branch_id,
                 user=request.user,
