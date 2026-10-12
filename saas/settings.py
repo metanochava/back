@@ -254,3 +254,5 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+# Google reviews on public sites (site/reviews/): Places API key, server side only
+RESAAS_GOOGLE_PLACES_API_KEY = os.environ.get("GOOGLE_PLACES_API_KEY")
