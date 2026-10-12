@@ -15,6 +15,21 @@ class InventorySetting(BaseModel):
         help_text="Permite que StockItem.quantidade fique negativo"
     )
 
+    ALLOCATION_FEFO = "fefo"
+    ALLOCATION_FIFO = "fifo"
+
+    ALLOCATION_CHOICES = (
+        (ALLOCATION_FEFO, "First expired, first out"),
+        (ALLOCATION_FIFO, "First in, first out"),
+    )
+
+    # which lots an outbound movement takes when none is named
+    allocation_strategy = models.CharField(
+        max_length=10,
+        choices=ALLOCATION_CHOICES,
+        default=ALLOCATION_FEFO,
+    )
+
     class Meta:
         verbose_name = "Configuração de Inventário"
         verbose_name_plural = "Configurações de Inventário"

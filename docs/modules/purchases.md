@@ -119,6 +119,9 @@ messages translated with the request language.
   `commit_purchase_receipt_movements` looks both up inside the Entity again.
 - Approving and receiving are separate permissions from buying, so a profile can
   order without approving, or receive without ordering.
+- Approval can be driven by a [workflow](workflow.md) (`purchases.approve_order`
+  registered action); while one is pending, `approve` answers
+  `409 approval_workflow_pending`.
 
 ## Profiles (`purchases/profiles.py`)
 

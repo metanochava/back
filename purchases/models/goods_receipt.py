@@ -68,6 +68,10 @@ class GoodsReceiptLine(BaseModel):
     quantity = models.DecimalField(max_digits=16, decimal_places=3)
     unit_cost = models.DecimalField(max_digits=14, decimal_places=2)
 
+    # lot received (products with lot tracking in inventory)
+    lot_number = models.CharField(max_length=100, null=True, blank=True)
+    expiry_date = models.DateField(null=True, blank=True)
+
     class Meta:
         verbose_name = "Goods receipt line"
         verbose_name_plural = "Goods receipt lines"

@@ -43,4 +43,14 @@ class CustomerSerializer(BaseSerializer):
                 "customer_type deve ser 'individual' ou 'company'."
             )
 
+        # price_list_id must be one of the Entity's price lists (inventory)
+        price_list_id = attrs.get("price_list_id")
+        request = self.context.get("request")
+        if price_list_id and request is not None and getattr(request, "entity_id", None):
+            from sales import services
+
+            inventory_services = services.inventory()
+            if not inventory_services or not inventory_services.get_price_list_snapshot(price_list_id, request.entity_id):
+                raise serializers.ValidationError({"price_list_id": ["Does not belong to the current entity."]})
+
         return attrs

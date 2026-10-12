@@ -24,6 +24,18 @@ ALL = [{
         "route": "list_productcategory",
     },
     {
+        "icon": "sell",
+        "menu": "Price lists",
+        "role": "list_pricelist",
+        "route": "list_pricelist",
+    },
+    {
+        "icon": "price_change",
+        "menu": "Prices",
+        "role": "list_pricelistitem",
+        "route": "list_pricelistitem",
+    },
+    {
         "icon": "warehouse",
         "menu": "Warehouses",
         "role": "list_warehouse",
@@ -42,6 +54,24 @@ ALL = [{
         "menu": "Stock Movements",
         "role": "list_stockmovement",
         "route": "list_stockmovement",
+    },
+    {
+        "icon": "lock",
+        "menu": "Stock reservations",
+        "role": "list_stockreservation",
+        "route": "list_stockreservation",
+    },
+    {
+        "icon": "qr_code_2",
+        "menu": "Lots",
+        "role": "list_batch",
+        "route": "list_batch",
+    },
+    {
+        "icon": "event_busy",
+        "menu": "Expiring lots",
+        "role": "expiring_batch",
+        "route": "view_expiring_batches",
     },
     {
         "icon": "fact_check",

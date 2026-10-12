@@ -25,6 +25,12 @@ ALL = [{
         "role": "list_payment",
         "route": "list_payment",
     },
+    {
+        "icon": "percent",
+        "menu": "Taxes",
+        "role": "list_tax",
+        "route": "list_tax",
+    },
 
     # 👤 CUSTOMERS
     {

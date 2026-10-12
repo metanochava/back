@@ -20,3 +20,18 @@ class PurchasesConfig(AppConfig):
 
         for _, module_name, _ in pkgutil.iter_modules(purchases.views.__path__):
             importlib.import_module(f"purchases.views.{module_name}")
+
+        # approval of an order can be driven by a workflow (optional module)
+        from django.apps import apps
+
+        if apps.is_installed("workflow"):
+            from purchases import services
+            from workflow.registry import register_action
+
+            register_action(
+                "purchases.approve_order",
+                label="Approve the purchase order",
+                model="purchases.PurchaseOrder",
+                on_approved=lambda order, user: services.approve_order(order=order, user=user),
+                on_rejected=lambda order, user: services.return_to_draft(order=order, user=user),
+            )

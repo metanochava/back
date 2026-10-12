@@ -201,6 +201,22 @@ def return_to_draft(*, order, user):
     return order
 
 
+def assert_no_pending_workflow(order):
+    """With an approval workflow running for the order, it is approved by
+    that workflow's decisions, not by the direct approve action."""
+    if not apps.is_installed("workflow"):
+        return
+    from workflow.models import WorkflowInstance
+
+    if WorkflowInstance.objects.filter(
+        entity_id=order.entity_id, target_model__iexact="purchases.PurchaseOrder",
+        object_id=str(order.pk), status=WorkflowInstance.STATUS_PENDING,
+    ).exists():
+        raise ConflictError(
+            "This purchase order is waiting for its approval workflow.", code="approval_workflow_pending"
+        )
+
+
 @transaction.atomic
 def approve_order(*, order, user):
     order = _lock(order)
@@ -252,6 +268,20 @@ def _quantity(value, field):
             details={field: ["The quantity must be greater than zero."]},
         )
     return quantity
+
+
+def _date(value, field):
+    if value in (None, ""):
+        return None
+    from django.utils.dateparse import parse_date
+
+    try:
+        parsed = parse_date(str(value))
+    except ValueError:
+        parsed = None
+    if parsed is None:
+        raise _invalid("Enter a valid date.", code="invalid_date", details={field: ["Enter a valid date."]})
+    return parsed
 
 
 def _idempotency_key(value):
@@ -316,7 +346,11 @@ def receive_order(*, order, user, lines, warehouse_id=None, notes=None, idempote
                 code="over_receipt",
                 details={"line": line_id, "outstanding": str(line.outstanding_quantity)},
             )
-        received.append((line, quantity))
+        lot = {
+            "lot_number": (entry.get("lot_number") or "").strip() or None,
+            "expiry_date": _date(entry.get("expiry_date"), f"lines.{index}.expiry_date"),
+        }
+        received.append((line, quantity, lot))
 
     warehouse_id = warehouse_id or order.warehouse_id
     validate_warehouse(warehouse_id, order.entity_id)
@@ -340,12 +374,14 @@ def receive_order(*, order, user, lines, warehouse_id=None, notes=None, idempote
         # the same key was used by a concurrent request that won the race
         return GoodsReceipt.objects.get(entity_id=order.entity_id, idempotency_key=key), False
 
-    for line, quantity in received:
+    for line, quantity, lot in received:
         GoodsReceiptLine.objects.create(
             receipt=receipt,
             order_line=line,
             quantity=quantity,
             unit_cost=line.unit_cost,
+            lot_number=lot["lot_number"],
+            expiry_date=lot["expiry_date"],
             state="Active",
             entity_id=order.entity_id,
             branch_id=order.branch_id,
@@ -358,8 +394,8 @@ def receive_order(*, order, user, lines, warehouse_id=None, notes=None, idempote
 
     if track_stock:
         stock_items = [
-            {"product_id": line.product_id, "quantity": quantity, "unit_cost": line.unit_cost}
-            for line, quantity in received
+            {"product_id": line.product_id, "quantity": quantity, "unit_cost": line.unit_cost, **lot}
+            for line, quantity, lot in received
             if line.product_id
         ]
         if stock_items:
@@ -393,7 +429,7 @@ def receive_order(*, order, user, lines, warehouse_id=None, notes=None, idempote
             "order_id": str(order.id),
             "order_status": new_status,
             "stock_tracked": track_stock,
-            "amount": str(sum((line.unit_cost * quantity for line, quantity in received), Decimal("0"))),
+            "amount": str(sum((line.unit_cost * quantity for line, quantity, _lot in received), Decimal("0"))),
             "reference": order.number,
         },
     )

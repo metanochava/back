@@ -70,6 +70,12 @@ class Sale(BaseModel):
         default=0
     )
 
+    tax_total = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=0
+    )
+
     total = models.DecimalField(
         max_digits=14,
         decimal_places=2,

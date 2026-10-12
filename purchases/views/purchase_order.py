@@ -63,6 +63,7 @@ class PurchaseOrderAPIView(BaseAPIView):
     )
     def approve(self, request, pk=None):
         order = self.get_object()
+        services.assert_no_pending_workflow(order)
         services.approve_order(order=order, user=request.user)
         return self._answer(order)
 

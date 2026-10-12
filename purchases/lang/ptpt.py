@@ -78,4 +78,5 @@ key_value = {
     'This action is not allowed in the current status of the purchase order.': 'Esta acção não é permitida no estado actual da encomenda.',
     'This line does not belong to the purchase order.': 'Esta linha não pertence à encomenda.',
     'A line cannot be moved to another purchase order.': 'Uma linha não pode passar para outra encomenda.',
+    'This purchase order is waiting for its approval workflow.': 'Esta encomenda está à espera do seu fluxo de aprovação.',
 }

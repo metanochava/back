@@ -27,6 +27,8 @@ SALES_PROFILES = [
             "view_customer", "add_customer", "change_customer", "list_customer",
             "view_payment", "add_payment", "list_payment",
             "view_dashboard_sales",
+            "view_tax", "list_tax", "add_tax", "change_tax", "delete_tax",
+            "reservar_sale", "preco_sale",
         ],
     },
     {
@@ -35,11 +37,13 @@ SALES_PROFILES = [
             "view_sale", "add_sale", "change_sale", "list_sale",
             "view_saleitem", "add_saleitem",
             "view_customer", "add_customer", "list_customer",
+            "view_tax", "list_tax",
+            "reservar_sale", "preco_sale",
         ],
     },
     {
         "name": "Cashier",
-        "permissions": ["view_sale", "add_sale", "view_payment", "add_payment"],
+        "permissions": ["view_sale", "add_sale", "view_payment", "add_payment", "view_tax", "list_tax"],
     },
     {
         "name": "Customer Service Representative",
@@ -49,7 +53,7 @@ SALES_PROFILES = [
         ],
     },
     {"name": "Finance Manager", "permissions": ["view_sale", "view_payment", "view_dashboard_sales"]},
-    {"name": "Accountant", "permissions": ["view_sale", "view_payment", "view_dashboard_sales"]},
+    {"name": "Accountant", "permissions": ["view_sale", "view_payment", "view_dashboard_sales", "view_tax", "list_tax"]},
     {"name": "Treasurer", "permissions": ["view_payment", "add_payment"]},
     {
         "name": "Auditor",

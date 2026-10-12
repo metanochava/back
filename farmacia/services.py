@@ -179,21 +179,27 @@ def dispense(fila, *, itens, warehouse_id=None, employee, user):
             itens_a_mover.append(item_dispensa)
 
     if itens_a_mover and inventory_services.inventory_module_active(fila.entity_id):
-        movimentos = inventory_services.commit_dispensation_movements(
-            dispensation_id=dispensa.id,
-            warehouse_id=warehouse_id,
-            items=[
-                {"product_id": item.produto_id, "quantidade": item.quantidade}
-                for item in itens_a_mover
-            ],
-            entity_id=fila.entity_id,
-            branch_id=fila.branch_id,
-            user=user,
-        )
+        # one call per item: a product with lots can leave from several lots
+        # (FEFO), i.e. several movements for one dispensed item
+        for item in itens_a_mover:
+            movimentos = inventory_services.commit_dispensation_movements(
+                dispensation_id=dispensa.id,
+                warehouse_id=warehouse_id,
+                items=[{"product_id": item.produto_id, "quantidade": item.quantidade, "lote": item.lote}],
+                entity_id=fila.entity_id,
+                branch_id=fila.branch_id,
+                user=user,
+            )
 
-        for item, movimento in zip(itens_a_mover, movimentos):
-            item.stock_movement_id = movimento.id
-            item.save(update_fields=["stock_movement_id"])
+            if not movimentos:
+                continue  # a service: no stock moved
+            item.stock_movement_id = movimentos[0].id
+            fields = ["stock_movement_id"]
+            lotes = [m.batch.lot_number for m in movimentos if m.batch_id]
+            if lotes and not item.lote:
+                item.lote = ", ".join(lotes)[:100]
+                fields.append("lote")
+            item.save(update_fields=fields)
 
     fila.estado = FilaFarmacia.ESTADO_DISPENSADA_PARCIAL
     fila.save(update_fields=["estado", "updated_at"])

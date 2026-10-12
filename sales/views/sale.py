@@ -1,3 +1,5 @@
+from decimal import Decimal, InvalidOperation
+
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
@@ -17,10 +19,28 @@ def _as_drf_validation_error(exc):
     )
 
 
+def _validate_warehouse(request, validated):
+    """warehouse_id must be one of the Entity's warehouses (needs inventory)."""
+    warehouse_id = validated.get("warehouse_id")
+    if not warehouse_id:
+        return
+    inventory_services = services.inventory()
+    if not inventory_services or not inventory_services.get_warehouse_snapshot(warehouse_id, request.entity_id):
+        raise DRFValidationError({"warehouse_id": ["Does not belong to the current entity."]})
+
+
 @registerView("sales")
 class SaleAPIView(BaseAPIView):
     queryset = Sale.objects.all()
     serializer_class = SaleSerializer
+
+    def perform_create(self, serializer):
+        _validate_warehouse(self.request, serializer.validated_data)
+        super().perform_create(serializer)
+
+    def perform_update(self, serializer):
+        _validate_warehouse(self.request, serializer.validated_data)
+        super().perform_update(serializer)
 
     @resaas_action(
         methods=["get"],
@@ -36,6 +56,50 @@ class SaleAPIView(BaseAPIView):
         return all(
             request,
             data=services.check_stock_availability(sale)
+        )
+
+    @resaas_action(
+        methods=["get"],
+        detail=True,
+        label="Price",
+        icon="sell",
+        tooltip="Price of a product for this sale's customer",
+        position="l",
+        order=12,
+    )
+    def preco(self, request, pk=None):
+        """GET ?product=<id>&quantidade=<n> -> {"price", "price_list"}."""
+        sale = self.get_object()
+        try:
+            quantity = Decimal(request.query_params.get("quantidade") or "1")
+        except InvalidOperation:
+            raise DRFValidationError({"quantidade": ["Enter a valid quantity."]})
+        price = services.price_for(sale, request.query_params.get("product"), quantity)
+        if price is None:
+            raise DRFValidationError({"product": ["Does not belong to the current entity."]})
+        return all(request, data=price)
+
+    @resaas_action(
+        methods=["post"],
+        detail=True,
+        label="Reserve stock",
+        icon="lock",
+        tooltip="Hold the stock of this draft sale until it is confirmed or cancelled",
+        position="t",
+        order=15,
+        visible=True,
+    )
+    def reservar(self, request, pk=None):
+        sale = self.get_object()
+
+        try:
+            reservations = services.reserve_sale_stock(sale=sale, user=request.user)
+        except DjangoValidationError as exc:
+            raise _as_drf_validation_error(exc)
+
+        return all(
+            request,
+            data={"reserved": [{"product_id": str(r.product_id), "quantity": r.quantity} for r in reservations]},
         )
 
     @resaas_action(

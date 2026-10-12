@@ -45,6 +45,41 @@ class Product(BaseModel):
         default=True
     )
 
+    TYPE_GOODS = "goods"
+    TYPE_SERVICE = "service"
+
+    TYPE_CHOICES = (
+        (TYPE_GOODS, "Goods"),
+        (TYPE_SERVICE, "Service"),
+    )
+
+    # a service is sold/bought like a product but never has stock
+    product_type = models.CharField(max_length=10, choices=TYPE_CHOICES, default=TYPE_GOODS)
+
+    # variants: a product (e.g. "T-shirt") with variants ("T-shirt M blue")
+    # is a template - stock, code and price live on each variant
+    variant_of = models.ForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="variants",
+        verbose_name="Variant of",
+    )
+    variant_attributes = models.JSONField(
+        null=True,
+        blank=True,
+        help_text='What distinguishes the variant, e.g. {"Size": "M", "Colour": "Blue"}',
+    )
+
+    # stock of this product is kept per lot (Batch / BatchStock); every
+    # movement names a lot or is allocated FEFO/FIFO by inventory.services
+    track_batches = models.BooleanField(
+        "Track lots",
+        default=False,
+        help_text="Stock is kept per lot, with expiry date"
+    )
+
     imagem = models.ImageField(
         upload_to=upload_path("produtos"),
         max_length=500,

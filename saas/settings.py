@@ -50,6 +50,8 @@ MY_APPS = [
     'farmacia',
     'purchases',
     'accounting',
+    'crm',
+    'workflow',
 ]
 
 

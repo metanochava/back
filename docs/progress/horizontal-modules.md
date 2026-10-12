@@ -10,10 +10,12 @@ framework fixes go to `django_resaas`.
 | 1b | Media files: tokens bound to their path, `/media/` through Django + `X-Accel-Redirect` | Done in dev; production pending release |
 | 2 | Purchases - [docs/modules/purchases.md](../modules/purchases.md) | Done in dev |
 | 3 | Accounting - [docs/modules/accounting.md](../modules/accounting.md) | Done in dev |
-| 4 | Sales without a hard dependency on Inventory; taxes | Next |
-| 5 | CRM (leads, opportunities, stages, activities) | Planned |
-| 6 | Workflow (definitions, steps, approvals; registered actions only) | Planned |
-| 7 | Catalogue/Inventory: variants, price lists, services, lots, expiry, reservations | Planned |
+| 4 | Sales without a hard dependency on Inventory; taxes - [docs/modules/sales.md](../modules/sales.md) | Done in dev |
+| 5 | CRM - [docs/modules/crm.md](../modules/crm.md) | Done in dev |
+| 6 | Workflow (approvals) - [docs/modules/workflow.md](../modules/workflow.md) | Done in dev |
+| 7a | Lots and expiry (FEFO/FIFO) - [docs/modules/inventory.md](../modules/inventory.md) | Done in dev |
+| 7b | Stock reservations - [docs/modules/inventory.md](../modules/inventory.md#stock-reservations) | Done in dev |
+| 7c | Services, variants, price lists - [docs/modules/inventory.md](../modules/inventory.md#catalogue-services-variants-price-lists) | Done in dev |
 
 ## Decisions
 
@@ -28,9 +30,11 @@ framework fixes go to `django_resaas`.
 
 ## Known issues
 
-- `inventory.services.commit_sale_movements` / `commit_dispensation_movements`
-  look warehouses and products up without the Entity (sales/farmacia pass ids
-  from their own records); to be scoped in phase 4.
+- The point of sale (POS) starts lines from the product's base price, not the
+  customer's price list.
+
+- Automatic accounting entries post the sale total to one credit account; a
+  separate tax account (split entry) is not supported yet.
 - `ThemeSurface.background_image` and the bootstrap e-mail logo return an
   unsigned media URL (no request to sign with); they answer `401` once `/media/`
   goes through Django. No data uses them today.

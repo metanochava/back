@@ -20,6 +20,11 @@ INVENTORY_PROFILES = [
             "view_inventorycount", "add_inventorycount", "change_inventorycount",
             "view_inventorycountline", "add_inventorycountline",
             "view_dashboard_inventory", "view_consolidated_dashboard_inventory",
+            "view_stockreservation", "list_stockreservation", "add_stockreservation", "release_stockreservation",
+            "view_pricelist", "list_pricelist", "add_pricelist", "change_pricelist", "delete_pricelist",
+            "view_pricelistitem", "list_pricelistitem", "add_pricelistitem", "change_pricelistitem",
+            "delete_pricelistitem", "price_product",
+            "add_batch", "change_batch", "view_batch", "list_batch", "view_batchstock", "list_batchstock", "expiring_batch",
         ],
     },
     {
@@ -30,6 +35,7 @@ INVENTORY_PROFILES = [
             "view_inventorycount", "add_inventorycount", "change_inventorycount",
             "view_inventorycountline", "add_inventorycountline",
             "view_dashboard_inventory",
+            "view_batch", "list_batch", "view_batchstock", "list_batchstock", "expiring_batch",
         ],
     },
     {
@@ -40,6 +46,8 @@ INVENTORY_PROFILES = [
             "view_stockmovement", "add_stockmovement", "list_stockmovement",
             "view_warehouse", "change_warehouse",
             "view_dashboard_inventory",
+            "view_stockreservation", "list_stockreservation", "add_stockreservation", "release_stockreservation",
+            "add_batch", "view_batch", "list_batch", "view_batchstock", "list_batchstock", "expiring_batch",
         ],
     },
     {
@@ -51,11 +59,12 @@ INVENTORY_PROFILES = [
     },
     {
         "name": "Storekeeper",
-        "permissions": ["view_product", "view_stockitem", "view_stockmovement", "add_stockmovement"],
+        "permissions": ["view_product", "view_stockitem", "view_stockmovement", "add_stockmovement",
+                        "view_batch", "list_batch", "add_batch", "view_batchstock", "list_batchstock"],
     },
     {
         "name": "Receiving Clerk",
-        "permissions": ["view_product", "view_warehouse", "add_stockmovement"],
+        "permissions": ["view_product", "view_warehouse", "add_stockmovement", "view_batch", "add_batch"],
     },
     {
         "name": "Stock Clerk",
