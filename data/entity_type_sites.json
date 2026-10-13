@@ -1,0 +1,880 @@
+{
+  "sites": {
+    "SaaS": {
+      "layout": "mosaic",
+      "hero": {
+        "eyebrow": "Business platform",
+        "title": "One platform for every kind of business",
+        "subtitle": "Choose your sector and get the modules it needs: people, stock, sales, accounting and much more, all in the same place.",
+        "icons": [
+          "apartment",
+          "groups",
+          "inventory_2",
+          "point_of_sale",
+          "account_balance",
+          "insights"
+        ],
+        "badges": [
+          "Multi-company",
+          "Secure",
+          "In four languages"
+        ]
+      },
+      "stats": [
+        {
+          "value": "4",
+          "label": "Languages"
+        },
+        {
+          "value": "100%",
+          "label": "Web, nothing to install"
+        },
+        {
+          "value": "24/7",
+          "label": "Access from any device"
+        },
+        {
+          "value": "∞",
+          "label": "Branches under one account"
+        }
+      ],
+      "features": {
+        "title": "Everything a growing business needs",
+        "subtitle": "Turn on only the modules you use; they all speak to each other.",
+        "items": [
+          {
+            "icon": "badge",
+            "title": "People",
+            "text": "Employees, contracts, attendance and payroll."
+          },
+          {
+            "icon": "inventory_2",
+            "title": "Stock",
+            "text": "Warehouses, batches, transfers and reservations."
+          },
+          {
+            "icon": "point_of_sale",
+            "title": "Sales",
+            "text": "Price lists, taxes, invoices and payments."
+          },
+          {
+            "icon": "shopping_cart",
+            "title": "Purchases",
+            "text": "Suppliers, orders and goods received."
+          },
+          {
+            "icon": "account_balance",
+            "title": "Accounting",
+            "text": "Double-entry ledger, periods and trial balance."
+          },
+          {
+            "icon": "handshake",
+            "title": "Customers",
+            "text": "Leads, opportunities and the activities around them."
+          }
+        ]
+      },
+      "steps": {
+        "title": "Up and running in three steps",
+        "items": [
+          {
+            "title": "Create your account",
+            "text": "Register your organisation and its first branch in a few minutes."
+          },
+          {
+            "title": "Invite your team",
+            "text": "Each person gets a profile with exactly the permissions their work needs."
+          },
+          {
+            "title": "Work from day one",
+            "text": "Records, documents and dashboards are ready as soon as you sign in."
+          }
+        ]
+      },
+      "show_sectors": true,
+      "faq": {
+        "title": "Frequently asked questions",
+        "items": [
+          {
+            "question": "Is our data separate from other organisations?",
+            "answer": "Yes. Every organisation only ever sees its own data, and every action is checked against the user's permissions."
+          },
+          {
+            "question": "Which languages are available?",
+            "answer": "Portuguese, English, Spanish and French. Each user chooses their own."
+          },
+          {
+            "question": "Can we manage several branches?",
+            "answer": "Yes. Branches share the organisation's account, and each team works in the branch it belongs to."
+          },
+          {
+            "question": "Do we need to install anything?",
+            "answer": "No. It runs in the browser, on computers, tablets and phones."
+          }
+        ]
+      },
+      "cta": {
+        "title": "Start organising your business today",
+        "text": "Create the account in minutes and add your team when you are ready."
+      }
+    },
+    "Saude": {
+      "layout": "orbit",
+      "hero": {
+        "eyebrow": "Health",
+        "title": "Care for your patients, not the paperwork",
+        "subtitle": "From the appointment to the invoice: clinical records, laboratory, pharmacy and billing for clinics and hospitals.",
+        "icons": [
+          "medical_services",
+          "monitor_heart",
+          "biotech",
+          "medication",
+          "event_available",
+          "bed"
+        ],
+        "badges": [
+          "Clinics",
+          "Hospitals",
+          "Laboratories"
+        ]
+      },
+      "stats": [
+        {
+          "value": "24/7",
+          "label": "Access from any device"
+        },
+        {
+          "value": "4",
+          "label": "Languages"
+        },
+        {
+          "value": "100%",
+          "label": "Web, nothing to install"
+        },
+        {
+          "value": "∞",
+          "label": "Branches under one account"
+        }
+      ],
+      "features": {
+        "title": "Everything your health unit needs",
+        "subtitle": "Each professional sees what their work needs, and the record follows the patient.",
+        "items": [
+          {
+            "icon": "folder_shared",
+            "title": "Clinical records",
+            "text": "Patient chart with visits, observations, diagnoses and allergies."
+          },
+          {
+            "icon": "event_available",
+            "title": "Appointments",
+            "text": "Doctor schedules, check-in and online booking from your site."
+          },
+          {
+            "icon": "monitor_heart",
+            "title": "Triage and vital signs",
+            "text": "Queues by priority and vital signs recorded at the bedside."
+          },
+          {
+            "icon": "biotech",
+            "title": "Laboratory",
+            "text": "From the request to the validated result, with full traceability."
+          },
+          {
+            "icon": "medication",
+            "title": "Pharmacy",
+            "text": "Prescriptions, dispensing and stock by batch and expiry date."
+          },
+          {
+            "icon": "receipt_long",
+            "title": "Billing",
+            "text": "Invoices, payments and receipts for consultations and exams."
+          }
+        ]
+      },
+      "steps": {
+        "title": "Up and running in three steps",
+        "items": [
+          {
+            "title": "Create your account",
+            "text": "Register your organisation and its first branch in a few minutes."
+          },
+          {
+            "title": "Invite your team",
+            "text": "Each person gets a profile with exactly the permissions their work needs."
+          },
+          {
+            "title": "Work from day one",
+            "text": "Records, documents and dashboards are ready as soon as you sign in."
+          }
+        ]
+      },
+      "faq": {
+        "title": "Frequently asked questions",
+        "items": [
+          {
+            "question": "Who can see a patient's record?",
+            "answer": "Only professionals whose profile allows it, and only inside your organisation."
+          },
+          {
+            "question": "Can patients book online?",
+            "answer": "Yes. Your public site shows the free times of each doctor, and the reception confirms the request."
+          },
+          {
+            "question": "Can we manage several branches?",
+            "answer": "Yes. Branches share the organisation's account, and each team works in the branch it belongs to."
+          },
+          {
+            "question": "Which languages are available?",
+            "answer": "Portuguese, English, Spanish and French. Each user chooses their own."
+          }
+        ]
+      },
+      "cta": {
+        "title": "Ready to modernise your health unit?",
+        "text": "Create the account and register your first patient today."
+      }
+    },
+    "Farmacia": {
+      "layout": "centered",
+      "hero": {
+        "eyebrow": "Pharmacy",
+        "title": "Your pharmacy, always in stock and in order",
+        "subtitle": "Counter sales, prescriptions, batches and expiry dates under control, so no medicine runs out or expires on the shelf.",
+        "icons": [
+          "local_pharmacy",
+          "medication",
+          "vaccines",
+          "qr_code_scanner",
+          "inventory",
+          "receipt"
+        ],
+        "badges": [
+          "Batches and expiry",
+          "Fast counter",
+          "Several shops"
+        ]
+      },
+      "stats": [
+        {
+          "value": "24/7",
+          "label": "Access from any device"
+        },
+        {
+          "value": "100%",
+          "label": "Web, nothing to install"
+        },
+        {
+          "value": "4",
+          "label": "Languages"
+        },
+        {
+          "value": "∞",
+          "label": "Branches under one account"
+        }
+      ],
+      "features": {
+        "title": "From the supplier to the patient",
+        "subtitle": "Every box is traced from the day it arrives to the day it is sold.",
+        "items": [
+          {
+            "icon": "point_of_sale",
+            "title": "Counter sales",
+            "text": "Quick search, prices with taxes and the receipt in seconds."
+          },
+          {
+            "icon": "event_busy",
+            "title": "Expiry control",
+            "text": "The oldest batch leaves first, and alerts warn before a batch expires."
+          },
+          {
+            "icon": "description",
+            "title": "Prescriptions",
+            "text": "Dispense what the doctor prescribed and keep the record."
+          },
+          {
+            "icon": "local_shipping",
+            "title": "Purchases",
+            "text": "Orders to suppliers and goods received by batch."
+          },
+          {
+            "icon": "sell",
+            "title": "Price lists",
+            "text": "Prices per customer or insurer, with quantity discounts."
+          },
+          {
+            "icon": "insights",
+            "title": "Dashboards",
+            "text": "Sales of the day, low stock and what expires next."
+          }
+        ]
+      },
+      "steps": {
+        "title": "Up and running in three steps",
+        "items": [
+          {
+            "title": "Create your account",
+            "text": "Register your organisation and its first branch in a few minutes."
+          },
+          {
+            "title": "Invite your team",
+            "text": "Each person gets a profile with exactly the permissions their work needs."
+          },
+          {
+            "title": "Work from day one",
+            "text": "Records, documents and dashboards are ready as soon as you sign in."
+          }
+        ]
+      },
+      "faq": {
+        "title": "Frequently asked questions",
+        "items": [
+          {
+            "question": "Does it handle batches and expiry dates?",
+            "answer": "Yes. Each entry is recorded by batch, and sales use the batch that expires first."
+          },
+          {
+            "question": "Can we run several shops?",
+            "answer": "Yes. Each shop is a branch with its own stock, and you can transfer between them."
+          },
+          {
+            "question": "Do we need to install anything?",
+            "answer": "No. It runs in the browser, on computers, tablets and phones."
+          },
+          {
+            "question": "Is our data separate from other organisations?",
+            "answer": "Yes. Every organisation only ever sees its own data, and every action is checked against the user's permissions."
+          }
+        ]
+      },
+      "cta": {
+        "title": "Put your pharmacy in order",
+        "text": "Create the account and register your stock in an afternoon."
+      }
+    },
+    "Seguradora": {
+      "layout": "split",
+      "hero": {
+        "eyebrow": "Insurance",
+        "title": "Insurance management with total clarity",
+        "subtitle": "Clients, policies, payments and approvals in one place, with every decision recorded.",
+        "icons": [
+          "verified_user",
+          "shield",
+          "request_quote",
+          "handshake",
+          "fact_check",
+          "account_balance"
+        ],
+        "badges": [
+          "Approvals",
+          "Audit trail",
+          "Accounting"
+        ]
+      },
+      "stats": [
+        {
+          "value": "24/7",
+          "label": "Access from any device"
+        },
+        {
+          "value": "4",
+          "label": "Languages"
+        },
+        {
+          "value": "100%",
+          "label": "Web, nothing to install"
+        },
+        {
+          "value": "∞",
+          "label": "Branches under one account"
+        }
+      ],
+      "features": {
+        "title": "Built for trust",
+        "subtitle": "Every step has an owner, a permission and a record.",
+        "items": [
+          {
+            "icon": "handshake",
+            "title": "Clients",
+            "text": "Leads, opportunities and the history of each client."
+          },
+          {
+            "icon": "fact_check",
+            "title": "Approvals",
+            "text": "Approval steps by amount, with who decided and when."
+          },
+          {
+            "icon": "request_quote",
+            "title": "Billing",
+            "text": "Invoices, payments and receipts for every policy."
+          },
+          {
+            "icon": "account_balance",
+            "title": "Accounting",
+            "text": "Entries posted automatically from sales and payments."
+          },
+          {
+            "icon": "badge",
+            "title": "People",
+            "text": "Employees, contracts, attendance and payroll."
+          },
+          {
+            "icon": "insights",
+            "title": "Dashboards",
+            "text": "The indicators of each team, according to its permissions."
+          }
+        ]
+      },
+      "steps": {
+        "title": "Up and running in three steps",
+        "items": [
+          {
+            "title": "Create your account",
+            "text": "Register your organisation and its first branch in a few minutes."
+          },
+          {
+            "title": "Invite your team",
+            "text": "Each person gets a profile with exactly the permissions their work needs."
+          },
+          {
+            "title": "Work from day one",
+            "text": "Records, documents and dashboards are ready as soon as you sign in."
+          }
+        ]
+      },
+      "faq": {
+        "title": "Frequently asked questions",
+        "items": [
+          {
+            "question": "Is every approval recorded?",
+            "answer": "Yes. Each decision keeps who took it, when and why, and nothing is silently overwritten."
+          },
+          {
+            "question": "Is our data separate from other organisations?",
+            "answer": "Yes. Every organisation only ever sees its own data, and every action is checked against the user's permissions."
+          },
+          {
+            "question": "Can we manage several branches?",
+            "answer": "Yes. Branches share the organisation's account, and each team works in the branch it belongs to."
+          },
+          {
+            "question": "Which languages are available?",
+            "answer": "Portuguese, English, Spanish and French. Each user chooses their own."
+          }
+        ]
+      },
+      "cta": {
+        "title": "Bring clarity to your insurance business",
+        "text": "Create the account and set up your first approval flow today."
+      }
+    }
+  },
+  "themes": {
+    "SaaS": {
+      "primary": "#6D28D9",
+      "secondary": "#2563EB",
+      "accent": "#EC4899",
+      "header": "#6D28D9",
+      "footer": "#6D28D9",
+      "text_link": "#6D28D9",
+      "sidebar_active": "#6D28D9",
+      "button_primary": "#6D28D9",
+      "button_secondary": "#2563EB",
+      "button_outline": "#6D28D9",
+      "input_focus": "#6D28D9"
+    },
+    "Saude": {
+      "primary": "#0E7C86",
+      "secondary": "#2563EB",
+      "accent": "#F97362",
+      "header": "#0E7C86",
+      "footer": "#0E7C86",
+      "text_link": "#0E7C86",
+      "sidebar_active": "#0E7C86",
+      "button_primary": "#0E7C86",
+      "button_secondary": "#2563EB",
+      "button_outline": "#0E7C86",
+      "input_focus": "#0E7C86"
+    },
+    "Farmacia": {
+      "primary": "#15803D",
+      "secondary": "#0D9488",
+      "accent": "#F59E0B",
+      "header": "#15803D",
+      "footer": "#15803D",
+      "text_link": "#15803D",
+      "sidebar_active": "#15803D",
+      "button_primary": "#15803D",
+      "button_secondary": "#0D9488",
+      "button_outline": "#15803D",
+      "input_focus": "#15803D"
+    },
+    "Seguradora": {
+      "primary": "#1E3A8A",
+      "secondary": "#312E81",
+      "accent": "#C99A2E",
+      "header": "#1E3A8A",
+      "footer": "#1E3A8A",
+      "text_link": "#1E3A8A",
+      "sidebar_active": "#1E3A8A",
+      "button_primary": "#1E3A8A",
+      "button_secondary": "#312E81",
+      "button_outline": "#1E3A8A",
+      "input_focus": "#1E3A8A"
+    }
+  },
+  "translations": {
+    "pt-pt": {
+      "Languages": "Línguas",
+      "Web, nothing to install": "Web, nada para instalar",
+      "Access from any device": "Acesso de qualquer dispositivo",
+      "Branches under one account": "Sucursais numa só conta",
+      "Up and running in three steps": "A funcionar em três passos",
+      "Create your account": "Crie a sua conta",
+      "Register your organisation and its first branch in a few minutes.": "Registe a sua organização e a primeira sucursal em poucos minutos.",
+      "Invite your team": "Convide a sua equipa",
+      "Each person gets a profile with exactly the permissions their work needs.": "Cada pessoa recebe um perfil com exactamente as permissões de que o seu trabalho precisa.",
+      "Work from day one": "Trabalhe desde o primeiro dia",
+      "Records, documents and dashboards are ready as soon as you sign in.": "Registos, documentos e painéis ficam prontos assim que entra.",
+      "Frequently asked questions": "Perguntas frequentes",
+      "Is our data separate from other organisations?": "Os nossos dados ficam separados dos de outras organizações?",
+      "Yes. Every organisation only ever sees its own data, and every action is checked against the user's permissions.": "Sim. Cada organização só vê os seus próprios dados, e cada acção é verificada contra as permissões do utilizador.",
+      "Which languages are available?": "Que línguas estão disponíveis?",
+      "Portuguese, English, Spanish and French. Each user chooses their own.": "Português, inglês, espanhol e francês. Cada utilizador escolhe a sua.",
+      "Can we manage several branches?": "Podemos gerir várias sucursais?",
+      "Yes. Branches share the organisation's account, and each team works in the branch it belongs to.": "Sim. As sucursais partilham a conta da organização, e cada equipa trabalha na sucursal a que pertence.",
+      "Do we need to install anything?": "Precisamos de instalar alguma coisa?",
+      "No. It runs in the browser, on computers, tablets and phones.": "Não. Funciona no navegador, em computadores, tablets e telemóveis.",
+      "Business platform": "Plataforma de gestão",
+      "One platform for every kind of business": "Uma plataforma para todo o tipo de negócio",
+      "Choose your sector and get the modules it needs: people, stock, sales, accounting and much more, all in the same place.": "Escolha o seu sector e receba os módulos de que precisa: pessoas, stock, vendas, contabilidade e muito mais, tudo no mesmo lugar.",
+      "Multi-company": "Multi-empresa",
+      "Secure": "Seguro",
+      "In four languages": "Em quatro línguas",
+      "Everything a growing business needs": "Tudo o que um negócio em crescimento precisa",
+      "Turn on only the modules you use; they all speak to each other.": "Active só os módulos que usa; todos falam entre si.",
+      "People": "Pessoas",
+      "Employees, contracts, attendance and payroll.": "Funcionários, contratos, assiduidade e salários.",
+      "Stock": "Stock",
+      "Warehouses, batches, transfers and reservations.": "Armazéns, lotes, transferências e reservas.",
+      "Sales": "Vendas",
+      "Price lists, taxes, invoices and payments.": "Tabelas de preços, impostos, facturas e pagamentos.",
+      "Purchases": "Compras",
+      "Suppliers, orders and goods received.": "Fornecedores, encomendas e recepção de mercadoria.",
+      "Accounting": "Contabilidade",
+      "Double-entry ledger, periods and trial balance.": "Razão por partidas dobradas, períodos e balancete.",
+      "Customers": "Clientes",
+      "Leads, opportunities and the activities around them.": "Contactos, oportunidades e as actividades à sua volta.",
+      "Start organising your business today": "Comece hoje a organizar o seu negócio",
+      "Create the account in minutes and add your team when you are ready.": "Crie a conta em minutos e junte a sua equipa quando estiver pronto.",
+      "Health": "Saúde",
+      "Care for your patients, not the paperwork": "Cuide dos seus doentes, não da papelada",
+      "From the appointment to the invoice: clinical records, laboratory, pharmacy and billing for clinics and hospitals.": "Da marcação à factura: processo clínico, laboratório, farmácia e facturação para clínicas e hospitais.",
+      "Clinics": "Clínicas",
+      "Hospitals": "Hospitais",
+      "Laboratories": "Laboratórios",
+      "Everything your health unit needs": "Tudo o que a sua unidade de saúde precisa",
+      "Each professional sees what their work needs, and the record follows the patient.": "Cada profissional vê o que o seu trabalho precisa, e o processo acompanha o doente.",
+      "Clinical records": "Processo clínico",
+      "Patient chart with visits, observations, diagnoses and allergies.": "Ficha do paciente com visitas, observações, diagnósticos e alergias.",
+      "Appointments": "Marcações",
+      "Doctor schedules, check-in and online booking from your site.": "Horários dos médicos, check-in e marcação online a partir do seu site.",
+      "Triage and vital signs": "Triagem e sinais vitais",
+      "Queues by priority and vital signs recorded at the bedside.": "Filas por prioridade e sinais vitais registados junto ao doente.",
+      "Laboratory": "Laboratório",
+      "From the request to the validated result, with full traceability.": "Do pedido ao resultado validado, com rastreabilidade total.",
+      "Pharmacy": "Farmácia",
+      "Prescriptions, dispensing and stock by batch and expiry date.": "Receitas, dispensa e stock por lote e validade.",
+      "Billing": "Facturação",
+      "Invoices, payments and receipts for consultations and exams.": "Facturas, pagamentos e recibos de consultas e exames.",
+      "Who can see a patient's record?": "Quem pode ver o processo de um doente?",
+      "Only professionals whose profile allows it, and only inside your organisation.": "Só os profissionais cujo perfil o permite, e só dentro da sua organização.",
+      "Can patients book online?": "Os doentes podem marcar online?",
+      "Yes. Your public site shows the free times of each doctor, and the reception confirms the request.": "Sim. O seu site público mostra os horários livres de cada médico, e a recepção confirma o pedido.",
+      "Ready to modernise your health unit?": "Pronto para modernizar a sua unidade de saúde?",
+      "Create the account and register your first patient today.": "Crie a conta e registe hoje o seu primeiro doente.",
+      "Your pharmacy, always in stock and in order": "A sua farmácia, sempre com stock e em ordem",
+      "Counter sales, prescriptions, batches and expiry dates under control, so no medicine runs out or expires on the shelf.": "Venda ao balcão, receitas, lotes e validades sob controlo, para nenhum medicamento faltar ou expirar na prateleira.",
+      "Batches and expiry": "Lotes e validades",
+      "Fast counter": "Balcão rápido",
+      "Several shops": "Várias lojas",
+      "From the supplier to the patient": "Do fornecedor ao doente",
+      "Every box is traced from the day it arrives to the day it is sold.": "Cada caixa é seguida desde o dia em que chega até ao dia em que é vendida.",
+      "Counter sales": "Venda ao balcão",
+      "Quick search, prices with taxes and the receipt in seconds.": "Pesquisa rápida, preços com impostos e o recibo em segundos.",
+      "Expiry control": "Controlo de validades",
+      "The oldest batch leaves first, and alerts warn before a batch expires.": "O lote mais antigo sai primeiro, e há alertas antes de um lote expirar.",
+      "Prescriptions": "Receitas",
+      "Dispense what the doctor prescribed and keep the record.": "Dispense o que o médico receitou e guarde o registo.",
+      "Orders to suppliers and goods received by batch.": "Encomendas a fornecedores e recepção por lote.",
+      "Price lists": "Tabelas de preços",
+      "Prices per customer or insurer, with quantity discounts.": "Preços por cliente ou seguradora, com descontos por quantidade.",
+      "Dashboards": "Painéis",
+      "Sales of the day, low stock and what expires next.": "Vendas do dia, stock baixo e o que expira a seguir.",
+      "Does it handle batches and expiry dates?": "Gere lotes e validades?",
+      "Yes. Each entry is recorded by batch, and sales use the batch that expires first.": "Sim. Cada entrada fica registada por lote, e as vendas usam o lote que expira primeiro.",
+      "Can we run several shops?": "Podemos ter várias lojas?",
+      "Yes. Each shop is a branch with its own stock, and you can transfer between them.": "Sim. Cada loja é uma sucursal com o seu stock, e pode transferir entre elas.",
+      "Put your pharmacy in order": "Ponha a sua farmácia em ordem",
+      "Create the account and register your stock in an afternoon.": "Crie a conta e registe o seu stock numa tarde.",
+      "Insurance": "Seguros",
+      "Insurance management with total clarity": "Gestão de seguros com total clareza",
+      "Clients, policies, payments and approvals in one place, with every decision recorded.": "Clientes, apólices, pagamentos e aprovações num só lugar, com cada decisão registada.",
+      "Approvals": "Aprovações",
+      "Audit trail": "Histórico auditável",
+      "Built for trust": "Feito para a confiança",
+      "Every step has an owner, a permission and a record.": "Cada passo tem um responsável, uma permissão e um registo.",
+      "Clients": "Clientes",
+      "Leads, opportunities and the history of each client.": "Contactos, oportunidades e o histórico de cada cliente.",
+      "Approval steps by amount, with who decided and when.": "Passos de aprovação por valor, com quem decidiu e quando.",
+      "Invoices, payments and receipts for every policy.": "Facturas, pagamentos e recibos de cada apólice.",
+      "Entries posted automatically from sales and payments.": "Lançamentos feitos automaticamente a partir de vendas e pagamentos.",
+      "The indicators of each team, according to its permissions.": "Os indicadores de cada equipa, de acordo com as suas permissões.",
+      "Is every approval recorded?": "Cada aprovação fica registada?",
+      "Yes. Each decision keeps who took it, when and why, and nothing is silently overwritten.": "Sim. Cada decisão guarda quem a tomou, quando e porquê, e nada é substituído em silêncio.",
+      "Bring clarity to your insurance business": "Traga clareza ao seu negócio de seguros",
+      "Create the account and set up your first approval flow today.": "Crie a conta e configure hoje o seu primeiro circuito de aprovação.",
+      "Other sectors": "Outros sectores",
+      "Choose the platform made for your sector.": "Escolha a plataforma feita para o seu sector.",
+      "SaaS": "SaaS",
+      "Saude": "Saúde",
+      "Farmacia": "Farmácia",
+      "Seguradora": "Seguradora"
+    },
+    "es-es": {
+      "Languages": "Idiomas",
+      "Web, nothing to install": "Web, nada que instalar",
+      "Access from any device": "Acceso desde cualquier dispositivo",
+      "Branches under one account": "Sucursales en una sola cuenta",
+      "Up and running in three steps": "En marcha en tres pasos",
+      "Create your account": "Cree su cuenta",
+      "Register your organisation and its first branch in a few minutes.": "Registre su organización y su primera sucursal en pocos minutos.",
+      "Invite your team": "Invite a su equipo",
+      "Each person gets a profile with exactly the permissions their work needs.": "Cada persona recibe un perfil con exactamente los permisos que su trabajo necesita.",
+      "Work from day one": "Trabaje desde el primer día",
+      "Records, documents and dashboards are ready as soon as you sign in.": "Registros, documentos y paneles están listos en cuanto inicia sesión.",
+      "Frequently asked questions": "Preguntas frecuentes",
+      "Is our data separate from other organisations?": "¿Nuestros datos están separados de los de otras organizaciones?",
+      "Yes. Every organisation only ever sees its own data, and every action is checked against the user's permissions.": "Sí. Cada organización solo ve sus propios datos y cada acción se comprueba con los permisos del usuario.",
+      "Which languages are available?": "¿Qué idiomas están disponibles?",
+      "Portuguese, English, Spanish and French. Each user chooses their own.": "Portugués, inglés, español y francés. Cada usuario elige el suyo.",
+      "Can we manage several branches?": "¿Podemos gestionar varias sucursales?",
+      "Yes. Branches share the organisation's account, and each team works in the branch it belongs to.": "Sí. Las sucursales comparten la cuenta de la organización y cada equipo trabaja en la sucursal a la que pertenece.",
+      "Do we need to install anything?": "¿Necesitamos instalar algo?",
+      "No. It runs in the browser, on computers, tablets and phones.": "No. Funciona en el navegador, en ordenadores, tabletas y móviles.",
+      "Business platform": "Plataforma de gestión",
+      "One platform for every kind of business": "Una plataforma para todo tipo de negocio",
+      "Choose your sector and get the modules it needs: people, stock, sales, accounting and much more, all in the same place.": "Elija su sector y obtenga los módulos que necesita: personas, stock, ventas, contabilidad y mucho más, todo en el mismo lugar.",
+      "Multi-company": "Multiempresa",
+      "Secure": "Seguro",
+      "In four languages": "En cuatro idiomas",
+      "Everything a growing business needs": "Todo lo que un negocio en crecimiento necesita",
+      "Turn on only the modules you use; they all speak to each other.": "Active solo los módulos que usa; todos se comunican entre sí.",
+      "People": "Personas",
+      "Employees, contracts, attendance and payroll.": "Empleados, contratos, asistencia y nóminas.",
+      "Stock": "Stock",
+      "Warehouses, batches, transfers and reservations.": "Almacenes, lotes, transferencias y reservas.",
+      "Sales": "Ventas",
+      "Price lists, taxes, invoices and payments.": "Listas de precios, impuestos, facturas y pagos.",
+      "Purchases": "Compras",
+      "Suppliers, orders and goods received.": "Proveedores, pedidos y recepción de mercancía.",
+      "Accounting": "Contabilidad",
+      "Double-entry ledger, periods and trial balance.": "Libro mayor por partida doble, periodos y balance de comprobación.",
+      "Customers": "Clientes",
+      "Leads, opportunities and the activities around them.": "Contactos, oportunidades y sus actividades.",
+      "Start organising your business today": "Empiece hoy a organizar su negocio",
+      "Create the account in minutes and add your team when you are ready.": "Cree la cuenta en minutos y añada a su equipo cuando esté listo.",
+      "Health": "Salud",
+      "Care for your patients, not the paperwork": "Cuide de sus pacientes, no del papeleo",
+      "From the appointment to the invoice: clinical records, laboratory, pharmacy and billing for clinics and hospitals.": "De la cita a la factura: historia clínica, laboratorio, farmacia y facturación para clínicas y hospitales.",
+      "Clinics": "Clínicas",
+      "Hospitals": "Hospitales",
+      "Laboratories": "Laboratorios",
+      "Everything your health unit needs": "Todo lo que su centro de salud necesita",
+      "Each professional sees what their work needs, and the record follows the patient.": "Cada profesional ve lo que su trabajo necesita y la historia acompaña al paciente.",
+      "Clinical records": "Historia clínica",
+      "Patient chart with visits, observations, diagnoses and allergies.": "Ficha del paciente con visitas, observaciones, diagnósticos y alergias.",
+      "Appointments": "Citas",
+      "Doctor schedules, check-in and online booking from your site.": "Horarios de los médicos, check-in y citas en línea desde su sitio.",
+      "Triage and vital signs": "Triaje y signos vitales",
+      "Queues by priority and vital signs recorded at the bedside.": "Colas por prioridad y signos vitales registrados junto al paciente.",
+      "Laboratory": "Laboratorio",
+      "From the request to the validated result, with full traceability.": "De la solicitud al resultado validado, con trazabilidad total.",
+      "Pharmacy": "Farmacia",
+      "Prescriptions, dispensing and stock by batch and expiry date.": "Recetas, dispensación y stock por lote y caducidad.",
+      "Billing": "Facturación",
+      "Invoices, payments and receipts for consultations and exams.": "Facturas, pagos y recibos de consultas y exámenes.",
+      "Who can see a patient's record?": "¿Quién puede ver la historia de un paciente?",
+      "Only professionals whose profile allows it, and only inside your organisation.": "Solo los profesionales cuyo perfil lo permite, y solo dentro de su organización.",
+      "Can patients book online?": "¿Los pacientes pueden reservar en línea?",
+      "Yes. Your public site shows the free times of each doctor, and the reception confirms the request.": "Sí. Su sitio público muestra los horarios libres de cada médico y la recepción confirma la solicitud.",
+      "Ready to modernise your health unit?": "¿Listo para modernizar su centro de salud?",
+      "Create the account and register your first patient today.": "Cree la cuenta y registre hoy a su primer paciente.",
+      "Your pharmacy, always in stock and in order": "Su farmacia, siempre con stock y en orden",
+      "Counter sales, prescriptions, batches and expiry dates under control, so no medicine runs out or expires on the shelf.": "Venta en mostrador, recetas, lotes y caducidades bajo control, para que ningún medicamento falte o caduque en la estantería.",
+      "Batches and expiry": "Lotes y caducidades",
+      "Fast counter": "Mostrador rápido",
+      "Several shops": "Varias tiendas",
+      "From the supplier to the patient": "Del proveedor al paciente",
+      "Every box is traced from the day it arrives to the day it is sold.": "Cada caja se sigue desde el día en que llega hasta el día en que se vende.",
+      "Counter sales": "Venta en mostrador",
+      "Quick search, prices with taxes and the receipt in seconds.": "Búsqueda rápida, precios con impuestos y el recibo en segundos.",
+      "Expiry control": "Control de caducidades",
+      "The oldest batch leaves first, and alerts warn before a batch expires.": "El lote más antiguo sale primero y hay alertas antes de que caduque.",
+      "Prescriptions": "Recetas",
+      "Dispense what the doctor prescribed and keep the record.": "Dispense lo que el médico recetó y guarde el registro.",
+      "Orders to suppliers and goods received by batch.": "Pedidos a proveedores y recepción por lote.",
+      "Price lists": "Listas de precios",
+      "Prices per customer or insurer, with quantity discounts.": "Precios por cliente o aseguradora, con descuentos por cantidad.",
+      "Dashboards": "Paneles",
+      "Sales of the day, low stock and what expires next.": "Ventas del día, stock bajo y lo que caduca próximamente.",
+      "Does it handle batches and expiry dates?": "¿Gestiona lotes y caducidades?",
+      "Yes. Each entry is recorded by batch, and sales use the batch that expires first.": "Sí. Cada entrada se registra por lote y las ventas usan el lote que caduca primero.",
+      "Can we run several shops?": "¿Podemos tener varias tiendas?",
+      "Yes. Each shop is a branch with its own stock, and you can transfer between them.": "Sí. Cada tienda es una sucursal con su propio stock y puede transferir entre ellas.",
+      "Put your pharmacy in order": "Ponga su farmacia en orden",
+      "Create the account and register your stock in an afternoon.": "Cree la cuenta y registre su stock en una tarde.",
+      "Insurance": "Seguros",
+      "Insurance management with total clarity": "Gestión de seguros con total claridad",
+      "Clients, policies, payments and approvals in one place, with every decision recorded.": "Clientes, pólizas, pagos y aprobaciones en un solo lugar, con cada decisión registrada.",
+      "Approvals": "Aprobaciones",
+      "Audit trail": "Historial auditable",
+      "Built for trust": "Hecho para la confianza",
+      "Every step has an owner, a permission and a record.": "Cada paso tiene un responsable, un permiso y un registro.",
+      "Clients": "Clientes",
+      "Leads, opportunities and the history of each client.": "Contactos, oportunidades y el historial de cada cliente.",
+      "Approval steps by amount, with who decided and when.": "Pasos de aprobación por importe, con quién decidió y cuándo.",
+      "Invoices, payments and receipts for every policy.": "Facturas, pagos y recibos de cada póliza.",
+      "Entries posted automatically from sales and payments.": "Asientos generados automáticamente a partir de ventas y pagos.",
+      "The indicators of each team, according to its permissions.": "Los indicadores de cada equipo, según sus permisos.",
+      "Is every approval recorded?": "¿Cada aprobación queda registrada?",
+      "Yes. Each decision keeps who took it, when and why, and nothing is silently overwritten.": "Sí. Cada decisión guarda quién la tomó, cuándo y por qué, y nada se sobrescribe en silencio.",
+      "Bring clarity to your insurance business": "Aporte claridad a su negocio de seguros",
+      "Create the account and set up your first approval flow today.": "Cree la cuenta y configure hoy su primer flujo de aprobación.",
+      "Other sectors": "Otros sectores",
+      "Choose the platform made for your sector.": "Elija la plataforma hecha para su sector.",
+      "SaaS": "SaaS",
+      "Saude": "Salud",
+      "Farmacia": "Farmacia",
+      "Seguradora": "Aseguradora"
+    },
+    "fr-fr": {
+      "Languages": "Langues",
+      "Web, nothing to install": "Web, rien à installer",
+      "Access from any device": "Accès depuis n'importe quel appareil",
+      "Branches under one account": "Agences sous un seul compte",
+      "Up and running in three steps": "Opérationnel en trois étapes",
+      "Create your account": "Créez votre compte",
+      "Register your organisation and its first branch in a few minutes.": "Enregistrez votre organisation et sa première agence en quelques minutes.",
+      "Invite your team": "Invitez votre équipe",
+      "Each person gets a profile with exactly the permissions their work needs.": "Chaque personne reçoit un profil avec exactement les permissions dont son travail a besoin.",
+      "Work from day one": "Travaillez dès le premier jour",
+      "Records, documents and dashboards are ready as soon as you sign in.": "Registres, documents et tableaux de bord sont prêts dès la connexion.",
+      "Frequently asked questions": "Questions fréquentes",
+      "Is our data separate from other organisations?": "Nos données sont-elles séparées de celles des autres organisations ?",
+      "Yes. Every organisation only ever sees its own data, and every action is checked against the user's permissions.": "Oui. Chaque organisation ne voit que ses propres données, et chaque action est vérifiée selon les permissions de l'utilisateur.",
+      "Which languages are available?": "Quelles langues sont disponibles ?",
+      "Portuguese, English, Spanish and French. Each user chooses their own.": "Portugais, anglais, espagnol et français. Chaque utilisateur choisit la sienne.",
+      "Can we manage several branches?": "Pouvons-nous gérer plusieurs agences ?",
+      "Yes. Branches share the organisation's account, and each team works in the branch it belongs to.": "Oui. Les agences partagent le compte de l'organisation, et chaque équipe travaille dans l'agence à laquelle elle appartient.",
+      "Do we need to install anything?": "Devons-nous installer quelque chose ?",
+      "No. It runs in the browser, on computers, tablets and phones.": "Non. Tout fonctionne dans le navigateur, sur ordinateur, tablette et téléphone.",
+      "Business platform": "Plateforme de gestion",
+      "One platform for every kind of business": "Une plateforme pour tous les métiers",
+      "Choose your sector and get the modules it needs: people, stock, sales, accounting and much more, all in the same place.": "Choisissez votre secteur et obtenez les modules dont il a besoin : personnel, stock, ventes, comptabilité et bien plus, au même endroit.",
+      "Multi-company": "Multi-entreprise",
+      "Secure": "Sécurisé",
+      "In four languages": "En quatre langues",
+      "Everything a growing business needs": "Tout ce dont une entreprise en croissance a besoin",
+      "Turn on only the modules you use; they all speak to each other.": "Activez seulement les modules que vous utilisez ; ils communiquent tous entre eux.",
+      "People": "Personnel",
+      "Employees, contracts, attendance and payroll.": "Employés, contrats, présences et paie.",
+      "Stock": "Stock",
+      "Warehouses, batches, transfers and reservations.": "Entrepôts, lots, transferts et réservations.",
+      "Sales": "Ventes",
+      "Price lists, taxes, invoices and payments.": "Listes de prix, taxes, factures et paiements.",
+      "Purchases": "Achats",
+      "Suppliers, orders and goods received.": "Fournisseurs, commandes et réceptions.",
+      "Accounting": "Comptabilité",
+      "Double-entry ledger, periods and trial balance.": "Grand livre en partie double, périodes et balance.",
+      "Customers": "Clients",
+      "Leads, opportunities and the activities around them.": "Prospects, opportunités et leurs activités.",
+      "Start organising your business today": "Commencez dès aujourd'hui à organiser votre entreprise",
+      "Create the account in minutes and add your team when you are ready.": "Créez le compte en quelques minutes et ajoutez votre équipe quand vous êtes prêt.",
+      "Health": "Santé",
+      "Care for your patients, not the paperwork": "Prenez soin de vos patients, pas de la paperasse",
+      "From the appointment to the invoice: clinical records, laboratory, pharmacy and billing for clinics and hospitals.": "Du rendez-vous à la facture : dossier clinique, laboratoire, pharmacie et facturation pour cliniques et hôpitaux.",
+      "Clinics": "Cliniques",
+      "Hospitals": "Hôpitaux",
+      "Laboratories": "Laboratoires",
+      "Everything your health unit needs": "Tout ce dont votre établissement de santé a besoin",
+      "Each professional sees what their work needs, and the record follows the patient.": "Chaque professionnel voit ce dont son travail a besoin, et le dossier suit le patient.",
+      "Clinical records": "Dossier clinique",
+      "Patient chart with visits, observations, diagnoses and allergies.": "Dossier du patient avec visites, observations, diagnostics et allergies.",
+      "Appointments": "Rendez-vous",
+      "Doctor schedules, check-in and online booking from your site.": "Horaires des médecins, accueil et prise de rendez-vous en ligne depuis votre site.",
+      "Triage and vital signs": "Triage et signes vitaux",
+      "Queues by priority and vital signs recorded at the bedside.": "Files par priorité et signes vitaux saisis au chevet.",
+      "Laboratory": "Laboratoire",
+      "From the request to the validated result, with full traceability.": "De la demande au résultat validé, avec une traçabilité complète.",
+      "Pharmacy": "Pharmacie",
+      "Prescriptions, dispensing and stock by batch and expiry date.": "Ordonnances, délivrance et stock par lot et date de péremption.",
+      "Billing": "Facturation",
+      "Invoices, payments and receipts for consultations and exams.": "Factures, paiements et reçus des consultations et examens.",
+      "Who can see a patient's record?": "Qui peut voir le dossier d'un patient ?",
+      "Only professionals whose profile allows it, and only inside your organisation.": "Seuls les professionnels dont le profil le permet, et seulement dans votre organisation.",
+      "Can patients book online?": "Les patients peuvent-ils réserver en ligne ?",
+      "Yes. Your public site shows the free times of each doctor, and the reception confirms the request.": "Oui. Votre site public affiche les créneaux libres de chaque médecin, et l'accueil confirme la demande.",
+      "Ready to modernise your health unit?": "Prêt à moderniser votre établissement de santé ?",
+      "Create the account and register your first patient today.": "Créez le compte et enregistrez votre premier patient dès aujourd'hui.",
+      "Your pharmacy, always in stock and in order": "Votre pharmacie, toujours approvisionnée et en ordre",
+      "Counter sales, prescriptions, batches and expiry dates under control, so no medicine runs out or expires on the shelf.": "Vente au comptoir, ordonnances, lots et dates de péremption sous contrôle, pour qu'aucun médicament ne manque ni n'expire en rayon.",
+      "Batches and expiry": "Lots et péremption",
+      "Fast counter": "Comptoir rapide",
+      "Several shops": "Plusieurs officines",
+      "From the supplier to the patient": "Du fournisseur au patient",
+      "Every box is traced from the day it arrives to the day it is sold.": "Chaque boîte est suivie du jour de son arrivée au jour de sa vente.",
+      "Counter sales": "Vente au comptoir",
+      "Quick search, prices with taxes and the receipt in seconds.": "Recherche rapide, prix taxes comprises et reçu en quelques secondes.",
+      "Expiry control": "Suivi des péremptions",
+      "The oldest batch leaves first, and alerts warn before a batch expires.": "Le lot le plus ancien sort en premier, et des alertes préviennent avant la péremption.",
+      "Prescriptions": "Ordonnances",
+      "Dispense what the doctor prescribed and keep the record.": "Délivrez ce que le médecin a prescrit et gardez la trace.",
+      "Orders to suppliers and goods received by batch.": "Commandes fournisseurs et réceptions par lot.",
+      "Price lists": "Listes de prix",
+      "Prices per customer or insurer, with quantity discounts.": "Prix par client ou assureur, avec remises sur quantité.",
+      "Dashboards": "Tableaux de bord",
+      "Sales of the day, low stock and what expires next.": "Ventes du jour, stock faible et ce qui expire bientôt.",
+      "Does it handle batches and expiry dates?": "Gère-t-il les lots et les dates de péremption ?",
+      "Yes. Each entry is recorded by batch, and sales use the batch that expires first.": "Oui. Chaque entrée est enregistrée par lot, et les ventes utilisent le lot qui expire en premier.",
+      "Can we run several shops?": "Pouvons-nous gérer plusieurs officines ?",
+      "Yes. Each shop is a branch with its own stock, and you can transfer between them.": "Oui. Chaque officine est une agence avec son propre stock, et vous pouvez transférer entre elles.",
+      "Put your pharmacy in order": "Mettez de l'ordre dans votre pharmacie",
+      "Create the account and register your stock in an afternoon.": "Créez le compte et enregistrez votre stock en un après-midi.",
+      "Insurance": "Assurance",
+      "Insurance management with total clarity": "La gestion d'assurance en toute clarté",
+      "Clients, policies, payments and approvals in one place, with every decision recorded.": "Clients, polices, paiements et approbations au même endroit, chaque décision étant tracée.",
+      "Approvals": "Approbations",
+      "Audit trail": "Traçabilité",
+      "Built for trust": "Conçu pour la confiance",
+      "Every step has an owner, a permission and a record.": "Chaque étape a un responsable, une permission et une trace.",
+      "Clients": "Clients",
+      "Leads, opportunities and the history of each client.": "Prospects, opportunités et l'historique de chaque client.",
+      "Approval steps by amount, with who decided and when.": "Étapes d'approbation par montant, avec qui a décidé et quand.",
+      "Invoices, payments and receipts for every policy.": "Factures, paiements et reçus pour chaque police.",
+      "Entries posted automatically from sales and payments.": "Écritures passées automatiquement à partir des ventes et paiements.",
+      "The indicators of each team, according to its permissions.": "Les indicateurs de chaque équipe, selon ses permissions.",
+      "Is every approval recorded?": "Chaque approbation est-elle tracée ?",
+      "Yes. Each decision keeps who took it, when and why, and nothing is silently overwritten.": "Oui. Chaque décision conserve qui l'a prise, quand et pourquoi, et rien n'est écrasé en silence.",
+      "Bring clarity to your insurance business": "Apportez de la clarté à votre activité d'assurance",
+      "Create the account and set up your first approval flow today.": "Créez le compte et configurez dès aujourd'hui votre premier circuit d'approbation.",
+      "Other sectors": "Autres secteurs",
+      "Choose the platform made for your sector.": "Choisissez la plateforme conçue pour votre secteur.",
+      "SaaS": "SaaS",
+      "Saude": "Santé",
+      "Farmacia": "Pharmacie",
+      "Seguradora": "Assurance"
+    }
+  }
+}
