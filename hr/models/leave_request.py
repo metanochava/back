@@ -1,36 +1,6 @@
-# hr/models/leave_request.py
-
 from django.db import models
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class LeaveRequestStatus(models.TextChoices):
-    DRAFT = "draft", "Draft"
-    PENDING = "pending", "Pending"
-    APPROVED = "approved", "Approved"
-    REJECTED = "rejected", "Rejected"
-    CANCELLED = "cancelled", "Cancelled"
-
-
-# Explicit state machine (pedido secção 87: no boolean flags, no
-# REJECTED -> APPROVED). Enforced in hr/services/leave_service.py, not
-# here - a model has no natural place to reject an invalid transition
-# with a field-attributed DRF error.
-ALLOWED_TRANSITIONS = {
-    LeaveRequestStatus.DRAFT: {LeaveRequestStatus.PENDING, LeaveRequestStatus.CANCELLED},
-    LeaveRequestStatus.PENDING: {
-        LeaveRequestStatus.APPROVED,
-        LeaveRequestStatus.REJECTED,
-        LeaveRequestStatus.CANCELLED,
-    },
-    # An already-approved request can still be cancelled (e.g. the
-    # employee no longer needs the days) - leave_service.cancel() reverses
-    # the ledger usage entry it created on approval. It can NOT go back to
-    # PENDING/REJECTED - cancellation is terminal, same as REJECTED.
-    LeaveRequestStatus.APPROVED: {LeaveRequestStatus.CANCELLED},
-    LeaveRequestStatus.REJECTED: set(),
-    LeaveRequestStatus.CANCELLED: set(),
-}
+from hr.models.leave_request_status import LeaveRequestStatus
 
 
 class LeaveRequest(BaseModel):
@@ -88,3 +58,24 @@ class LeaveRequest(BaseModel):
 
     def __str__(self):
         return f"{self.employee} - {self.leave_type} ({self.start_date}..{self.end_date})"
+
+
+# Explicit state machine (pedido secção 87: no boolean flags, no
+# REJECTED -> APPROVED). Enforced in hr/services/leave_service.py, not
+# here - a model has no natural place to reject an invalid transition
+# with a field-attributed DRF error.
+ALLOWED_TRANSITIONS = {
+    LeaveRequestStatus.DRAFT: {LeaveRequestStatus.PENDING, LeaveRequestStatus.CANCELLED},
+    LeaveRequestStatus.PENDING: {
+        LeaveRequestStatus.APPROVED,
+        LeaveRequestStatus.REJECTED,
+        LeaveRequestStatus.CANCELLED,
+    },
+    # An already-approved request can still be cancelled (e.g. the
+    # employee no longer needs the days) - leave_service.cancel() reverses
+    # the ledger usage entry it created on approval. It can NOT go back to
+    # PENDING/REJECTED - cancellation is terminal, same as REJECTED.
+    LeaveRequestStatus.APPROVED: {LeaveRequestStatus.CANCELLED},
+    LeaveRequestStatus.REJECTED: set(),
+    LeaveRequestStatus.CANCELLED: set(),
+}

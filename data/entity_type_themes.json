@@ -1,0 +1,56 @@
+{
+  "themes": {
+    "SaaS": {
+      "primary": "#6D28D9",
+      "secondary": "#2563EB",
+      "accent": "#EC4899",
+      "header": "#6D28D9",
+      "footer": "#6D28D9",
+      "text_link": "#6D28D9",
+      "sidebar_active": "#6D28D9",
+      "button_primary": "#6D28D9",
+      "button_secondary": "#2563EB",
+      "button_outline": "#6D28D9",
+      "input_focus": "#6D28D9"
+    },
+    "Saude": {
+      "primary": "#0E7C86",
+      "secondary": "#2563EB",
+      "accent": "#F97362",
+      "header": "#0E7C86",
+      "footer": "#0E7C86",
+      "text_link": "#0E7C86",
+      "sidebar_active": "#0E7C86",
+      "button_primary": "#0E7C86",
+      "button_secondary": "#2563EB",
+      "button_outline": "#0E7C86",
+      "input_focus": "#0E7C86"
+    },
+    "Farmacia": {
+      "primary": "#15803D",
+      "secondary": "#0D9488",
+      "accent": "#F59E0B",
+      "header": "#15803D",
+      "footer": "#15803D",
+      "text_link": "#15803D",
+      "sidebar_active": "#15803D",
+      "button_primary": "#15803D",
+      "button_secondary": "#0D9488",
+      "button_outline": "#15803D",
+      "input_focus": "#15803D"
+    },
+    "Seguradora": {
+      "primary": "#1E3A8A",
+      "secondary": "#312E81",
+      "accent": "#C99A2E",
+      "header": "#1E3A8A",
+      "footer": "#1E3A8A",
+      "text_link": "#1E3A8A",
+      "sidebar_active": "#1E3A8A",
+      "button_primary": "#1E3A8A",
+      "button_secondary": "#312E81",
+      "button_outline": "#1E3A8A",
+      "input_focus": "#1E3A8A"
+    }
+  }
+}

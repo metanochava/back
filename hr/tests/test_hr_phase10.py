@@ -26,7 +26,8 @@ from django_resaas.saas.models.person import Person
 from hr.models.department import Department
 from hr.models.employee import Employee
 from hr.models.job_position import JobPosition
-from hr.models.payroll import Payroll, PayrollStatus
+from hr.models.payroll import Payroll
+from hr.models.payroll_status import PayrollStatus
 from hr.models.payroll_period import PayrollPeriod
 from hr.views.employee import EmployeeAPIView
 from hr.views.payroll import PayrollAPIView

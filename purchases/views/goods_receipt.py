@@ -1,7 +1,6 @@
 from django_resaas.saas.core.base.views import BaseAPIView, registerView
-
-from purchases.models import GoodsReceipt, GoodsReceiptLine
-from purchases.serializers import GoodsReceiptLineSerializer, GoodsReceiptSerializer
+from purchases.models import GoodsReceipt
+from purchases.serializers import GoodsReceiptSerializer
 
 
 @registerView("goodsreceipts")
@@ -12,11 +11,4 @@ class GoodsReceiptAPIView(BaseAPIView):
 
     queryset = GoodsReceipt.objects.select_related("order")
     serializer_class = GoodsReceiptSerializer
-    http_method_names = ["get", "head", "options"]
-
-
-@registerView("goodsreceiptlines")
-class GoodsReceiptLineAPIView(BaseAPIView):
-    queryset = GoodsReceiptLine.objects.select_related("order_line")
-    serializer_class = GoodsReceiptLineSerializer
     http_method_names = ["get", "head", "options"]

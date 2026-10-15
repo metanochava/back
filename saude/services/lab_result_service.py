@@ -30,7 +30,7 @@ from rest_framework import status
 from django_resaas.saas.core.exceptions import ConflictError, ResaasAPIException
 from django_resaas.saas.core.services import audit_service
 
-from saude.models.exam_parameter import ExamParameter, ExamReferenceRange
+from saude.models.exam_parameter import ExamParameter
 from saude.models.resultadoexamemedico import ResultadoExameMedico
 from saude.models.result_parameter_value import ResultParameterValue
 

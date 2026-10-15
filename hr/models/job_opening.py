@@ -1,15 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class JobOpeningStatus(models.TextChoices):
-    DRAFT = "draft", "Draft"
-    OPEN = "open", "Open"
-    ON_HOLD = "on_hold", "On Hold"
-    CLOSED = "closed", "Closed"
-    CANCELLED = "cancelled", "Cancelled"
+from hr.models.job_opening_status import JobOpeningStatus
 
 
 class JobOpening(BaseModel):

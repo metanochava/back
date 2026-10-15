@@ -13,11 +13,10 @@ from django_resaas.saas.core.events import EventDispatcher
 from django_resaas.saas.models.person import Person
 from hr.models.employee import Employee
 from hr.models.holiday import Holiday
-from hr.models.leave_balance_entry import (
-    LeaveBalanceEntry,
-    LeaveBalanceEntryType,
-)
-from hr.models.leave_request import LeaveRequest, LeaveRequestStatus
+from hr.models.leave_balance_entry import LeaveBalanceEntry
+from hr.models.leave_balance_entry_type import LeaveBalanceEntryType
+from hr.models.leave_request import LeaveRequest
+from hr.models.leave_request_status import LeaveRequestStatus
 from hr.models.leave_type import LeaveType
 from hr.services import leave_service
 

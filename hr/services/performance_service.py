@@ -10,8 +10,9 @@ transition - never imports notifications directly (pedido secção 56/57).
 
 from django.utils import timezone
 
-from hr.models.employee_goal import EmployeeGoalStatus
-from hr.models.performance_review import ALLOWED_TRANSITIONS, ReviewStatus
+from hr.models.employee_goal_status import EmployeeGoalStatus
+from hr.models.performance_review import ALLOWED_TRANSITIONS
+from hr.models.review_status import ReviewStatus
 
 
 class PerformanceError(Exception):
@@ -129,7 +130,7 @@ def submit_review(review, *, actor=None):
 
 def close_cycle(cycle, *, actor=None):
     from django_resaas.saas.core.events import EventDispatcher
-    from hr.models.performance_cycle import PerformanceCycleStatus
+    from hr.models.performance_cycle_status import PerformanceCycleStatus
 
     if cycle.status == PerformanceCycleStatus.CLOSED:
         raise PerformanceError("This cycle is already closed.")

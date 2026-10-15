@@ -34,7 +34,8 @@ from django.utils import timezone
 
 from hr.models.employee import Employee
 from hr.models.employee_salary import EmployeeSalary
-from hr.models.payroll import ALLOWED_TRANSITIONS, Payroll, PayrollStatus
+from hr.models.payroll import ALLOWED_TRANSITIONS, Payroll
+from hr.models.payroll_status import PayrollStatus
 from hr.models.payroll_item import PayrollItem
 from hr.models.payslip import Payslip
 from hr.models.salary_component import SalaryComponent

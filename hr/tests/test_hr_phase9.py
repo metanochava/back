@@ -13,12 +13,15 @@ from django_resaas.saas.core.events import EventDispatcher
 from django_resaas.saas.models.branch import Branch
 from django_resaas.saas.models.person import Person
 from hr.models.department import Department
-from hr.models.employee import Employee, EmploymentStatus
+from hr.models.employee import Employee
+from hr.models.employment_status import EmploymentStatus
 from hr.models.job_position import JobPosition
 from hr.models.job_grade import JobGrade
-from hr.models.disciplinary_case import DisciplinaryCase, DisciplinaryCaseStatus
-from hr.models.employee_offboarding import EmployeeOffboardingStatus
-from hr.models.resignation import Resignation, ResignationStatus
+from hr.models.disciplinary_case import DisciplinaryCase
+from hr.models.disciplinary_case_status import DisciplinaryCaseStatus
+from hr.models.employee_offboarding_status import EmployeeOffboardingStatus
+from hr.models.resignation import Resignation
+from hr.models.resignation_status import ResignationStatus
 from hr.services import lifecycle_service
 
 pytestmark = pytest.mark.django_db

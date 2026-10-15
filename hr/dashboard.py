@@ -1,6 +1,6 @@
 """Configuração declarativa do dashboard da app 'hr' - só metadados,
 sem queries (ver dashboard_providers.py). Um subconjunto representativo
-das métricas já existentes no mecanismo antigo (views/dashboard.py's 8
+das métricas já existentes no mecanismo antigo (views/*_dashboard.py's 8
 secções via TenantDashboardAPIView), agora também disponível como um
 único dashboard do motor novo (saas/core/dashboards/) - as 8 páginas
 antigas continuam a existir e a funcionar sem alteração."""

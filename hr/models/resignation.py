@@ -1,23 +1,6 @@
-# hr/models/resignation.py
-
 from django.db import models
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class ResignationStatus(models.TextChoices):
-    SUBMITTED = "submitted", "Submitted"
-    ACCEPTED = "accepted", "Accepted"
-    WITHDRAWN = "withdrawn", "Withdrawn"
-
-
-ALLOWED_TRANSITIONS = {
-    ResignationStatus.SUBMITTED: {
-        ResignationStatus.ACCEPTED,
-        ResignationStatus.WITHDRAWN,
-    },
-    ResignationStatus.ACCEPTED: set(),
-    ResignationStatus.WITHDRAWN: set(),
-}
+from hr.models.resignation_status import ResignationStatus
 
 
 class Resignation(BaseModel):
@@ -52,3 +35,13 @@ class Resignation(BaseModel):
 
     def __str__(self):
         return f"{self.employee} resignation ({self.status})"
+
+
+ALLOWED_TRANSITIONS = {
+    ResignationStatus.SUBMITTED: {
+        ResignationStatus.ACCEPTED,
+        ResignationStatus.WITHDRAWN,
+    },
+    ResignationStatus.ACCEPTED: set(),
+    ResignationStatus.WITHDRAWN: set(),
+}

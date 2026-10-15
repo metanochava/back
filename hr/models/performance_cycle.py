@@ -1,15 +1,7 @@
-# hr/models/performance_cycle.py
-
 from django.db import models
 from django.core.exceptions import ValidationError
-
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class PerformanceCycleStatus(models.TextChoices):
-    DRAFT = "draft", "Draft"
-    ACTIVE = "active", "Active"
-    CLOSED = "closed", "Closed"
+from hr.models.performance_cycle_status import PerformanceCycleStatus
 
 
 class PerformanceCycle(BaseModel):

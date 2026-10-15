@@ -5,7 +5,8 @@ from rest_framework import serializers
 from django_resaas.saas.core.base.serializers import BaseSerializer
 
 from hr.models.employee import Employee
-from hr.models.leave_balance_entry import LeaveBalanceEntry, LeaveBalanceEntryType
+from hr.models.leave_balance_entry import LeaveBalanceEntry
+from hr.models.leave_balance_entry_type import LeaveBalanceEntryType
 from hr.models.leave_type import LeaveType
 
 # entry_type values a caller may set directly through this API. `usage`

@@ -64,14 +64,12 @@ from .termination import TerminationAPIView
 from .employee_offboarding import EmployeeOffboardingAPIView
 from .employee_offboarding_task import EmployeeOffboardingTaskAPIView
 
-from .dashboard import (
-    OrganizacaoDashboardAPIView,
-    TempoPresencaDashboardAPIView,
-    SalarioFolhaDashboardAPIView,
-    AusenciasDashboardAPIView,
-    RecrutamentoDashboardAPIView,
-    OnboardingDashboardAPIView,
-    DesempenhoDashboardAPIView,
-    FormacaoDashboardAPIView,
-    CicloVidaDashboardAPIView,
-)
+from .organizacao_dashboard import OrganizacaoDashboardAPIView
+from .tempo_presenca_dashboard import TempoPresencaDashboardAPIView
+from .salario_folha_dashboard import SalarioFolhaDashboardAPIView
+from .ausencias_dashboard import AusenciasDashboardAPIView
+from .recrutamento_dashboard import RecrutamentoDashboardAPIView
+from .onboarding_dashboard import OnboardingDashboardAPIView
+from .desempenho_dashboard import DesempenhoDashboardAPIView
+from .formacao_dashboard import FormacaoDashboardAPIView
+from .ciclo_vida_dashboard import CicloVidaDashboardAPIView

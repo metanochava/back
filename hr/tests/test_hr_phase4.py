@@ -11,7 +11,8 @@ from django.db import IntegrityError
 
 from django_resaas.saas.core.events import EventDispatcher
 from django_resaas.saas.models.person import Person
-from hr.models.application import Application, ApplicationStatus
+from hr.models.application import Application
+from hr.models.application_status import ApplicationStatus
 from hr.models.candidate import Candidate
 from hr.models.employee import Employee
 from hr.models.interview import Interview

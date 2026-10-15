@@ -10,11 +10,8 @@ notifications directly (pedido secção 56/57).
 
 from django.utils import timezone
 
-from hr.models.employee_onboarding import (
-    ALLOWED_TRANSITIONS,
-    EmployeeOnboarding,
-    EmployeeOnboardingStatus,
-)
+from hr.models.employee_onboarding import ALLOWED_TRANSITIONS, EmployeeOnboarding
+from hr.models.employee_onboarding_status import EmployeeOnboardingStatus
 from hr.models.employee_onboarding_task import EmployeeOnboardingTask
 
 

@@ -6,7 +6,7 @@ group_creator.py).
 hr nunca teve nenhum mecanismo de perfis (apps.py não tinha sequer
 `ready()`) - confirmado por inspecção directa. Os 7 perfis abaixo
 mapeiam directamente para os 9 dashboards analíticos já existentes em
-hr/views/dashboard.py (view_dashboard_hr_organizacao/
+hr/views/*_dashboard.py (view_dashboard_hr_organizacao/
 tempo_presenca/salario_folha/ausencias/recrutamento/onboarding/
 desempenho/formacao/ciclo_vida - motor de dashboard antigo, anterior
 ao motor genérico `<app>/dashboard.py`, ver docs/architecture/

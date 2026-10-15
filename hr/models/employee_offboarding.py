@@ -1,23 +1,6 @@
-# hr/models/employee_offboarding.py
-
 from django.db import models
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class EmployeeOffboardingStatus(models.TextChoices):
-    IN_PROGRESS = "in_progress", "In Progress"
-    COMPLETED = "completed", "Completed"
-    CANCELLED = "cancelled", "Cancelled"
-
-
-ALLOWED_TRANSITIONS = {
-    EmployeeOffboardingStatus.IN_PROGRESS: {
-        EmployeeOffboardingStatus.COMPLETED,
-        EmployeeOffboardingStatus.CANCELLED,
-    },
-    EmployeeOffboardingStatus.COMPLETED: set(),
-    EmployeeOffboardingStatus.CANCELLED: set(),
-}
+from hr.models.employee_offboarding_status import EmployeeOffboardingStatus
 
 
 class EmployeeOffboarding(BaseModel):
@@ -59,3 +42,13 @@ class EmployeeOffboarding(BaseModel):
 
     def __str__(self):
         return f"{self.employee} offboarding ({self.status})"
+
+
+ALLOWED_TRANSITIONS = {
+    EmployeeOffboardingStatus.IN_PROGRESS: {
+        EmployeeOffboardingStatus.COMPLETED,
+        EmployeeOffboardingStatus.CANCELLED,
+    },
+    EmployeeOffboardingStatus.COMPLETED: set(),
+    EmployeeOffboardingStatus.CANCELLED: set(),
+}

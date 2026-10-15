@@ -12,8 +12,10 @@ from datetime import timedelta
 from django.db.models import Sum
 from django.utils import timezone
 
-from hr.models.leave_balance_entry import LeaveBalanceEntry, LeaveBalanceEntryType
-from hr.models.leave_request import ALLOWED_TRANSITIONS, LeaveRequestStatus
+from hr.models.leave_balance_entry import LeaveBalanceEntry
+from hr.models.leave_balance_entry_type import LeaveBalanceEntryType
+from hr.models.leave_request import ALLOWED_TRANSITIONS
+from hr.models.leave_request_status import LeaveRequestStatus
 from hr.services.holiday_service import is_holiday
 
 # Weekend days excluded from calculate_business_days(). Per-Entity

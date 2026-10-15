@@ -1,16 +1,7 @@
-# hr/models/employee_goal.py
-
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class EmployeeGoalStatus(models.TextChoices):
-    NOT_STARTED = "not_started", "Not Started"
-    IN_PROGRESS = "in_progress", "In Progress"
-    COMPLETED = "completed", "Completed"
-    MISSED = "missed", "Missed"
+from hr.models.employee_goal_status import EmployeeGoalStatus
 
 
 class EmployeeGoal(BaseModel):

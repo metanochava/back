@@ -1,40 +1,14 @@
-from django.conf import settings
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.throttling import SimpleRateThrottle
-
 from django_resaas.saas.core.base.views import registerView
 from django_resaas.saas.core.base.response_mixin import ResaasResponseMixin
 from django_resaas.saas.core.exceptions import ResaasAPIException
 from django_resaas.saas.core.services.site_service import entity_for_origin
-from saude.serializers.appointment_request import PublicAppointmentRequestSerializer
+from saude.serializers.public_appointment_request import PublicAppointmentRequestSerializer
 from saude.services import public_booking_service
-
-
-class _AddressThrottle(SimpleRateThrottle):
-    """Per client address, signed in or not (a public form is abused by address)."""
-
-    setting = None
-    default_rate = None
-
-    def get_rate(self):
-        return getattr(settings, self.setting, self.default_rate)
-
-    def get_cache_key(self, request, view):
-        return self.cache_format % {"scope": self.scope, "ident": self.get_ident(request)}
-
-
-class PublicBookingReadThrottle(_AddressThrottle):
-    scope = "saude_public_booking_read"
-    setting = "SAUDE_PUBLIC_BOOKING_READ_THROTTLE_RATE"
-    default_rate = "300/hour"
-
-
-class PublicBookingRequestThrottle(_AddressThrottle):
-    scope = "saude_public_booking_request"
-    setting = "SAUDE_PUBLIC_BOOKING_THROTTLE_RATE"
-    default_rate = "10/hour"
+from saude.views.public_booking_read_throttle import PublicBookingReadThrottle
+from saude.views.public_booking_request_throttle import PublicBookingRequestThrottle
 
 
 @registerView("publicbooking")

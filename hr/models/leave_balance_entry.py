@@ -1,14 +1,6 @@
-# hr/models/leave_balance_entry.py
-
 from django.db import models
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class LeaveBalanceEntryType(models.TextChoices):
-    ALLOCATION = "allocation", "Allocation"
-    USAGE = "usage", "Usage"
-    ADJUSTMENT = "adjustment", "Adjustment"
-    EXPIRY = "expiry", "Expiry"
+from hr.models.leave_balance_entry_type import LeaveBalanceEntryType
 
 
 class LeaveBalanceEntry(BaseModel):

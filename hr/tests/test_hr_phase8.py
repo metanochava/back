@@ -18,7 +18,8 @@ from hr.models.salary_component import SalaryComponent
 from hr.models.employee_salary import EmployeeSalary
 from hr.models.employee_salary_component import EmployeeSalaryComponent
 from hr.models.payroll_period import PayrollPeriod
-from hr.models.payroll import Payroll, PayrollStatus
+from hr.models.payroll import Payroll
+from hr.models.payroll_status import PayrollStatus
 from hr.models.payslip import Payslip
 from hr.services import payroll_service
 

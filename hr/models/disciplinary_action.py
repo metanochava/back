@@ -1,17 +1,7 @@
-# hr/models/disciplinary_action.py
-
 from django.db import models
 from django.utils import timezone
-
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class DisciplinaryActionType(models.TextChoices):
-    VERBAL_WARNING = "verbal_warning", "Verbal Warning"
-    WRITTEN_WARNING = "written_warning", "Written Warning"
-    SUSPENSION = "suspension", "Suspension"
-    TERMINATION_RECOMMENDATION = "termination_recommendation", "Termination Recommendation"
-    OTHER = "other", "Other"
+from hr.models.disciplinary_action_type import DisciplinaryActionType
 
 
 class DisciplinaryAction(BaseModel):

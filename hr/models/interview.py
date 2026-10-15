@@ -1,18 +1,7 @@
 from django.db import models
-
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class InterviewMode(models.TextChoices):
-    IN_PERSON = "in_person", "In Person"
-    VIDEO = "video", "Video"
-    PHONE = "phone", "Phone"
-
-
-class InterviewOutcome(models.TextChoices):
-    PENDING = "pending", "Pending"
-    PASSED = "passed", "Passed"
-    FAILED = "failed", "Failed"
+from hr.models.interview_mode import InterviewMode
+from hr.models.interview_outcome import InterviewOutcome
 
 
 class Interview(BaseModel):

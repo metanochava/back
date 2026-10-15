@@ -31,13 +31,13 @@ def intake_context(request, paciente_id):
     return {
         "professional": {
             "id": str(employee.id),
-            "person": _person(employee.person),
+            "person": _person(employee.person, request),
             "position": str(employee.position) if employee.position_id else None,
         },
         "patient": {
             "id": str(patient.id),
             "nid": patient.nid,
-            "person": _person(patient.person),
+            "person": _person(patient.person, request),
         },
         "appointment": (
             {

@@ -1,13 +1,11 @@
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
-
 from django_resaas.saas.core.base.views import BaseAPIView, registerView
 from django_resaas.saas.core.decorators import resaas_action
 from django_resaas.saas.core.exceptions import ConflictError
-
 from inventory import services
-from inventory.models.batch import Batch, BatchStock
-from inventory.serializers.batch import BatchSerializer, BatchStockSerializer
+from inventory.models.batch import Batch
+from inventory.serializers.batch import BatchSerializer
 
 
 @registerView("batches")
@@ -37,12 +35,3 @@ class BatchAPIView(BaseAPIView):
         if days < 0 or days > 3650:
             raise ValidationError({"days": ["Enter a whole number."]})
         return Response(services.expiring_batches(request.entity_id, days, request.query_params.get("warehouse")))
-
-
-@registerView("batchstocks")
-class BatchStockAPIView(BaseAPIView):
-    """Lot balances per warehouse - read only, written by stock movements."""
-
-    queryset = BatchStock.objects.select_related("batch", "warehouse")
-    serializer_class = BatchStockSerializer
-    http_method_names = ["get", "head", "options"]

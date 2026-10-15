@@ -1,18 +1,6 @@
-# hr/models/onboarding_template_task.py
-
 from django.db import models
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class OnboardingTaskCategory(models.TextChoices):
-    """Inspired by pedido secção 31's example list, not copied literally -
-    trimmed to categories that actually earn their own bucket."""
-    DOCUMENTS = "documents", "Documents"
-    ACCOUNT = "account", "Account"
-    EQUIPMENT = "equipment", "Equipment"
-    ORIENTATION = "orientation", "Orientation"
-    DEPARTMENT = "department", "Department Induction"
-    OTHER = "other", "Other"
+from hr.models.onboarding_task_category import OnboardingTaskCategory
 
 
 class OnboardingTemplateTask(BaseModel):
