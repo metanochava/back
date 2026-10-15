@@ -1,7 +1,6 @@
 from rest_framework import serializers
-
 from django_resaas.saas.core.base.serializers import BaseSerializer
-from inventory.models.batch import Batch, BatchStock
+from inventory.models.batch import Batch
 
 
 class BatchSerializer(BaseSerializer):
@@ -21,9 +20,3 @@ class BatchSerializer(BaseSerializer):
                 if field in attrs and attrs[field] != getattr(self.instance, field):
                     raise serializers.ValidationError({field: ["A lot with movements cannot change this field."]})
         return attrs
-
-
-class BatchStockSerializer(BaseSerializer):
-    class Meta:
-        model = BatchStock
-        fields = "__all__"

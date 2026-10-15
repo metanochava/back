@@ -1,14 +1,6 @@
 from django.db import models
-
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class CandidateSource(models.TextChoices):
-    WEBSITE = "website", "Website"
-    REFERRAL = "referral", "Referral"
-    AGENCY = "agency", "Agency"
-    SOCIAL_MEDIA = "social_media", "Social Media"
-    OTHER = "other", "Other"
+from hr.models.candidate_source import CandidateSource
 
 
 def resume_path(instance, file_name):

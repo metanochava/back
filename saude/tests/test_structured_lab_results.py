@@ -13,7 +13,8 @@ from django_resaas.saas.core.utils.group_creator import group_creator
 from django_resaas.saas.models.audit_log import AuditLog
 from django_resaas.saas.models.group import Group
 
-from saude.models.exam_parameter import ExamParameter, ExamReferenceRange
+from saude.models.exam_parameter import ExamParameter
+from saude.models.exam_reference_range import ExamReferenceRange
 from saude.models.itempedidoexamemedico import ItemPedidoExameMedico
 from saude.models.pedidoexamemedico import PedidoExameMedico
 from saude.models.resultadoexamemedico import ResultadoExameMedico

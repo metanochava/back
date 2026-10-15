@@ -1,33 +1,6 @@
-# hr/models/employee_onboarding.py
-
 from django.db import models
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class EmployeeOnboardingStatus(models.TextChoices):
-    NOT_STARTED = "not_started", "Not Started"
-    IN_PROGRESS = "in_progress", "In Progress"
-    COMPLETED = "completed", "Completed"
-    CANCELLED = "cancelled", "Cancelled"
-
-
-# Explicit state machine (same shape as LeaveRequest/Application - pedido
-# secção 87). In practice every row is created directly IN_PROGRESS by
-# onboarding_service.start_onboarding() - NOT_STARTED exists as a schema
-# value for completeness/future manual-draft use, not a reachable runtime
-# state today.
-ALLOWED_TRANSITIONS = {
-    EmployeeOnboardingStatus.NOT_STARTED: {
-        EmployeeOnboardingStatus.IN_PROGRESS,
-        EmployeeOnboardingStatus.CANCELLED,
-    },
-    EmployeeOnboardingStatus.IN_PROGRESS: {
-        EmployeeOnboardingStatus.COMPLETED,
-        EmployeeOnboardingStatus.CANCELLED,
-    },
-    EmployeeOnboardingStatus.COMPLETED: set(),
-    EmployeeOnboardingStatus.CANCELLED: set(),
-}
+from hr.models.employee_onboarding_status import EmployeeOnboardingStatus
 
 
 class EmployeeOnboarding(BaseModel):
@@ -67,3 +40,22 @@ class EmployeeOnboarding(BaseModel):
 
     def __str__(self):
         return f"{self.employee} onboarding ({self.status})"
+
+
+# Explicit state machine (same shape as LeaveRequest/Application - pedido
+# secção 87). In practice every row is created directly IN_PROGRESS by
+# onboarding_service.start_onboarding() - NOT_STARTED exists as a schema
+# value for completeness/future manual-draft use, not a reachable runtime
+# state today.
+ALLOWED_TRANSITIONS = {
+    EmployeeOnboardingStatus.NOT_STARTED: {
+        EmployeeOnboardingStatus.IN_PROGRESS,
+        EmployeeOnboardingStatus.CANCELLED,
+    },
+    EmployeeOnboardingStatus.IN_PROGRESS: {
+        EmployeeOnboardingStatus.COMPLETED,
+        EmployeeOnboardingStatus.CANCELLED,
+    },
+    EmployeeOnboardingStatus.COMPLETED: set(),
+    EmployeeOnboardingStatus.CANCELLED: set(),
+}

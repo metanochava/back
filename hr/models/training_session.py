@@ -1,21 +1,8 @@
-# hr/models/training_session.py
-
 from django.db import models
 from django.core.exceptions import ValidationError
-
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class TrainingSessionMode(models.TextChoices):
-    IN_PERSON = "in_person", "In Person"
-    ONLINE = "online", "Online"
-
-
-class TrainingSessionStatus(models.TextChoices):
-    SCHEDULED = "scheduled", "Scheduled"
-    ONGOING = "ongoing", "Ongoing"
-    COMPLETED = "completed", "Completed"
-    CANCELLED = "cancelled", "Cancelled"
+from hr.models.training_session_mode import TrainingSessionMode
+from hr.models.training_session_status import TrainingSessionStatus
 
 
 class TrainingSession(BaseModel):

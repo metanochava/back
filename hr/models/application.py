@@ -1,17 +1,54 @@
 from django.db import models
-
 from django_resaas.saas.core.base.models import BaseModel
+from hr.models.application_status import ApplicationStatus
 
 
-class ApplicationStatus(models.TextChoices):
-    APPLIED = "applied", "Applied"
-    SCREENING = "screening", "Screening"
-    SHORTLISTED = "shortlisted", "Shortlisted"
-    INTERVIEW = "interview", "Interview"
-    OFFERED = "offered", "Offered"
-    HIRED = "hired", "Hired"
-    REJECTED = "rejected", "Rejected"
-    WITHDRAWN = "withdrawn", "Withdrawn"
+class Application(BaseModel):
+    job_opening = models.ForeignKey(
+        'hr.JobOpening',
+        on_delete=models.CASCADE,
+        related_name='applications',
+    )
+
+    candidate = models.ForeignKey(
+        'hr.Candidate',
+        on_delete=models.CASCADE,
+        related_name='applications',
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=ApplicationStatus.choices,
+        default=ApplicationStatus.APPLIED,
+    )
+
+    # Set only by recruitment_service.hire() - never accepted from the
+    # client (BaseSerializer/ApplicationSerializer forces it read_only,
+    # same pattern LeaveRequest uses for status/days/approved_*).
+    employee = models.ForeignKey(
+        'hr.Employee',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='applications',
+    )
+
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('job_opening', 'candidate')
+        indexes = [
+            models.Index(fields=['job_opening', 'status']),
+        ]
+
+    class RESAAS:
+        label_field = "id"
+        search_fields = ["candidate__full_name", "job_opening__title", "status"]
+        crud = True
+
+    def __str__(self):
+        return f"{self.candidate} -> {self.job_opening} ({self.status})"
 
 
 # Explicit state machine (same shape as hr/models/leave_request.py's
@@ -66,51 +103,3 @@ MOVE_TARGETS = {
     ApplicationStatus.REJECTED,
     ApplicationStatus.WITHDRAWN,
 }
-
-
-class Application(BaseModel):
-    job_opening = models.ForeignKey(
-        'hr.JobOpening',
-        on_delete=models.CASCADE,
-        related_name='applications',
-    )
-
-    candidate = models.ForeignKey(
-        'hr.Candidate',
-        on_delete=models.CASCADE,
-        related_name='applications',
-    )
-
-    status = models.CharField(
-        max_length=20,
-        choices=ApplicationStatus.choices,
-        default=ApplicationStatus.APPLIED,
-    )
-
-    # Set only by recruitment_service.hire() - never accepted from the
-    # client (BaseSerializer/ApplicationSerializer forces it read_only,
-    # same pattern LeaveRequest uses for status/days/approved_*).
-    employee = models.ForeignKey(
-        'hr.Employee',
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name='applications',
-    )
-
-    notes = models.TextField(blank=True)
-
-    class Meta:
-        ordering = ['-created_at']
-        unique_together = ('job_opening', 'candidate')
-        indexes = [
-            models.Index(fields=['job_opening', 'status']),
-        ]
-
-    class RESAAS:
-        label_field = "id"
-        search_fields = ["candidate__full_name", "job_opening__title", "status"]
-        crud = True
-
-    def __str__(self):
-        return f"{self.candidate} -> {self.job_opening} ({self.status})"

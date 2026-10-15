@@ -14,10 +14,13 @@ import pytest
 from django_resaas.saas.core.events import EventDispatcher
 from django_resaas.saas.models.person import Person
 from hr.models.employee import Employee
-from hr.models.performance_cycle import PerformanceCycle, PerformanceCycleStatus
+from hr.models.performance_cycle import PerformanceCycle
+from hr.models.performance_cycle_status import PerformanceCycleStatus
 from hr.models.competency import Competency
-from hr.models.employee_goal import EmployeeGoal, EmployeeGoalStatus
-from hr.models.performance_review import PerformanceReview, ReviewStatus
+from hr.models.employee_goal import EmployeeGoal
+from hr.models.employee_goal_status import EmployeeGoalStatus
+from hr.models.performance_review import PerformanceReview
+from hr.models.review_status import ReviewStatus
 from hr.services import performance_service
 
 pytestmark = pytest.mark.django_db

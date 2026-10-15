@@ -18,6 +18,7 @@ from saude.models.medicamento import Medicamento
 from saude.models.medicacaocorrente import MedicacaoCorrente
 from saude.models.doencacorrente import DoencaCorrente
 from saude.models.alergiacorrente import AlergiaCorrente
-from saude.models.exam_parameter import ExamParameter, ExamReferenceRange
+from saude.models.exam_parameter import ExamParameter
+from saude.models.exam_reference_range import ExamReferenceRange
 from saude.models.result_parameter_value import ResultParameterValue
 from saude.models.appointment_request import AppointmentRequest

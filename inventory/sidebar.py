@@ -1,5 +1,5 @@
 ALL = [{
-'MENU' : "Stock",
+'MENU' : "Inventory",
 'ICON' : "inventory_2",
 
 'SUBMENUS' : [

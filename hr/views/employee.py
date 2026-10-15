@@ -18,7 +18,7 @@ from hr.models.employee import Employee
 from hr.models.job_position import JobPosition
 from hr.models.job_grade import JobGrade
 from hr.models.department import Department
-from hr.models.attendance import AttendanceSource
+from hr.models.attendance_source import AttendanceSource
 from hr.models.onboarding_template import OnboardingTemplate
 from hr.serializers.employee import EmployeeSerializer
 from hr.serializers.attendance import AttendanceSerializer

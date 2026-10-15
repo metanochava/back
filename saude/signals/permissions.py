@@ -28,7 +28,7 @@ ACTION_PERMISSIONS = [
 
 
 # Dashboards por grupo do sidebar (ver saude/sidebar.py e
-# saude/views/dashboard.py) - não são @resaas_action (são
+# saude/views/*_dashboard.py) - não são @resaas_action (são
 # TenantDashboardAPIView simples, plain APIView), por isso o
 # ActionSyncService não os cria sozinho: temos de os criar aqui, tal
 # como inventory/signals.py já faz para os seus próprios dashboards.

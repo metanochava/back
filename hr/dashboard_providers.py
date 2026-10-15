@@ -1,5 +1,5 @@
 """Providers dos widgets de hr/dashboard.py - mesmas queries já usadas
-pelo mecanismo antigo (views/dashboard.py's Organizacao/TempoPresenca/
+pelo mecanismo antigo (views/*_dashboard.py's Organizacao/TempoPresenca/
 SalarioFolha/Ausencias APIViews), reorganizadas como widgets
 individuais do motor novo (saas/core/dashboards/). Um subconjunto
 representativo, não uma migração 1:1 de todas as 8 secções antigas -
@@ -16,7 +16,8 @@ from django_resaas.saas.core.dashboards.providers import (
 from hr.models.attendance import Attendance
 from hr.models.employee import Employee
 from hr.models.holiday import Holiday
-from hr.models.leave_request import LeaveRequest, LeaveRequestStatus
+from hr.models.leave_request import LeaveRequest
+from hr.models.leave_request_status import LeaveRequestStatus
 from hr.models.payroll_period import PayrollPeriod
 
 

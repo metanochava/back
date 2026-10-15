@@ -13,15 +13,11 @@ import pytest
 from django_resaas.saas.core.events import EventDispatcher
 from django_resaas.saas.models.person import Person
 from hr.models.employee import Employee
-from hr.models.employee_onboarding import (
-    EmployeeOnboarding,
-    EmployeeOnboardingStatus,
-)
+from hr.models.employee_onboarding import EmployeeOnboarding
+from hr.models.employee_onboarding_status import EmployeeOnboardingStatus
 from hr.models.onboarding_template import OnboardingTemplate
-from hr.models.onboarding_template_task import (
-    OnboardingTaskCategory,
-    OnboardingTemplateTask,
-)
+from hr.models.onboarding_task_category import OnboardingTaskCategory
+from hr.models.onboarding_template_task import OnboardingTemplateTask
 from hr.services import onboarding_service
 
 pytestmark = pytest.mark.django_db

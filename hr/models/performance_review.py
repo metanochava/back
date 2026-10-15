@@ -1,24 +1,8 @@
-# hr/models/performance_review.py
-
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class ReviewType(models.TextChoices):
-    """pedido secção 34: at least Self/Manager/HR now, room to add
-    PEER/SUBORDINATE later (a full 360) without a destructive migration -
-    TextChoices is additive by nature, no schema change needed to grow
-    this list."""
-    SELF = "self", "Self Review"
-    MANAGER = "manager", "Manager Review"
-    HR = "hr", "HR Review"
-
-
-class ReviewStatus(models.TextChoices):
-    DRAFT = "draft", "Draft"
-    SUBMITTED = "submitted", "Submitted"
+from hr.models.review_status import ReviewStatus
+from hr.models.review_type import ReviewType
 
 
 # Same explicit-state-machine shape as LeaveRequest/Application/

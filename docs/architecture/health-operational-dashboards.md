@@ -754,10 +754,14 @@ site says that online booking is not available and asks the visitor to call.
 **Migration:** `0009_appointmentrequest` (new table only; saude migrations are
 generated locally).
 
-### Frontend (Amal site, `MarcacaoPage.vue`, `DoctorsPage.vue`)
+### Frontend (Amal site, `MarcacaoPage.vue`, `DoctorsPage.vue`, `EspecialidadesPage.vue`)
 
 `src/sites/amal/usePublicBooking.js` loads the doctors once and shares them
-between the "Our doctors" section and the booking form. "Our doctors" shows
+between the "Specialties" and "Our doctors" sections and the booking form.
+"Specialties" shows the clinic's real specialties - every specialty of those
+doctors, once, with how many doctors have it - and is hidden when there are
+none (no invented specialties); its **Book appointment** preselects only the
+specialty in the booking form, which then offers that specialty's doctors. "Our doctors" shows
 them (photo or initials, specialties; the profile shows only these real
 fields); its **Book appointment** fills the booking form with that doctor
 (and the specialty when the doctor has only one) and scrolls to it - there is

@@ -6,7 +6,8 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from saude.models.classeexamemedico import ClasseExameMedico
-from saude.models.exam_parameter import ExamParameter, ExamReferenceRange
+from saude.models.exam_parameter import ExamParameter
+from saude.models.exam_reference_range import ExamReferenceRange
 from saude.models.examemedico import ExameMedico
 from saude.models.tipoexamemedico import TipoExameMedico
 from saude.services import exam_catalogue_service as service

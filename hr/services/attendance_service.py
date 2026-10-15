@@ -17,7 +17,8 @@ from datetime import datetime, timedelta
 
 from django.utils import timezone
 
-from hr.models.attendance import Attendance, AttendanceSource
+from hr.models.attendance import Attendance
+from hr.models.attendance_source import AttendanceSource
 from hr.models.shift_schedule import ShiftSchedule
 
 

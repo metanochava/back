@@ -1,7 +1,7 @@
 """Providers do dashboard 'inventory' (ver inventory/dashboard.py).
 
 Reaproveita as agregações já existentes e correctas de
-inventory/views/dashboard.py (StockValueDashboardAPIView,
+inventory/views/*_dashboard.py (StockValueDashboardAPIView,
 LowStockDashboardAPIView, RecentMovementsDashboardAPIView) - não
 duplica a lógica de negócio, só reformata o resultado para os
 contratos normalizados do motor genérico. Esses endpoints antigos

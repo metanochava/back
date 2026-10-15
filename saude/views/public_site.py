@@ -4,7 +4,8 @@ from rest_framework.response import Response
 
 from django_resaas.saas.core.base.views import registerView
 from saude.services import public_site_service
-from saude.views.public_booking import PublicBookingReadThrottle, PublicBookingViewSet
+from saude.views.public_booking_read_throttle import PublicBookingReadThrottle
+from saude.views.public_booking import PublicBookingViewSet
 
 
 @registerView("publicsite")

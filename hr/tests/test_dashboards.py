@@ -1,7 +1,7 @@
 """
 Dashboards por grupo do sidebar hr (ver hr/sidebar.py e
-hr/views/dashboard.py) - mesmo padrão já estabelecido para saude
-(back/saude/views/dashboard.py) nesta mesma iniciativa: um
+hr/views/*_dashboard.py) - mesmo padrão já estabelecido para saude
+(back/saude/views/*_dashboard.py) nesta mesma iniciativa: um
 TenantDashboardAPIView por grupo, permissão
 'view_dashboard_hr_<slug>' registada em MODULE_PERMISSIONS['hr']
 (saas/core/signals/permissions.py), consumida por uma página Vue
@@ -15,37 +15,56 @@ from django.utils import timezone
 
 from django_resaas.saas.models.person import Person
 
-from hr.models.application import Application, ApplicationStatus
+from hr.models.application import Application
+from hr.models.application_status import ApplicationStatus
 from hr.models.attendance import Attendance
-from hr.models.contract import Contract, ContractStatus
+from hr.models.contract import Contract
+from hr.models.contract_status import ContractStatus
 from hr.models.department import Department
-from hr.models.disciplinary_case import DisciplinaryCase, DisciplinaryCaseStatus, DisciplinaryCaseType, DisciplinaryCaseSeverity
+from hr.models.disciplinary_case import DisciplinaryCase
+from hr.models.disciplinary_case_status import DisciplinaryCaseStatus
+from hr.models.disciplinary_case_type import DisciplinaryCaseType
+from hr.models.disciplinary_case_severity import DisciplinaryCaseSeverity
 from hr.models.employee import Employee
-from hr.models.employee_goal import EmployeeGoal, EmployeeGoalStatus
-from hr.models.employee_offboarding import EmployeeOffboarding, EmployeeOffboardingStatus
-from hr.models.employee_onboarding import EmployeeOnboarding, EmployeeOnboardingStatus
+from hr.models.employee_goal import EmployeeGoal
+from hr.models.employee_goal_status import EmployeeGoalStatus
+from hr.models.employee_offboarding import EmployeeOffboarding
+from hr.models.employee_offboarding_status import EmployeeOffboardingStatus
+from hr.models.employee_onboarding import EmployeeOnboarding
+from hr.models.employee_onboarding_status import EmployeeOnboardingStatus
 from hr.models.employee_salary import EmployeeSalary
 from hr.models.employee_shift import EmployeeShift
 from hr.models.employee_specialty import EmployeeSpecialty
-from hr.models.employee_training import EmployeeTraining, EmployeeTrainingStatus
+from hr.models.employee_training import EmployeeTraining
+from hr.models.employee_training_status import EmployeeTrainingStatus
 from hr.models.holiday import Holiday
-from hr.models.interview import Interview, InterviewMode
-from hr.models.job_opening import JobOpening, JobOpeningStatus
+from hr.models.interview import Interview
+from hr.models.interview_mode import InterviewMode
+from hr.models.job_opening import JobOpening
+from hr.models.job_opening_status import JobOpeningStatus
 from hr.models.job_position import JobPosition
-from hr.models.leave_balance_entry import LeaveBalanceEntry, LeaveBalanceEntryType
-from hr.models.leave_request import LeaveRequest, LeaveRequestStatus
+from hr.models.leave_balance_entry import LeaveBalanceEntry
+from hr.models.leave_balance_entry_type import LeaveBalanceEntryType
+from hr.models.leave_request import LeaveRequest
+from hr.models.leave_request_status import LeaveRequestStatus
 from hr.models.leave_type import LeaveType
-from hr.models.payroll import Payroll, PayrollStatus
+from hr.models.payroll import Payroll
+from hr.models.payroll_status import PayrollStatus
 from hr.models.payroll_period import PayrollPeriod
-from hr.models.performance_cycle import PerformanceCycle, PerformanceCycleStatus
-from hr.models.performance_review import PerformanceReview, ReviewStatus, ReviewType
+from hr.models.performance_cycle import PerformanceCycle
+from hr.models.performance_cycle_status import PerformanceCycleStatus
+from hr.models.performance_review import PerformanceReview
+from hr.models.review_status import ReviewStatus
+from hr.models.review_type import ReviewType
 from hr.models.promotion import Promotion
-from hr.models.resignation import Resignation, ResignationStatus
-from hr.models.salary_component import SalaryComponent
+from hr.models.resignation import Resignation
+from hr.models.resignation_status import ResignationStatus
 from hr.models.shift import Shift
 from hr.models.specialty import Specialty
-from hr.models.termination import Termination, TerminationType
-from hr.models.training_session import TrainingSession, TrainingSessionStatus
+from hr.models.termination import Termination
+from hr.models.termination_type import TerminationType
+from hr.models.training_session import TrainingSession
+from hr.models.training_session_status import TrainingSessionStatus
 
 pytestmark = pytest.mark.django_db
 

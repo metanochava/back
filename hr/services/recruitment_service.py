@@ -11,12 +11,8 @@ transition - never imports notifications directly (pedido secção 56/57).
 from django.db import IntegrityError
 from django.utils import timezone
 
-from hr.models.application import (
-    ALLOWED_TRANSITIONS,
-    MOVE_TARGETS,
-    Application,
-    ApplicationStatus,
-)
+from hr.models.application import ALLOWED_TRANSITIONS, MOVE_TARGETS
+from hr.models.application_status import ApplicationStatus
 from hr.models.interview import Interview
 from hr.services.employee_number_service import EmployeeNumberService
 

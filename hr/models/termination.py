@@ -1,14 +1,6 @@
-# hr/models/termination.py
-
 from django.db import models
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class TerminationType(models.TextChoices):
-    VOLUNTARY = "voluntary", "Voluntary"
-    INVOLUNTARY = "involuntary", "Involuntary"
-    RETIREMENT = "retirement", "Retirement"
-    END_OF_CONTRACT = "end_of_contract", "End of Contract"
+from hr.models.termination_type import TerminationType
 
 
 class Termination(BaseModel):

@@ -2112,4 +2112,21 @@ key_value = {
     "Health system": "Sistema de Saúde",
     "The health system Clínica Amal works with: patient records, appointments, a laboratory with structured results and their evolution, pharmacy and sales.": "O sistema de saúde com que a Clínica Amal trabalha: ficha do paciente, marcações, laboratório com resultados estruturados e a sua evolução, farmácia e vendas.",
     "Patient records": "Ficha do paciente",
+
+    # not found page
+    'The page you are looking for does not exist, was moved, or you do not have access to it.': 'A página que procura não existe, foi movida ou não tem acesso a ela.',
+    'Go back': 'Voltar',
+    'Powered by': 'Com tecnologia',
+
+    # site 404 pages
+    'This page does not exist or has moved. Our team is still here to help you.': 'Esta página não existe ou foi movida. A nossa equipa continua aqui para o ajudar.',
+    'The page you are looking for does not exist or has moved. These may help:': 'A página que procura não existe ou foi movida. Estas podem ajudar:',
+    'No such file or directory': 'Ficheiro ou directório inexistente',
+    'This route was never deployed. Head back to the main page.': 'Esta rota nunca foi publicada. Volte à página principal.',
+    'This page is not part of the RESAAS documentation. It may have been renamed or moved.': 'Esta página não faz parte da documentação RESAAS. Pode ter sido renomeada ou movida.',
+    'Blog': 'Blog',
+
+    # Google reviews
+    'reviews on Google': 'avaliações no Google',
+    'See all reviews on Google': 'Ver todas as avaliações no Google',
 }

@@ -1,38 +1,6 @@
-# hr/models/employee_training.py
-
 from django.db import models
-
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class EmployeeTrainingStatus(models.TextChoices):
-    ENROLLED = "enrolled", "Enrolled"
-    ATTENDING = "attending", "Attending"
-    COMPLETED = "completed", "Completed"
-    DROPPED = "dropped", "Dropped"
-    FAILED = "failed", "Failed"
-
-
-# Explicit state machine, same shape as LeaveRequest/Application/
-# EmployeeOnboarding/PerformanceReview (pedido secção 87) - COMPLETED/
-# FAILED/DROPPED are terminal, never reopened. Enforced in
-# hr/services/training_service.py, not here.
-ALLOWED_TRANSITIONS = {
-    EmployeeTrainingStatus.ENROLLED: {
-        EmployeeTrainingStatus.ATTENDING,
-        EmployeeTrainingStatus.COMPLETED,
-        EmployeeTrainingStatus.FAILED,
-        EmployeeTrainingStatus.DROPPED,
-    },
-    EmployeeTrainingStatus.ATTENDING: {
-        EmployeeTrainingStatus.COMPLETED,
-        EmployeeTrainingStatus.FAILED,
-        EmployeeTrainingStatus.DROPPED,
-    },
-    EmployeeTrainingStatus.COMPLETED: set(),
-    EmployeeTrainingStatus.FAILED: set(),
-    EmployeeTrainingStatus.DROPPED: set(),
-}
+from hr.models.employee_training_status import EmployeeTrainingStatus
 
 
 class EmployeeTraining(BaseModel):
@@ -80,3 +48,25 @@ class EmployeeTraining(BaseModel):
 
     def __str__(self):
         return f"{self.employee} - {self.session}"
+
+
+# Explicit state machine, same shape as LeaveRequest/Application/
+# EmployeeOnboarding/PerformanceReview (pedido secção 87) - COMPLETED/
+# FAILED/DROPPED are terminal, never reopened. Enforced in
+# hr/services/training_service.py, not here.
+ALLOWED_TRANSITIONS = {
+    EmployeeTrainingStatus.ENROLLED: {
+        EmployeeTrainingStatus.ATTENDING,
+        EmployeeTrainingStatus.COMPLETED,
+        EmployeeTrainingStatus.FAILED,
+        EmployeeTrainingStatus.DROPPED,
+    },
+    EmployeeTrainingStatus.ATTENDING: {
+        EmployeeTrainingStatus.COMPLETED,
+        EmployeeTrainingStatus.FAILED,
+        EmployeeTrainingStatus.DROPPED,
+    },
+    EmployeeTrainingStatus.COMPLETED: set(),
+    EmployeeTrainingStatus.FAILED: set(),
+    EmployeeTrainingStatus.DROPPED: set(),
+}

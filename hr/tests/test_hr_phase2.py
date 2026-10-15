@@ -16,7 +16,8 @@ import pytest
 
 from django_resaas.saas.core.events import EventDispatcher
 from django_resaas.saas.models.person import Person
-from hr.models.attendance import Attendance, AttendanceSource
+from hr.models.attendance import Attendance
+from hr.models.attendance_source import AttendanceSource
 from hr.models.employee import Employee
 from hr.models.holiday import Holiday
 from hr.models.shift import Shift

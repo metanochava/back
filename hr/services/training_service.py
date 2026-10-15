@@ -14,11 +14,8 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from hr.models.employee_training import (
-    ALLOWED_TRANSITIONS,
-    EmployeeTraining,
-    EmployeeTrainingStatus,
-)
+from hr.models.employee_training import ALLOWED_TRANSITIONS, EmployeeTraining
+from hr.models.employee_training_status import EmployeeTrainingStatus
 
 
 class TrainingError(Exception):
@@ -127,7 +124,7 @@ def mark_failed(enrollment, *, actor=None, result=""):
 
 
 def cancel_session(session, *, actor=None):
-    from hr.models.training_session import TrainingSessionStatus
+    from hr.models.training_session_status import TrainingSessionStatus
 
     if session.status == TrainingSessionStatus.CANCELLED:
         raise TrainingError("This session is already cancelled.")

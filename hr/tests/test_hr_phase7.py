@@ -17,8 +17,9 @@ from django_resaas.saas.core.events import EventDispatcher
 from django_resaas.saas.models.person import Person
 from hr.models.employee import Employee
 from hr.models.course import Course
-from hr.models.training_session import TrainingSession, TrainingSessionStatus
-from hr.models.employee_training import EmployeeTraining, EmployeeTrainingStatus
+from hr.models.training_session import TrainingSession
+from hr.models.training_session_status import TrainingSessionStatus
+from hr.models.employee_training_status import EmployeeTrainingStatus
 from hr.models.certification import Certification
 from hr.services import training_service
 

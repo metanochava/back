@@ -1,23 +1,8 @@
 from django.db import models
 from django.core.exceptions import ValidationError
-
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class EmploymentStatus(models.TextChoices):
-    ACTIVE = "active", "Active"
-    PROBATION = "probation", "Probation"
-    SUSPENDED = "suspended", "Suspended"
-    TERMINATED = "terminated", "Terminated"
-    RESIGNED = "resigned", "Resigned"
-    RETIRED = "retired", "Retired"
-
-
-class EmploymentType(models.TextChoices):
-    FULL_TIME = "full_time", "Full Time"
-    PART_TIME = "part_time", "Part Time"
-    CONTRACTOR = "contractor", "Contractor"
-    INTERN = "intern", "Intern"
+from hr.models.employment_status import EmploymentStatus
+from hr.models.employment_type import EmploymentType
 
 
 # An employee's manager chain is only ever a handful of levels deep in

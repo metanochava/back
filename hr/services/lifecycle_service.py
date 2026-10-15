@@ -13,22 +13,15 @@ notifications directly (pedido secção 56/57).
 
 from django.utils import timezone
 
-from hr.models.disciplinary_case import (
-    ALLOWED_TRANSITIONS as DISCIPLINARY_TRANSITIONS,
-    DisciplinaryCaseStatus,
-)
-from hr.models.employee import EmploymentStatus
-from hr.models.employee_offboarding import (
-    ALLOWED_TRANSITIONS as OFFBOARDING_TRANSITIONS,
-    EmployeeOffboarding,
-    EmployeeOffboardingStatus,
-)
+from hr.models.disciplinary_case import ALLOWED_TRANSITIONS as DISCIPLINARY_TRANSITIONS
+from hr.models.disciplinary_case_status import DisciplinaryCaseStatus
+from hr.models.employment_status import EmploymentStatus
+from hr.models.employee_offboarding import ALLOWED_TRANSITIONS as OFFBOARDING_TRANSITIONS, EmployeeOffboarding
+from hr.models.employee_offboarding_status import EmployeeOffboardingStatus
 from hr.models.employee_offboarding_task import EmployeeOffboardingTask
 from hr.models.promotion import Promotion
-from hr.models.resignation import (
-    ALLOWED_TRANSITIONS as RESIGNATION_TRANSITIONS,
-    ResignationStatus,
-)
+from hr.models.resignation import ALLOWED_TRANSITIONS as RESIGNATION_TRANSITIONS
+from hr.models.resignation_status import ResignationStatus
 from hr.models.termination import Termination
 from hr.models.transfer import Transfer
 

@@ -1,7 +1,7 @@
 """Providers do dashboard 'sales' (ver sales/dashboard.py).
 
 Reaproveita as agregações já existentes e correctas de
-sales/views/dashboard.py (SalesSummaryDashboardAPIView,
+sales/views/*_dashboard.py (SalesSummaryDashboardAPIView,
 SalesTimeseriesDashboardAPIView, TopProductsDashboardAPIView) -
 reformatadas para os contratos normalizados do motor genérico. Esses
 endpoints antigos continuam a existir - ver

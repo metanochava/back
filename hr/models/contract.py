@@ -1,12 +1,6 @@
 from django.db import models
 from django_resaas.saas.core.base.models import BaseModel
-
-
-class ContractStatus(models.TextChoices):
-    DRAFT = "draft", "Draft"
-    ACTIVE = "active", "Active"
-    EXPIRED = "expired", "Expired"
-    TERMINATED = "terminated", "Terminated"
+from hr.models.contract_status import ContractStatus
 
 
 class Contract(BaseModel):
