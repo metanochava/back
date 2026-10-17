@@ -134,6 +134,8 @@ def test_employee_position_not_editable_via_generic_patch(bootstrap_tenant):
         format="json",
     )
     assert response.status_code == 400
+    assert list(response.json()) == ["error"]
+    assert "apply_promotion" in response.json()["error"]["message"]
 
     employee.refresh_from_db()
     assert employee.position_id == position.id

@@ -10,6 +10,7 @@ from django_resaas.saas.core.decorators.action import resaas_action
 from hr.models.performance_review import PerformanceReview
 from hr.serializers.performance_review import PerformanceReviewSerializer
 from hr.services import performance_service
+from django_resaas.saas.core.exceptions.handler import error_response
 
 
 @registerView('performancereviews', module='hr')
@@ -27,7 +28,7 @@ class PerformanceReviewAPIView(BaseAPIView):
             with transaction.atomic():
                 performance_service.submit_review(review, actor=request.user)
         except performance_service.PerformanceError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             PerformanceReviewSerializer(review, context={"request": request}).data,

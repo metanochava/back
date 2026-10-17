@@ -36,6 +36,7 @@ from hr.services.employee_registration_service import (
     EmployeeRegistrationError,
     EmployeeAlreadyExists,
 )
+from django_resaas.saas.core.exceptions.handler import error_response
 
 # Fase 9 (Employee Lifecycle): once created, these fields only change
 # through apply_promotion/apply_transfer below - never a free PATCH -
@@ -72,14 +73,11 @@ class EmployeeAPIView(BaseAPIView):
         locked_present = LOCKED_ON_UPDATE_FIELDS.intersection(request.data.keys())
 
         if locked_present:
-            return Response(
-                {
-                    "detail": (
-                        f"{', '.join(sorted(locked_present))} can only be "
-                        "changed via apply_promotion/apply_transfer."
-                    )
-                },
-                status=status.HTTP_400_BAD_REQUEST,
+            return error_response(
+                request,
+                f"{', '.join(sorted(locked_present))} can only be "
+                "changed via apply_promotion/apply_transfer.",
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
 
         return super().update(request, *args, **kwargs)
@@ -102,10 +100,7 @@ class EmployeeAPIView(BaseAPIView):
         try:
             payload = json.loads(request.data.get("payload") or "{}")
         except (TypeError, ValueError):
-            return Response(
-                {"detail": Translate.tdc(request, "Invalid payload.")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return error_response(request, "Invalid payload.", status_code=status.HTTP_400_BAD_REQUEST)
 
         person_id = payload.get("person_id") or None
 
@@ -129,9 +124,11 @@ class EmployeeAPIView(BaseAPIView):
         missing = [p for p in required_extra if not isPermited(request=request, role=p)]
 
         if missing:
-            return Response(
-                {"detail": f"{Translate.tdc(request, 'Missing permission(s)')}: {', '.join(missing)}."},
-                status=status.HTTP_403_FORBIDDEN,
+            return error_response(
+                request,
+                f"{Translate.tdc(request, 'Missing permission(s)')}: {', '.join(missing)}.",
+                status_code=status.HTTP_403_FORBIDDEN,
+                details={"missing_permissions": missing},
             )
 
         documents = []
@@ -153,12 +150,13 @@ class EmployeeAPIView(BaseAPIView):
                 employee_data=payload.get("employee") or {},
             )
         except EmployeeAlreadyExists as exc:
-            return Response(
-                {
-                    "detail": Translate.tdc(request, "This person is already an employee in this branch."),
-                    "existing_employee_id": str(exc.employee.id),
-                },
-                status=status.HTTP_409_CONFLICT,
+            # the page offers to open the existing record (error.details)
+            return error_response(
+                request,
+                "This person is already an employee in this branch.",
+                status_code=status.HTTP_409_CONFLICT,
+                code="employee_already_exists",
+                details={"existing_employee_id": str(exc.employee.id)},
             )
         except EmployeeRegistrationError as exc:
             return Response(exc.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -186,7 +184,7 @@ class EmployeeAPIView(BaseAPIView):
                     employee, source=source, actor=request.user
                 )
         except attendance_service.AttendanceError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             AttendanceSerializer(attendance, context={"request": request}).data,
@@ -203,7 +201,7 @@ class EmployeeAPIView(BaseAPIView):
                     employee, actor=request.user
                 )
         except attendance_service.AttendanceError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             AttendanceSerializer(attendance, context={"request": request}).data,
@@ -227,10 +225,7 @@ class EmployeeAPIView(BaseAPIView):
                     id=template_id, entity_id=employee.entity_id,
                 )
             except OnboardingTemplate.DoesNotExist:
-                return Response(
-                    {"detail": "Onboarding template not found for this entity."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return error_response(request, "Onboarding template not found for this entity.", status_code=status.HTTP_400_BAD_REQUEST)
 
         try:
             with transaction.atomic():
@@ -238,7 +233,7 @@ class EmployeeAPIView(BaseAPIView):
                     employee, template=template, actor=request.user
                 )
         except onboarding_service.OnboardingError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             EmployeeOnboardingSerializer(onboarding, context={"request": request}).data,
@@ -258,10 +253,7 @@ class EmployeeAPIView(BaseAPIView):
                 id=request.data.get("new_position"), entity_id=employee.entity_id,
             )
         except (JobPosition.DoesNotExist, ValueError, TypeError):
-            return Response(
-                {"detail": "new_position not found for this entity."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return error_response(request, "new_position not found for this entity.", status_code=status.HTTP_400_BAD_REQUEST)
 
         new_job_grade = None
         new_job_grade_id = request.data.get("new_job_grade")
@@ -271,17 +263,11 @@ class EmployeeAPIView(BaseAPIView):
                     id=new_job_grade_id, entity_id=employee.entity_id,
                 )
             except (JobGrade.DoesNotExist, ValueError, TypeError):
-                return Response(
-                    {"detail": "new_job_grade not found for this entity."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return error_response(request, "new_job_grade not found for this entity.", status_code=status.HTTP_400_BAD_REQUEST)
 
         effective_date = request.data.get("effective_date")
         if not effective_date:
-            return Response(
-                {"detail": "effective_date is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return error_response(request, "effective_date is required.", status_code=status.HTTP_400_BAD_REQUEST)
 
         try:
             with transaction.atomic():
@@ -295,7 +281,7 @@ class EmployeeAPIView(BaseAPIView):
                     actor=request.user,
                 )
         except lifecycle_service.LifecycleError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             PromotionSerializer(promotion, context={"request": request}).data,
@@ -309,10 +295,7 @@ class EmployeeAPIView(BaseAPIView):
         try:
             to_branch = Branch.objects.get(id=request.data.get("to_branch"))
         except (Branch.DoesNotExist, ValueError, TypeError):
-            return Response(
-                {"detail": "to_branch not found."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return error_response(request, "to_branch not found.", status_code=status.HTTP_400_BAD_REQUEST)
 
         to_department = None
         to_department_id = request.data.get("to_department")
@@ -320,10 +303,7 @@ class EmployeeAPIView(BaseAPIView):
             try:
                 to_department = Department.objects.get(id=to_department_id)
             except (Department.DoesNotExist, ValueError, TypeError):
-                return Response(
-                    {"detail": "to_department not found."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return error_response(request, "to_department not found.", status_code=status.HTTP_400_BAD_REQUEST)
 
         to_position = None
         to_position_id = request.data.get("to_position")
@@ -331,17 +311,11 @@ class EmployeeAPIView(BaseAPIView):
             try:
                 to_position = JobPosition.objects.get(id=to_position_id)
             except (JobPosition.DoesNotExist, ValueError, TypeError):
-                return Response(
-                    {"detail": "to_position not found."},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+                return error_response(request, "to_position not found.", status_code=status.HTTP_400_BAD_REQUEST)
 
         effective_date = request.data.get("effective_date")
         if not effective_date:
-            return Response(
-                {"detail": "effective_date is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return error_response(request, "effective_date is required.", status_code=status.HTTP_400_BAD_REQUEST)
 
         try:
             with transaction.atomic():
@@ -356,7 +330,7 @@ class EmployeeAPIView(BaseAPIView):
                     actor=request.user,
                 )
         except lifecycle_service.LifecycleError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             TransferSerializer(transfer, context={"request": request}).data,
@@ -371,10 +345,7 @@ class EmployeeAPIView(BaseAPIView):
         termination_date = request.data.get("termination_date")
 
         if not termination_type or not termination_date:
-            return Response(
-                {"detail": "termination_type and termination_date are required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return error_response(request, "termination_type and termination_date are required.", status_code=status.HTTP_400_BAD_REQUEST)
 
         try:
             with transaction.atomic():
@@ -387,7 +358,7 @@ class EmployeeAPIView(BaseAPIView):
                     actor=request.user,
                 )
         except lifecycle_service.LifecycleError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             TerminationSerializer(termination, context={"request": request}).data,
@@ -404,7 +375,7 @@ class EmployeeAPIView(BaseAPIView):
                     employee, actor=request.user,
                 )
         except lifecycle_service.LifecycleError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             EmployeeOffboardingSerializer(offboarding, context={"request": request}).data,

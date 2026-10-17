@@ -10,6 +10,7 @@ from django_resaas.saas.core.decorators.action import resaas_action
 from hr.models.disciplinary_case import DisciplinaryCase
 from hr.serializers.disciplinary_case import DisciplinaryCaseSerializer
 from hr.services import lifecycle_service
+from django_resaas.saas.core.exceptions.handler import error_response
 
 
 @registerView('disciplinarycases', module='hr')
@@ -34,7 +35,7 @@ class DisciplinaryCaseAPIView(BaseAPIView):
             with transaction.atomic():
                 lifecycle_service.start_review(case, actor=request.user)
         except lifecycle_service.LifecycleError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             DisciplinaryCaseSerializer(case, context={"request": request}).data,
@@ -49,7 +50,7 @@ class DisciplinaryCaseAPIView(BaseAPIView):
             with transaction.atomic():
                 lifecycle_service.resolve_case(case, actor=request.user)
         except lifecycle_service.LifecycleError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             DisciplinaryCaseSerializer(case, context={"request": request}).data,
@@ -64,7 +65,7 @@ class DisciplinaryCaseAPIView(BaseAPIView):
             with transaction.atomic():
                 lifecycle_service.dismiss_case(case, actor=request.user)
         except lifecycle_service.LifecycleError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             DisciplinaryCaseSerializer(case, context={"request": request}).data,

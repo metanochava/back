@@ -4,21 +4,21 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "Mytech_saas"
-version = "1.0.78"
+version = "1.0.79"
 description = "Mytech SAAS Framework"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 authors = [
   { name = "Dias Metano Salvador Chavana", email = "metanochava@gmail.com" }
 ]
 
 dependencies = [
+  "django_resaas>=0.0.659",
   "Django==5.2.10",
   "djangorestframework==3.16.1",
   "djangorestframework_simplejwt==5.5.1",
-  "rest-framework-simplejwt==0.0.2",
   "drf-writable-nested==0.7.2",
   "Pillow",
   "pyotp",
@@ -48,4 +48,4 @@ package-dir = {"" = "."}
 where = ["."]
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "saas.settings"
-testpaths = ["hr/tests"]
+testpaths = ["hr", "saude", "inventory", "sales", "farmacia", "purchases", "accounting", "crm", "workflow"]

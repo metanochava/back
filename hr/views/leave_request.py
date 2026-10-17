@@ -10,6 +10,7 @@ from django_resaas.saas.core.decorators.action import resaas_action
 from hr.models.leave_request import LeaveRequest
 from hr.serializers.leave_request import LeaveRequestSerializer
 from hr.services import leave_service
+from django_resaas.saas.core.exceptions.handler import error_response
 
 
 @registerView('leaverequests', module='hr')
@@ -31,7 +32,7 @@ class LeaveRequestAPIView(BaseAPIView):
             with transaction.atomic():
                 leave_service.submit(leave_request, actor=request.user)
         except leave_service.LeaveError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             LeaveRequestSerializer(leave_request, context={"request": request}).data,
@@ -46,7 +47,7 @@ class LeaveRequestAPIView(BaseAPIView):
             with transaction.atomic():
                 leave_service.approve(leave_request, actor=request.user)
         except leave_service.LeaveError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             LeaveRequestSerializer(leave_request, context={"request": request}).data,
@@ -62,7 +63,7 @@ class LeaveRequestAPIView(BaseAPIView):
             with transaction.atomic():
                 leave_service.reject(leave_request, actor=request.user, reason=reason)
         except leave_service.LeaveError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             LeaveRequestSerializer(leave_request, context={"request": request}).data,
@@ -77,7 +78,7 @@ class LeaveRequestAPIView(BaseAPIView):
             with transaction.atomic():
                 leave_service.cancel(leave_request, actor=request.user)
         except leave_service.LeaveError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             LeaveRequestSerializer(leave_request, context={"request": request}).data,

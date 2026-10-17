@@ -10,6 +10,7 @@ from django_resaas.saas.core.decorators.action import resaas_action
 from hr.models.employee_training import EmployeeTraining
 from hr.serializers.employee_training import EmployeeTrainingSerializer
 from hr.services import training_service
+from django_resaas.saas.core.exceptions.handler import error_response
 
 
 @registerView('employeetrainings', module='hr')
@@ -43,7 +44,7 @@ class EmployeeTrainingAPIView(BaseAPIView):
                     enrollment, actor=request.user, score=score, result=result,
                 )
         except training_service.TrainingError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             EmployeeTrainingSerializer(enrollment, context={"request": request}).data,
@@ -60,7 +61,7 @@ class EmployeeTrainingAPIView(BaseAPIView):
             with transaction.atomic():
                 training_service.mark_failed(enrollment, actor=request.user, result=result)
         except training_service.TrainingError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             EmployeeTrainingSerializer(enrollment, context={"request": request}).data,
