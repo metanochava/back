@@ -12,6 +12,7 @@ from hr.serializers.employee_offboarding_task import (
     EmployeeOffboardingTaskSerializer,
 )
 from hr.services import lifecycle_service
+from django_resaas.saas.core.exceptions.handler import error_response
 
 
 @registerView('employeeoffboardingtasks', module='hr')
@@ -28,7 +29,7 @@ class EmployeeOffboardingTaskAPIView(BaseAPIView):
             with transaction.atomic():
                 lifecycle_service.complete_offboarding_task(task, actor=request.user, notes=notes)
         except lifecycle_service.LifecycleError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             EmployeeOffboardingTaskSerializer(task, context={"request": request}).data,
@@ -43,7 +44,7 @@ class EmployeeOffboardingTaskAPIView(BaseAPIView):
             with transaction.atomic():
                 lifecycle_service.reopen_offboarding_task(task, actor=request.user)
         except lifecycle_service.LifecycleError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             EmployeeOffboardingTaskSerializer(task, context={"request": request}).data,

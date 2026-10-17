@@ -116,7 +116,11 @@ def test_register_blocks_a_second_employee_for_the_same_person_and_branch(bootst
     })
 
     assert response.status_code == 409, response.data
-    assert response.data["existing_employee_id"]
+    # the error contract: the page opens the existing record from error.details
+    error = response.json()["error"]
+    assert list(response.json()) == ["error"]
+    assert error["code"] == "employee_already_exists"
+    assert error["details"]["existing_employee_id"]
     assert Employee.objects.filter(person=person).count() == 1
 
 

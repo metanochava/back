@@ -11,6 +11,7 @@ from hr.models.payroll import Payroll
 from hr.serializers.payroll import PayrollSerializer
 from hr.serializers.payslip import PayslipSerializer
 from hr.services import payroll_service
+from django_resaas.saas.core.exceptions.handler import error_response
 
 
 @registerView('payrolls', module='hr')
@@ -25,7 +26,7 @@ class PayrollAPIView(BaseAPIView):
             with transaction.atomic():
                 func(payroll, actor=request.user)
         except payroll_service.PayrollError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             PayrollSerializer(payroll, context={"request": request}).data,
@@ -53,7 +54,7 @@ class PayrollAPIView(BaseAPIView):
             # hr/services/payroll_service.py.
             payroll, payslip = payroll_service.confirm_payroll(payroll, actor=request.user)
         except payroll_service.PayrollError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         data = PayrollSerializer(payroll, context={"request": request}).data
         data["payslip"] = PayslipSerializer(payslip, context={"request": request}).data

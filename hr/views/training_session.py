@@ -12,6 +12,7 @@ from hr.models.employee import Employee
 from hr.serializers.training_session import TrainingSessionSerializer
 from hr.serializers.employee_training import EmployeeTrainingSerializer
 from hr.services import training_service
+from django_resaas.saas.core.exceptions.handler import error_response
 
 
 @registerView('trainingsessions', module='hr')
@@ -28,10 +29,7 @@ class TrainingSessionAPIView(BaseAPIView):
         employee_id = request.data.get("employee")
 
         if not employee_id:
-            return Response(
-                {"detail": "employee is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return error_response(request, "employee is required.", status_code=status.HTTP_400_BAD_REQUEST)
 
         # Looked up scoped to the session's own entity, not the generic
         # (tenant-filtered-by-context) queryset - the employee id comes
@@ -40,16 +38,13 @@ class TrainingSessionAPIView(BaseAPIView):
         try:
             employee = Employee.objects.get(id=employee_id, entity_id=session.entity_id)
         except Employee.DoesNotExist:
-            return Response(
-                {"detail": "Employee not found."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return error_response(request, "Employee not found.", status_code=status.HTTP_400_BAD_REQUEST)
 
         try:
             with transaction.atomic():
                 enrollment = training_service.enroll(session, employee, actor=request.user)
         except training_service.TrainingError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             EmployeeTrainingSerializer(enrollment, context={"request": request}).data,
@@ -64,7 +59,7 @@ class TrainingSessionAPIView(BaseAPIView):
             with transaction.atomic():
                 training_service.cancel_session(session, actor=request.user)
         except training_service.TrainingError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             TrainingSessionSerializer(session, context={"request": request}).data,

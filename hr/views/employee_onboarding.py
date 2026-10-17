@@ -10,6 +10,7 @@ from django_resaas.saas.core.decorators.action import resaas_action
 from hr.models.employee_onboarding import EmployeeOnboarding
 from hr.serializers.employee_onboarding import EmployeeOnboardingSerializer
 from hr.services import onboarding_service
+from django_resaas.saas.core.exceptions.handler import error_response
 
 
 @registerView('employeeonboardings', module='hr')
@@ -38,7 +39,7 @@ class EmployeeOnboardingAPIView(BaseAPIView):
             with transaction.atomic():
                 onboarding_service.complete_onboarding(onboarding, actor=request.user)
         except onboarding_service.OnboardingError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             EmployeeOnboardingSerializer(onboarding, context={"request": request}).data,
@@ -53,7 +54,7 @@ class EmployeeOnboardingAPIView(BaseAPIView):
             with transaction.atomic():
                 onboarding_service.cancel_onboarding(onboarding, actor=request.user)
         except onboarding_service.OnboardingError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             EmployeeOnboardingSerializer(onboarding, context={"request": request}).data,

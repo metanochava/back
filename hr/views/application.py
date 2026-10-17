@@ -14,6 +14,7 @@ from hr.models.employee import Employee
 from hr.serializers.application import ApplicationSerializer
 from hr.serializers.employee import EmployeeSerializer
 from hr.services import recruitment_service
+from django_resaas.saas.core.exceptions.handler import error_response
 
 
 @registerView('applications', module='hr')
@@ -44,7 +45,7 @@ class ApplicationAPIView(BaseAPIView):
                     application, target_status=target_status, actor=request.user
                 )
         except recruitment_service.RecruitmentError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             ApplicationSerializer(application, context={"request": request}).data,
@@ -87,7 +88,7 @@ class ApplicationAPIView(BaseAPIView):
                     notes=request.data.get("notes") or "",
                 )
         except recruitment_service.RecruitmentError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         from hr.serializers.interview import InterviewSerializer
 
@@ -104,7 +105,7 @@ class ApplicationAPIView(BaseAPIView):
             with transaction.atomic():
                 employee = recruitment_service.hire(application, actor=request.user)
         except recruitment_service.RecruitmentError as exc:
-            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+            return error_response(request, str(exc), status_code=status.HTTP_400_BAD_REQUEST)
 
         return Response(
             EmployeeSerializer(employee, context={"request": request}).data,
