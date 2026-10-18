@@ -62,3 +62,9 @@ Makefile
 current
 previous
 firebase.json
+# secrets and local runtime output - never versioned
+.env
+.env.*
+!.env.example
+*.log
+a.out
