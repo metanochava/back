@@ -24,7 +24,21 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'django_resaas.User'
-DEBUG = int(os.environ.get("DEBUG", default=0))
+def _env_flag(name, default="0"):
+    # "1"/"0" (and true/false, yes/no, on/off); anything else is refused
+    # instead of being guessed - a typo must never turn DEBUG on.
+    value = os.environ.get(name, default).strip().lower()
+    if value in ("1", "true", "yes", "on"):
+        return True
+    if value in ("0", "false", "no", "off", ""):
+        return False
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured(f"{name} must be 0 or 1.")
+
+
+# 0 (the default) in production: with DEBUG on, any error page shows the
+# URLconf, settings and local variables to whoever triggers it.
+DEBUG = _env_flag("DEBUG")
 TIME_ZONE = os.environ.get("TIME_ZONE")
 LANGUAGE_CODE = 'EN-US'
 
@@ -92,6 +106,10 @@ if DEBUG:
     CORS_ALLOWED_ORIGIN_REGEXES.append(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+# outside DEBUG the session/CSRF cookies (admin) only travel over HTTPS;
+# HTTPS redirect and HSTS are set by the web server in front of gunicorn
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
 
 # --------------------------
 # Middleware

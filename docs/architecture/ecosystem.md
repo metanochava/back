@@ -34,7 +34,7 @@ Four repositories, two reusable frameworks and one application built on them.
 |---|---|---|
 | Source (`/var/www/lib`) | 0.0.659 | 0.0.1456 |
 | dev back venv | 0.0.656 | - |
-| pro back venv | 0.0.646 | - |
+| pro back venv | 0.0.659 (migrations 0001-0008 applied, 2026-10-18) | - |
 | `front` lockfile | - | 0.0.1450 (commit `5cd8a32d`) |
 
 Installations behind the source miss the security fixes listed in

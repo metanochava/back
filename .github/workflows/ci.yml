@@ -13,9 +13,26 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # PostgreSQL, not SQLite: the inventory/sales concurrency tests use real
+    # threads with select_for_update(), which SQLite cannot run
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci-only-not-a-secret
+          POSTGRES_DB: ci
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ci" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       SECRET_KEY: ci-only-not-a-secret
-      SQL_ENGINE: sqlite3
+      SQL_ENGINE: postgresql
+      SQL_DATABASE: ci
+      SQL_USER: ci
+      SQL_PASSWORD: ci-only-not-a-secret
+      SQL_HOST: localhost
+      SQL_PORT: "5432"
       URL_FILE_KEY: ci-only-not-a-secret
       ALLOWED_HOSTS: localhost
     steps:
@@ -31,7 +48,7 @@ jobs:
       - run: python manage.py check
       - run: python manage.py makemigrations --check --dry-run
       # the real migrations, once, on an empty database
-      - run: SQL_DATABASE=/tmp/ci-migrate.sqlite3 python manage.py migrate --noinput
+      - run: python manage.py migrate --noinput
       # every module's tests (testpaths in pyproject.toml); tables from the models
       - run: python -m pytest --nomigrations -q -rfE
 
