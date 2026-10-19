@@ -322,6 +322,44 @@ def get_price(product_id, entity_id, price_list_id=None, quantity=1, date=None):
     return {"price": product.preco_base, "price_list": None}
 
 
+def get_prices(product_ids, entity_id, price_list_id=None, date=None):
+    """get_price() for several of the Entity's products at once (quantity 1),
+    in a fixed number of queries: {product_id: {"price", "price_list",
+    "ativo"}}. Same rule: the list's price when the list is active and valid
+    on `date` and has the product, else Product.preco_base. Unknown products,
+    or another Entity's, are left out."""
+
+    products = {
+        row["id"]: row
+        for row in Product.objects.filter(id__in=list(product_ids), entity_id=entity_id).values("id", "preco_base", "ativo")
+    }
+    if not products:
+        return {}
+
+    date = date or timezone.localdate()
+    listed = {}
+    if price_list_id:
+        price_list = (
+            PriceList.objects.filter(id=price_list_id, entity_id=entity_id, active=True)
+            .filter(Q(valid_from__isnull=True) | Q(valid_from__lte=date))
+            .filter(Q(valid_to__isnull=True) | Q(valid_to__gte=date))
+            .first()
+        )
+        if price_list is not None:
+            # the item for the highest min_quantity <= 1, per product
+            for item in (
+                PriceListItem.objects.filter(price_list=price_list, product_id__in=products, min_quantity__lte=Decimal("1"))
+                .order_by("product_id", "-min_quantity")
+            ):
+                listed.setdefault(item.product_id, (item.price, str(price_list.id)))
+
+    result = {}
+    for product_id, row in products.items():
+        price, price_list = listed.get(product_id, (row["preco_base"], None))
+        result[product_id] = {"price": price, "price_list": price_list, "ativo": row["ativo"]}
+    return result
+
+
 def get_price_list_snapshot(price_list_id, entity_id):
     """{"id", "name"} of one of the Entity's price lists, or None."""
     try:
@@ -517,6 +555,50 @@ def reserve_stock(lines, *, warehouse_id, entity_id, exclude_source=None):
     return resultado
 
 
+def branch_available_quantities(product_ids, *, entity_id, branch_id):
+    """
+    {product_id: quantity} that can still be sold of each of the Entity's
+    products, summed over the Branch's active warehouses: on hand (for a
+    product with lots, only lots that are not expired) minus what active
+    reservations hold - the same rule as reserve_stock(). A service maps to
+    None (it has no stock); an unknown product, or one of another Entity, is
+    left out. Read only: nothing is reserved.
+    """
+
+    product_ids = list(product_ids)
+    if not product_ids:
+        return {}
+
+    products = dict(Product.objects.filter(id__in=product_ids, entity_id=entity_id).values_list("id", "product_type"))
+    services_ids = {product_id for product_id, kind in products.items() if kind == Product.TYPE_SERVICE}
+    lines = [{"product_id": product_id, "quantidade": Decimal("0")} for product_id in products if product_id not in services_ids]
+    totals = {product_id: (None if product_id in services_ids else Decimal("0")) for product_id in products}
+
+    warehouses = Warehouse.objects.filter(entity_id=entity_id, branch_id=branch_id, ativo=True).values_list("id", flat=True)
+    for warehouse_id in warehouses:
+        for row in reserve_stock(lines, warehouse_id=warehouse_id, entity_id=entity_id):
+            totals[row["product_id"]] += row["quantidade_disponivel"]
+
+    return totals
+
+
+def branch_warehouse_for(lines, *, entity_id, branch_id):
+    """
+    id of the first active warehouse of the Branch (by name) that can serve
+    EVERY line on its own - lines is {product_id: quantity} - or None. Same
+    availability rule as reserve_stock(). Read only: the caller reserves.
+    """
+
+    wanted = [{"product_id": product_id, "quantidade": Decimal(quantity)} for product_id, quantity in lines.items()]
+    if not wanted:
+        return None
+    warehouses = Warehouse.objects.filter(entity_id=entity_id, branch_id=branch_id, ativo=True).order_by("nome")
+    for warehouse_id in warehouses.values_list("id", flat=True):
+        if all(row["disponivel"] for row in reserve_stock(wanted, warehouse_id=warehouse_id, entity_id=entity_id)):
+            return warehouse_id
+    return None
+
+
 # =========================================================
 # ✍️ MOVIMENTO (ÚNICO PONTO DE ESCRITA DE STOCK)
 # =========================================================
@@ -708,6 +790,7 @@ def get_product_snapshot(product_id, entity_id=None):
         "preco_base": product.preco_base,
         "track_batches": product.track_batches,
         "product_type": product.product_type,
+        "ativo": product.ativo,
     }
 
 

@@ -72,6 +72,48 @@ def price_for(sale, product_id, quantity=1):
 
 
 # =========================================================
+# CREATE FROM LINES (for other modules, e.g. a counter / an online order)
+# =========================================================
+
+PAYMENT_METHODS = tuple(code for code, _ in Payment.FORMA_CHOICES)
+
+
+@transaction.atomic
+def create_sale(*, entity_id, branch_id, user, lines, warehouse_id=None, observacao=None):
+    """
+    A draft Sale of the Entity with these product lines - lines is an iterable
+    of {"product_id", "quantidade", "preco_unitario"} - and its totals. Each
+    product must be one of the Entity's inventory products: its name and code
+    are a snapshot (as SaleItemAPIView does). The caller decides the price; it
+    then confirms / pays with confirm_sale() and add_payment().
+    """
+    from sales.models import SaleItem
+
+    inventory_services = inventory()
+    if inventory_services is None:
+        raise ValidationError("The inventory module is required to sell products.")
+    lines = list(lines)
+    if not lines:
+        raise ValidationError("A sale needs at least one line.")
+
+    sale = Sale.objects.create(
+        entity_id=entity_id, branch_id=branch_id, warehouse_id=warehouse_id, observacao=observacao,
+        created_by=user, updated_by=user,
+    )
+    for line in lines:
+        snapshot = inventory_services.get_product_snapshot(line["product_id"], entity_id=entity_id)
+        if snapshot is None:
+            raise ValidationError("Product not found.")
+        SaleItem.objects.create(
+            sale=sale, product_id=line["product_id"], product_nome=snapshot["nome"],
+            product_codigo=snapshot["codigo"], quantidade=Decimal(line["quantidade"]),
+            preco_unitario=Decimal(line["preco_unitario"]),
+            entity_id=entity_id, branch_id=branch_id, created_by=user, updated_by=user,
+        )
+    return recalculate_totals(sale)
+
+
+# =========================================================
 # 🔀 MÁQUINA DE ESTADOS EXPLÍCITA
 # =========================================================
 
