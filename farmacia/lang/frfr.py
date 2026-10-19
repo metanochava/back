@@ -78,6 +78,8 @@ key_value = {
     "A medicine can have at most 10 photos or videos.": "Un médicament peut avoir au maximum 10 photos ou vidéos.",
     "Video": "Vidéo",
     "Gallery": "Galerie",
+    "Online reservation": "Réservation en ligne",
+    "Directions": "Itinéraire",
     "Your location": "Votre position",
     "Medicines at this pharmacy": "Médicaments de cette pharmacie",
     "Minimum price": "Prix minimum",
