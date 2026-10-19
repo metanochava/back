@@ -22,6 +22,17 @@ FARMACIA_PROFILES = [
             "view_itemdispensa", "add_itemdispensa",
             "revisar_filafarmacia", "dispensar_filafarmacia", "concluir_filafarmacia",
             "view_farmacia_dashboard",
+            # marketplace: the Branch's listing and offers; the common
+            # catalogue is read only (Root writes it)
+            "list_medicinecatalogitem", "view_medicinecatalogitem",
+            "list_medicinecatalogmedia", "view_medicinecatalogmedia",
+            "list_pharmacylisting", "view_pharmacylisting", "add_pharmacylisting", "change_pharmacylisting",
+            "list_pharmacyoffer", "view_pharmacyoffer", "add_pharmacyoffer", "change_pharmacyoffer",
+            "delete_pharmacyoffer",
+            # online orders and the counter (a paper prescription is verified by a person)
+            "list_onlineorder", "view_onlineorder", "collect_onlineorder", "cancel_onlineorder",
+            "list_countersale", "view_countersale", "add_countersale",
+            "lookup_patient_filafarmacia", "enqueue_filafarmacia",
         ],
     },
     {
@@ -31,6 +42,12 @@ FARMACIA_PROFILES = [
             "revisar_filafarmacia", "dispensar_filafarmacia", "concluir_filafarmacia",
             "view_dispensa", "add_dispensa",
             "view_itemdispensa", "add_itemdispensa",
+            "list_medicinecatalogitem", "view_medicinecatalogitem",
+            "list_medicinecatalogmedia", "view_medicinecatalogmedia",
+            "list_pharmacyoffer", "view_pharmacyoffer",
+            "list_onlineorder", "view_onlineorder", "collect_onlineorder", "cancel_onlineorder",
+            "list_countersale", "view_countersale", "add_countersale",
+            "lookup_patient_filafarmacia", "enqueue_filafarmacia",
         ],
     },
     {

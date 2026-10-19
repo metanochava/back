@@ -121,4 +121,9 @@ key_value = {
 
     # catalogue: services, variants, price lists
     "Price of a product for this sale's customer": 'Preço de um produto para o cliente desta venda',
+
+    # create_sale() (for other modules)
+    "A sale needs at least one line.": 'Uma venda precisa de pelo menos uma linha.',
+    "The inventory module is required to sell products.": 'O módulo de inventário é necessário para vender produtos.',
+
 }
