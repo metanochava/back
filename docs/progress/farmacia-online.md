@@ -274,9 +274,11 @@ mostrado pela farmácia); remover é o botão vermelho (`negative`).
 
 **Mapa das farmácias.** "Farmácias próximas" mostra só o mapa (Google Maps, chave
 `GOOGLE_MAPS_API_KEY` do `.env`, via `quasar.config.js`), com um marcador por farmácia
-listada nas `coordinates` da morada principal da sucursal; a janela do marcador tem
-nome, organização, morada, telefone, horário, distância e (com sessão) "Medicines at this
-pharmacy". A posição do dispositivo, se partilhada, é um ponto azul. Farmácias sem
+listada nas `coordinates` da morada principal da sucursal; a janela do marcador é um
+cartão (`.pharmacy-pin`, CSS global em `PharmaciesMap.vue` porque vive dentro da InfoWindow
+do Google): nome, organização, distância, morada, telefone (`tel:`), horário, selo "Online
+reservation"/"In-store only", botão "Medicines at this pharmacy" (com sessão) e "Directions"
+(Google Maps, nova janela). Todo o texto entra por `textContent`. A posição do dispositivo, se partilhada, é um ponto azul. Farmácias sem
 coordenadas nunca são colocadas num ponto inventado: ficam fora do mapa e uma nota
 indica quantas. Sem chave ou se o script falhar, a página volta a mostrar a lista em
 cartões. Os filtros e "Show more" (mais marcadores) mantêm-se. O botão "Expand map" (canto inferior
