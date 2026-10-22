@@ -70,6 +70,17 @@ class NearbyPharmaciesTests(MarketplaceTestCase):
         self.assertEqual([row["name"] for row in rows], [self.far.branch.name])
         self.assertIsNone(rows[0]["distance_km"])
 
+    def test_one_field_finds_by_name_address_city_or_country_word_by_word(self):
+        def names(q):
+            return [row["name"] for row in self.public.get(PHARMACIES, {"q": q}).json()["results"]]
+
+        self.assertEqual(names("matola"), [self.far.branch.name])               # city
+        self.assertEqual(names("BEIRA"), [self.no_coordinates.branch.name])     # any case
+        self.assertEqual(names(f"{self.far.branch.name} matola"), [self.far.branch.name])  # words in any field
+        self.assertEqual(len(names("mozambique")), 3)  # country: not in the formatted address
+        self.assertEqual(names("matola beira"), [])                             # every word must match
+        self.assertEqual(len(names("")), 3)
+
     def test_unpublished_or_inactive_module_pharmacies_are_not_listed(self):
         EntityApp.objects.filter(entity=self.near.entity, app__name="farmacia").update(state="Inactive")
 

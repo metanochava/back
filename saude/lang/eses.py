@@ -2129,4 +2129,9 @@ key_value = {
     # Google reviews
     'reviews on Google': 'reseñas en Google',
     'See all reviews on Google': 'Ver todas las reseñas en Google',
+    # exam request PDF
+    'General notes': 'Observaciones generales',
+    'Requesting doctor': 'Médico solicitante',
+    'No exam requested.': 'Ningún examen solicitado.',
+    'No clinical information recorded.': 'Sin información clínica registrada.',
 }

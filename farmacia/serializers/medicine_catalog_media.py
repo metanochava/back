@@ -1,43 +1,46 @@
-import os
-
-from PIL import Image, UnidentifiedImageError
 from rest_framework import serializers
 
 from django_resaas.saas.core.base.serializers import BaseSerializer
-from farmacia.models.medicine_catalog_item import PHOTO_MAX_SIZE, VIDEO_EXTENSIONS, VIDEO_MAX_SIZE
+from farmacia import catalogue_media_service as media_service
 from farmacia.models.medicine_catalog_media import MAX_MEDIA_PER_ITEM, MedicineCatalogMedia
 
 
 class MedicineCatalogMediaSerializer(BaseSerializer):
-    # catalogue media are public product images/videos (shown in the marketplace)
-    permanent_fields_files = ["file"]
+    """media_file is a django_resaas File created from `upload` (write only) on
+    create; read as {id, url, name, ext, kind, size}. A gallery item cannot be
+    re-pointed to another File: replace it by deleting and adding."""
+
+    upload = serializers.FileField(write_only=True, required=False)
 
     class Meta:
         model = MedicineCatalogMedia
         fields = "__all__"
+        read_only_fields = ["media_file"]
 
-    def validate_file(self, file):
-        """Photos up to 5 MB and really images (Pillow); videos up to 50 MB.
-        The extension is checked by the model field's validator."""
-        ext = os.path.splitext(getattr(file, "name", ""))[1].lstrip(".").lower()
-        if ext in VIDEO_EXTENSIONS:
-            if file.size > VIDEO_MAX_SIZE:
-                raise serializers.ValidationError("The video must be at most 50 MB.")
-            return file
-        if file.size > PHOTO_MAX_SIZE:
-            raise serializers.ValidationError("The photo must be at most 5 MB.")
-        try:
-            Image.open(file).verify()
-        except (UnidentifiedImageError, OSError, SyntaxError):
-            raise serializers.ValidationError("Upload a valid image.")
-        finally:
-            file.seek(0)
-        return file
+    def validate_upload(self, upload):
+        return media_service.validate_upload(upload, allow_video=True)
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
-        item = attrs.get("catalog_item") or getattr(self.instance, "catalog_item", None)
-        if self.instance is None and item is not None:
-            if MedicineCatalogMedia.objects.filter(catalog_item=item).count() >= MAX_MEDIA_PER_ITEM:
+        if self.instance is None:
+            if not attrs.get("upload"):
+                raise serializers.ValidationError({"upload": ["Choose a photo or a video."]})
+            item = attrs.get("catalog_item")
+            if item is not None and MedicineCatalogMedia.objects.filter(catalog_item=item).count() >= MAX_MEDIA_PER_ITEM:
                 raise serializers.ValidationError("A medicine can have at most 10 photos or videos.")
+        elif "upload" in attrs:
+            raise serializers.ValidationError({"upload": ["To change the file, delete this item and add a new one."]})
         return attrs
+
+    def create(self, validated_data):
+        upload = validated_data.pop("upload")
+        validated_data["media_file"] = media_service.store(
+            upload, request=self.context.get("request"),
+            model="farmacia.MedicineCatalogMedia", functionality="Photo",
+        )
+        return super().create(validated_data)
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data["media_file"] = media_service.describe(self.context.get("request"), instance.media_file)
+        return data

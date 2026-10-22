@@ -72,23 +72,8 @@ class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
         methods=['GET'],
     )
     def pdf(self, request, *args, **kwargs):
-        entity = Entity.objects.get(id=self.get_object().entity.id)
         pedido = self.get_object()
-        paciente = pedido.patient
-
-        items = (
-            pedido.items
-            .select_related(
-                "exame",
-                "exame__classe_exame_medico",
-                "exame__classe_exame_medico__tipo_exame_medico",
-            )
-            .order_by(
-                "exame__classe_exame_medico__tipo_exame_medico__ordem",
-                "exame__classe_exame_medico__ordem",
-                "exame__nome",
-            )
-        )
+        entity = Entity.objects.get(id=pedido.entity.id)
 
         logo_b64 = None
         try:
@@ -99,20 +84,16 @@ class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
         except FileNotFoundError:
             logo_b64 = None
 
-        qr_b64 = make_qr_b64(f"{pedido.id}")
-        barcode_b64 = make_barcode_b64(f"{pedido.id}")
-        
+        # patient, exams, address, age and the translated texts: exam_request_service.pdf_context
         return PDF(
             "saude/pedidoexamemedico.html",
             request,
             entity=entity,
-            pedido=pedido,
-            items=items,
             logo_b64=logo_b64,
             qr_b64=make_qr_b64(str(pedido.id)),
             barcode_b64=make_barcode_b64(str(pedido.id)),
-            paciente=paciente,
             signer_name=author_name(pedido),
+            **exam_request_service.pdf_context(request, pedido),
         )
 
 

@@ -150,7 +150,7 @@ A disponibilidade já é a real desde a fase 1 (`branch_available_quantities`: s
 armazéns activos − reservas − lotes expirados). A fase 2 acrescenta o seed:
 
 ```
-python manage.py seed_pharmacy_demo --actor-user <utilizador> [--pharmacies 1-5] [--entity-type Farmacia] [--dry-run]
+python manage.py seed_pharmacy_demo --actor-user <utilizador> [--region mozambique|ahmedabad] [--pharmacies N] [--entity-type Farmacia] [--dry-run]
 ```
 
 | Regra | Como |
@@ -167,7 +167,11 @@ Matola com coordenadas; preços ±15% à volta de um preço base (comparáveis e
 farmácias); algumas ofertas esgotadas de propósito; `show_quantity` em farmácias alternadas.
 
 Serviço `farmacia/demo_seed_service.py`; comando `farmacia/management/commands/seed_pharmacy_demo.py`;
-testes `farmacia/tests/test_demo_seed.py` (9: criação, aparece na pesquisa com preços
+`--region` (`REGIONS` no serviço) escolhe onde ficam as farmácias, com país, moeda e telefone fictício
+da região: `mozambique` (por omissão, 5, MZN) ou `ahmedabad` (2 em Chandkheda, Índia, INR — para testar o mapa
+e o raio de 3 km a partir dali). Em `dev` (2026-10-20): `--region ahmedabad --pharmacies 2` → 2 farmácias,
+16 ofertas, 278 unidades.
+testes `farmacia/tests/test_demo_seed.py` (10, inclui a região; criação, aparece na pesquisa com preços
 diferentes, segunda execução não cria nada, acrescentar farmácias, dry-run, farmácia e
 catálogo reais intactos, entradas explícitas, recusa sem `DEBUG`, contagens do comando).
 
@@ -266,9 +270,40 @@ por `sync_actions`; os perfis aplicam-se com `group_creator` (no `pro`, via `mig
 | `counter/PatientLookupPage.vue` | `farmacia_patient_lookup` | `lookupPatient`, `enqueuePrescription` |
 
 **Disposição.** O site da Farmácia (`SitePage.vue`) e `/farmacia_online` (`MarketplacePage.vue`)
-têm duas colunas a partir de `md`: à esquerda pesquisa, carrinho e reservas (`col-md-7`), à direita
-as farmácias no mapa (`col-md-5`); abaixo de `md` ficam empilhadas. A partir de 1024px a coluna do mapa é `position: sticky`
-(`top: 72px`, como `UserAccountPage` do quasar_resaas) e fica à vista durante o scroll.
+usam o mesmo `marketplace/MarketplaceLayout.vue` (prop `signedIn`; slot `signed-out` para o aviso de
+login do site). A partir de `md` (1024px): duas colunas, à esquerda pesquisa, carrinho e reservas
+(`col-md-7`), à direita as farmácias no mapa (`col-md-5`, `position: sticky`, `top: 72px`, como
+`UserAccountPage` do quasar_resaas).
+
+*Telemóvel e tablet (abaixo de `md`, 2026-10-20).* Uma secção de cada vez, escolhida por separadores
+(`q-tabs`, ícone sobre o texto, 56px): **Medicines**, **Pharmacies** e, com sessão, **Reservations**
+(com o número de unidades no carrinho). Os separadores são uma barra fixa em baixo, colada ao rodapé
+(`q-page-sticky position="bottom"`, que usa a altura do rodapé do layout; indicador em cima, 56px); o botão
+"View reservation" fica 12px acima dela. Na pesquisa, "In stock" está na mesma linha do campo de pesquisa e a
+dica "Type at least two letters of a medicine." é o `hint` desse campo, só a partir de `md` (no telemóvel não aparece). A partir de `md`, por baixo, "Sort by", preço mínimo e máximo ficam a `col-4` cada (espaço vertical `xs`). No telemóvel (2026-10-20) a secção é só o campo de pesquisa, sem título: "In stock", "Sort by" e o intervalo de preço estão num menu (`q-menu`) aberto pelo botão `tune` dentro do campo, à direita, com um contador dos filtros fora do valor por defeito. O menu abre centrado por baixo do campo e com a largura dele (`target` = o campo, `fit`, `no-parent-event`: tocar no campo para escrever não o abre); o campo fica fixo 8px (sm) por baixo do cabeçalho da app enquanto os resultados fazem scroll (`position: sticky`); não há padding à volta - o próprio campo é o cartão (fundo branco e sombra, sem espaço de dica por baixo). Regra (2026-10-20): todos os botões têm tooltip - `<s-tooltip>` com o próprio rótulo nos `s-btn`/`q-btn`, `title` nos botões do cartão do mapa. O campo de pesquisa (`PharmacySearchField.vue`, texto dentro: "Nearby pharmacies: name or address", sem rótulo por cima; o próprio campo é o cartão, sem padding, fundo branco e sombra) fica a flutuar no topo do mapa, centrado (slot `top` de `PharmaciesMap`, até 440px), também no ecrã inteiro; a barra da rota fica 8px por baixo dele. No telemóvel (abaixo de `md`) a grelha não tem gutter (uma coluna de cada vez) e o mapa vai de margem a margem, sem bordas nem cantos redondos. A altura do mapa é calculada para acabar onde começa a barra de separadores (`--marketplace-map-height`, `fitMapHeight` em `MarketplaceLayout.vue`: altura da janela menos o topo do mapa, o rodapé e a barra; recalculada ao redimensionar, ao voltar ao separador e quando muda o que está por cima; mínimo 240px - num ecrã muito baixo há scroll). O mapa mostra-se mesmo quando a pesquisa não encontra farmácias (o campo não pode desaparecer enquanto se escreve); sem chave do Google ou com o script falhado, o campo volta para cima da lista. "Use my location" é um botão-ícone dentro do campo "Name or address" (verde enquanto a posição está em uso). A secção Pharmacies pede a posição do dispositivo ao abrir (como se "Use my location" fosse carregado; recusada, a lista fica e aparece a mensagem habitual). "Pharmacies near you are highlighted. (≤ N km)" fica dentro do mapa, em baixo e centrado (slot `bottom` de `PharmaciesMap`, `NearbyRadius.vue`), com − / + para mudar o raio pelos passos `RADIUS_STEPS_KM` (1, 2, 3, 5, 10, 20 km; começa em `NEARBY_RADIUS_KM` = 3; `stepRadius`): o círculo, os pinos destacados e a contagem seguem o raio, também no ecrã inteiro; os botões desactivam-se nos extremos.
+As secções são escondidas com `v-show`, não destruídas: a pesquisa, o carrinho e a rota sobrevivem à
+troca; ao voltar a "Pharmacies" o mapa reenquadra-se (`NearbyPharmacies.refreshMap()` →
+`PharmaciesMap.refresh()`). "Medicines at this pharmacy" no mapa abre "Medicines" já filtrado. Com o
+carrinho cheio, um botão flutuante "View reservation" (`q-page-sticky` em baixo, acima do rodapé) leva às
+reservas a partir de qualquer secção; "Reserve" numa oferta confirma com uma notificação curta
+("Added to the reservation."). Regras de UX aplicadas: alvos de toque de 36–40px (Reserve de tamanho médio, 36px, a toda a
+largura no telemóvel; no carrinho − / + e apagar são `sm`, 24px), texto de 16px nos campos (evita o zoom do iOS), filtros secundários escondidos
+(medicamentos: preço atrás de "Price"; farmácias: um só campo "Name or address" - 2026-10-20 - em que cada palavra tem de aparecer no nome, organização, morada, bairro, cidade ou país, `_matches_place`; os parâmetros `city`/`neighborhood`/`country` da API continuam a funcionar),
+título de secção repetido omitido (o separador já o diz), "Use my location" a toda a largura, telefone
+com `type="tel"` e `autocomplete`, sem scroll horizontal, mapa com 62vh, e no ecrã inteiro o mapa move-se
+com um dedo (`gestureHandling: 'greedy'`; na página continua `cooperative` para não prender o scroll).
+As ofertas são cartões (`.offer`, grelha CSS): foto, medicamento e farmácia; preço, stock e "Reserve" ao
+lado, ou por baixo em ecrãs < 600px. O "hero" do site encolhe abaixo de `md` e, sem sessão, não tem botões e, com sessão, só aparece a partir de `md` (2026-10-20): no telemóvel com sessão o site começa logo nas secções; entrar, registar e sair ficam no menu do utilizador do cabeçalho. Verificado no browser a
+360, 390, 768 e 1440px (com a pesquisa e as reservas servidas por mocks: o fluxo com sessão real não
+foi testado).
+O carrinho (2026-10-20) é o store Pinia `useMarketplaceCartStore` (`marketplace/cartStore.js`), criado com
+`createBaseStore` só para usar a persistência do RESAAS (`persist: { include: ['lines'], scope: 'user', ttl: 24 h }`):
+sobrevive a um recarregar da página, por utilizador (outro utilizador no mesmo dispositivo não o vê) e o logout
+apaga-o (`clearPersistedStates`). Não há recurso da API por trás (as acções CRUD do BaseStore não são usadas; a
+reserva é `placeOrders`). Cada linha guarda só o que o carrinho mostra e envia (`cartRow`: oferta, preço, moeda,
+stock mostrado, nome/dosagem/apresentação/receita do medicamento, id e nome da farmácia) - nunca as fotos/vídeos
+(URLs assinados). `useCart()` mantém a mesma API. Testes: `useMarketplace.spec.js` (campos guardados, recarregar
+com o mesmo utilizador, outro utilizador vazio); browser: 2 linhas e quantidades iguais depois de recarregar.
 No carrinho a quantidade muda com botões − / + (`useCart().step`, entre 1 e 100 ou o stock
 mostrado pela farmácia); remover é o botão vermelho (`negative`).
 
@@ -276,9 +311,39 @@ mostrado pela farmácia); remover é o botão vermelho (`negative`).
 `GOOGLE_MAPS_API_KEY` do `.env`, via `quasar.config.js`), com um marcador por farmácia
 listada nas `coordinates` da morada principal da sucursal; a janela do marcador é um
 cartão (`.pharmacy-pin`, CSS global em `PharmaciesMap.vue` porque vive dentro da InfoWindow
-do Google): nome, organização, distância, morada, telefone (`tel:`), horário, selo "Online
+do Google; compacto, 214px, sem scroll - o CSS anula o `overflow`/`max-height` da InfoWindow só para este cartão (`:has(.pharmacy-pin)`) - e botões pequenos de 30px, um por linha, à largura do cartão e nunca mais largos; a distância vai no cabeçalho da InfoWindow (`setHeaderContent`), na linha do botão de fechar; cada texto numa linha, com "..." quando é longo e o texto inteiro no `title`): nome, organização, distância, morada, telefone (`tel:`), horário, selo "Online
 reservation"/"In-store only", botão "Medicines at this pharmacy" (com sessão) e "Directions"
-(Google Maps, nova janela). Todo o texto entra por `textContent`. A posição do dispositivo, se partilhada, é um ponto azul. Farmácias sem
+(Google Maps, nova janela). Todo o texto entra por `textContent`.
+
+**Rota no mapa.** Com a posição partilhada, o botão do cartão diz "Show route" e desenha a
+rota no próprio mapa (Google `DirectionsService` + `DirectionsRenderer`, linha na cor do tema,
+sem esconder os nossos pinos). Uma barra no topo do mapa mostra a farmácia, tempo e distância,
+alterna carro/a pé e limpa a rota. Sem posição, o botão
+diz "Directions" e abre o Google Maps; se o serviço de rotas falhar (API não activa para a
+chave, sem rota), também abre o Google Maps. O controlo de ecrã inteiro do Google está
+desligado (o nosso "Expand map" faz isso).
+
+*Rota partilhada e seguimento (2026-10-20).* A rota é o estado `useMapRoute()` (`useMarketplace.js`),
+criado em `NearbyPharmacies.vue` e passado (`route`) ao mapa da página e ao de ecrã inteiro: abrir ou
+fechar o ecrã inteiro mantém a rota e só há um pedido ao Google (cada mapa tem o seu `DirectionsRenderer`
+e desenha o mesmo resultado). Enquanto a rota está aberta, `watchPosition` (alta precisão) segue o
+dispositivo — só nesse período, nunca guardado nem enviado ao backend; `clear()` pára-o, também ao sair
+da página. O ponto azul acompanha-o e o mapa centra-o se sair da vista. Se o utilizador ficar a mais de
+`OFF_ROUTE_METERS` (50 m) do traçado — e mais do que a precisão do GPS — a rota é recalculada a partir
+de onde está (`isOffRoute`, `distanceToPathMeters`), no máximo uma vez a cada `REROUTE_INTERVAL_MS`
+(15 s) para não multiplicar pedidos ao Directions; um recálculo que falhe mantém a rota já desenhada.
+Testes: `useMarketplace.spec.js` (distância ao traçado, limiar/precisão/intervalo, recálculo a partir da
+posição, falha mantém a rota, `clear` pára o seguimento); browser em Chandkheda: rota → ecrã inteiro
+(mesma rota, 1 pedido) → 400 m fora da rota → recalculada (5 min · 2,3 km → 7 min · 2,8 km) → fechar
+mantém → limpar pára o seguimento (sem novos pedidos).
+
+A posição do dispositivo, se partilhada, é um ponto azul. Com a posição partilhada, um círculo
+de 3 km (`NEARBY_RADIUS_KM`, em `useMarketplace.js`; 3 km ≈ 35–40 min a pé ou uma viagem
+curta na cidade — 5 km cobria quase toda a cidade de Maputo) é desenhado à volta dela: as farmácias com `distance_km <= 3`
+(`isNearby`, só a distância calculada pelo backend com coordenadas reais) ficam com um pino
+maior na cor do tema e por cima; as outras com um pino cinzento menor. A vista enquadra o
+círculo e as farmácias próximas (ou todas, se nenhuma estiver no raio) e a página indica
+quantas estão no raio. Sem posição, nenhuma é destacada. Farmácias sem
 coordenadas nunca são colocadas num ponto inventado: ficam fora do mapa e uma nota
 indica quantas. Sem chave ou se o script falhar, a página volta a mostrar a lista em
 cartões. Os filtros e "Show more" (mais marcadores) mantêm-se. O botão "Expand map" (canto inferior
@@ -315,20 +380,22 @@ Root), não do produto de cada farmácia: aparecem iguais em todas as farmácias
 
 | Peça | Onde |
 |---|---|
-| Foto principal: `MedicineCatalogItem.image` (ImageField, opcional, até 5 MB) | `farmacia/models/medicine_catalog_item.py` |
-| Galeria: `MedicineCatalogMedia` (TimeModel: `catalog_item` → `media`, `file`, `caption`, `position`; ordem `position`, `created_at`; `kind` = `image`/`video` pela extensão), como `inventory.ProductMedia` | `farmacia/models/medicine_catalog_media.py` |
-| Ficheiros em `farmacia/catalogue/<id do item>/<uuid>.<ext>` (`medicine_photo_path`; o `upload_path()` do core exige Entity) | idem |
-| CRUD `GET/POST farmacia/medicinecatalogmedia/`, `GET/PATCH/DELETE …/{id}/`, filtro `?catalog_item=<id>` — PROTEGIDO (BaseAPIView, `list/view/add/change/delete_medicinecatalogmedia`) | `farmacia/views/medicine_catalog_media.py` |
-| Validação: extensões png/jpg/jpeg/webp e mp4/webm/mov (validador do campo); fotos até 5 MB e verificadas com Pillow, vídeos até 50 MB; no máximo 10 itens por medicamento (`MAX_MEDIA_PER_ITEM`) | `farmacia/serializers/medicine_catalog_media.py` |
+| Ficheiros = `django_resaas.File` (o modelo de ficheiros da plataforma): cada foto/vídeo é uma linha `File` da Entity/Branch de quem carrega (normalmente o Root), com `model`, `funcionalidade="Photo"`, `chamador="farmacia.catalogue"` e `size`, por isso conta no uso de disco dessa Entity | `farmacia/catalogue_media_service.py` |
+| Foto principal: `MedicineCatalogItem.main_photo` (FK `File`, opcional, `SET_NULL`) | `farmacia/models/medicine_catalog_item.py` |
+| Galeria: `MedicineCatalogMedia` (TimeModel: `catalog_item` → `media`, `media_file` FK `File` `PROTECT`, `caption`, `position`; ordem `position`, `created_at`; `kind` = `image`/`video` pela extensão) | `farmacia/models/medicine_catalog_media.py` |
+| Escrita só por upload, nunca por id (ninguém liga um `File` de outro tenant): `PATCH medicinecatalogitems/{id}/` com `upload_main_photo` (cria o `File`) ou `remove_main_photo: true`; `POST medicinecatalogmedia/` com `upload` + `catalog_item`, `caption`, `position`. `main_photo`/`media_file` são só de leitura e devolvem `{id, url, name, ext, kind, size}`. O ficheiro de um item da galeria não se troca (400): apaga-se e adiciona-se outro | `farmacia/serializers/` |
+| CRUD `GET/POST farmacia/medicinecatalogmedia/`, `GET/PATCH/DELETE …/{id}/`, filtro `?catalog_item=<id>` — PROTEGIDO (BaseAPIView, `list/view/add/change/delete_medicinecatalogmedia`; a foto principal com `change_medicinecatalogitem`). Apagar é soft (`deleted_at`) e o `File` fica, para o restore | `farmacia/views/` |
+| Validação (`catalogue_media_service.validate_upload`): fotos png/jpg/jpeg/webp até 5 MB e verificadas com Pillow; vídeos mp4/webm/mov até 50 MB (só na galeria); no máximo 10 itens por medicamento (`MAX_MEDIA_PER_ITEM`); sem contexto de tenant não há dono → 400. Nada é gravado quando a validação falha | idem |
+| Porque não o endpoint do core: `POST django_resaas/files/` chama `DiskManegarService.freeSpace()`, que o django_resaas não implementa (500); o catálogo cria o `File` ele próprio. A relação usa a classe `File` importada (não `"django_resaas.File"`): `django_resaas.saas.models` não importa `file.py` e o nome ficaria uma relação por resolver | — |
 | URLs com token permanente (`permanent_fields_files`): multimédia de produto, não dados de tenant | idem |
 | `medicine.image` (URL ou `null`) e `medicine.media` (`[{url, kind, caption}]`) em `GET marketplace/medicines/` e `GET countersales/offers/` (`marketplace_service.photo_urls`, só na página devolvida) | `farmacia/marketplace_service.py` |
 | Perfis: Pharmacy Manager e Pharmacist ganham `list/view_medicinecatalogmedia` (leitura); escrever fica com o Root | `farmacia/profiles.py` |
-| Migração `0004_medicine_media` (aditiva: um campo nulo e uma tabela) | `farmacia/migrations/` |
+| Migrações em dev: `0004_medicine_media` e `0005_catalogue_files` (troca os campos de ficheiro pelas FKs `File`; sem dados a migrar — o `makemigrations` pede um valor provisório para `media_file`, inofensivo com a tabela vazia) | `farmacia/migrations/` |
 
-Frontend: no catálogo (`list_medicinecatalogitem`) a foto principal edita-se no próprio
-formulário (`s-auto-crud`); a acção "Photos" abre `view_medicine_media/:id`
-(`MedicineMediaPage.vue`: foto principal, adicionar com `s-form-two`, apagar com `sDialog`;
-botões conforme `User.can(...)`, o backend decide). O store usa `url:
+Frontend: no catálogo (`list_medicinecatalogitem`, `main_photo` fora do formulário) a acção
+"Photos" abre `view_medicine_media/:id` (`MedicineMediaPage.vue`): foto principal (escolher com
+`s-file`, guardar/remover), galeria (`s-file` + legenda + posição, `BaseStore.create` envia
+multipart), apagar com `sDialog`; botões conforme `User.can(...)`, o backend decide. O store usa `url:
 'farmacia/medicinecatalogmedia'` porque a view não segue a convenção `{model}s`.
 
 Na pesquisa (`MedicineSearch.vue`) cada resultado mostra a miniatura (`medicineThumbnail`: a
@@ -336,7 +403,11 @@ foto principal, senão a primeira foto da galeria; ícone de play se só houver 
 medicamento sem nada). Um clique abre `MedicineMediaViewer.vue` (`s-modal-card`), no estilo
 de galeria de loja: o item escolhido em grande (vídeo com controlos), miniaturas à esquerda
 (em baixo no telemóvel; vídeos com ícone de play; passar o rato ou clicar muda), setas e
-teclas ← →, legenda e "n / total". A ordem é `medicineMedia()`: principal, depois a galeria.
+teclas ← →, legenda e "n / total". Nas fotos, passar o rato amplia 2,2× no ponto do cursor
+(só em ecrãs com rato); as miniaturas de vídeo mostram o primeiro fotograma (`#t=0.1`).
+Verificado no browser (Chromium headless, 2026-10-19) montando o componente real na app de `dev`
+com um medicamento de exemplo: miniaturas, hover, clique, vídeo a tocar, setas, teclado, ciclo,
+lupa, fechar e disposição em telemóvel. A ordem é `medicineMedia()`: principal, depois a galeria.
 
 Problemas: foto/vídeo não aparece → ver `FILE_TOKEN.KEY`/`ENABLE_PERMANENT` e o serviço de
 `/media/` do servidor (um vídeo precisa também de pedidos `Range` para avançar); acção

@@ -6,5 +6,5 @@ from farmacia.serializers.medicine_catalog_item import MedicineCatalogItemSerial
 
 @registerView("medicinecatalogitems")
 class MedicineCatalogItemAPIView(BaseAPIView):
-    queryset = MedicineCatalogItem.objects.all()
+    queryset = MedicineCatalogItem.objects.select_related("main_photo")
     serializer_class = MedicineCatalogItemSerializer

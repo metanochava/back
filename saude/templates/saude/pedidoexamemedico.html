@@ -2,7 +2,13 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
-
+<!-- Exam request. Same pattern as the other saude PDFs (A6, fixed header with
+     logo / title / QR, teal box titles, rotated barcode and the Entity's
+     footer); the content is organised like the clinic's paper request:
+     patient (name, address, age), clinical information, the exams as
+     "CODE -- NAME" in two columns, other exams, the doctor's name, and the
+     date beside the signature line. Texts come translated in `labels`
+     (exam_request_service.pdf_context). -->
 <style>
   @page {
     size: A6 portrait;
@@ -32,10 +38,6 @@
     padding: 0;
     line-height: 1.35;
   }
-
-  table { page-break-inside: auto; }
-  tr { page-break-inside: avoid; page-break-after: auto; }
-  thead { display: table-header-group; }
 
   .header {
     position: fixed;
@@ -108,11 +110,12 @@
   .box {
     border: 1px solid #e5e7eb;
     border-radius: 6px;
-    padding: 8px 10px;
-    margin-bottom: 7px;
+    padding: 5px 8px;
+    margin-bottom: 5px;
     page-break-inside: avoid;
   }
 
+  /* the exam list may continue on the next page (only each exam stays whole) */
   .box--list { page-break-inside: auto; }
 
   .box-title {
@@ -127,90 +130,100 @@
     letter-spacing: .04em;
   }
 
-  .line { margin-bottom: 2px; }
-
+  /* patient: name, address, age (as on the paper request) and NID */
   .patient-table {
     width: 100%;
     border-collapse: collapse;
   }
 
   .patient-table td {
-    padding: 2px 1px;
+    padding: 1px 1px;
     vertical-align: top;
   }
 
   .patient-table .label {
     color: #0f766e;
     font-weight: bold;
-    width: 54px;
+    width: 1%;
+    white-space: nowrap;
+    padding-right: 4px;
   }
 
-  .clinical-text {
-    font-size: 8px;
-    min-height: 24px;
-  }
-
-  .tipo-title {
-    background: #0f766e;
-    color: white;
-    padding: 4px 5px;
+  .patient-name {
     font-weight: bold;
     text-transform: uppercase;
-    font-size: 8px;
-    margin-top: 4px;
   }
 
-  .classe-title {
+  .clinical-text { font-size: 8px; }
+
+  .empty {
+    color: #888;
+    font-style: italic;
+  }
+
+  /* the exams: one line each, "CODE -- NAME", two columns, small type */
+  .exam-list {
+    column-count: 2;
+    column-gap: 10px;
+  }
+
+  .exam-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    padding: 0.5px 0;
+    font-size: 7px;
+    text-transform: uppercase;
+  }
+
+  .exam-code {
     color: #0f766e;
     font-weight: bold;
-    font-size: 8px;
-    margin-top: 5px;
-    padding-bottom: 2px;
-    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
   }
 
-  table.items {
+  .exam-priority {
+    font-size: 6px;
+    font-weight: bold;
+    color: #d97706;
+    border: 1px solid #d97706;
+    border-radius: 6px;
+    background: #fffbeb;
+    padding: 0 3px;
+    text-transform: none;
+  }
+
+  .exam-detail {
+    margin-left: 8px;
+    font-size: 6.5px;
+    color: #555;
+    text-transform: none;
+    line-height: 1.25;
+  }
+
+  .exam-list .empty { column-span: all; }
+
+  /* the date on the left; on the right the doctor's name over the signature line */
+  .closing {
     width: 100%;
     border-collapse: collapse;
-    font-size: 8px;
-    margin-top: 3px;
-  }
-
-  .items th {
-    background: #f0fdfa;
-    color: #0f766e;
-    padding: 4px;
-    text-align: left;
-    border-bottom: 1px solid #99f6e4;
-  }
-
-  .items td {
-    padding: 4px;
-    border-bottom: 1px solid #eee;
-    vertical-align: top;
-  }
-
-  .priority {
-    font-size: 7px;
-    font-weight: bold;
-    color: #b45309;
-  }
-
-  .obs {
-    color: #555;
-    font-size: 7px;
-    margin-top: 2px;
-  }
-
-  .signature {
-    margin-top: 10px;
-    text-align: right;
+    margin-top: 8px;
     page-break-inside: avoid;
   }
 
+  .signature {
+    text-align: center;
+    padding-bottom: 10px;
+  }
+
+  .closing td { vertical-align: bottom; }
+
+  .closing .date {
+    width: 45%;
+    font-weight: bold;
+    font-size: 8px;
+  }
+
   .signature-line {
-    display: inline-block;
-    width: 135px;
     border-top: 1px solid #0f766e;
     color: #0f766e;
     padding-top: 3px;
@@ -244,149 +257,6 @@
   .footer-left { text-align: left; }
   .footer-center { text-align: center; }
   .footer-right { text-align: right; }
-
-
-
-
-
-
-
-
-  .tipo-title{
-
-    margin-top:8px;
-    padding:4px 8px;
-
-    background:#0f766e;
-    color:#fff;
-
-    font-size:9px;
-    font-weight:bold;
-    text-transform:uppercase;
-
-    border-radius:3px;
-
-}
-
-.classe-title{
-
-    margin-top:8px;
-    margin-bottom:4px;
-
-    color:#0f766e;
-
-    font-size:8px;
-    font-weight:bold;
-
-    border-bottom:1px solid #ccfbf1;
-
-    padding-bottom:2px;
-
-}
-
-.exam-item{
-    margin-bottom:5px;
-    padding:5px 8px;
-    background:#f8fafc;
-    border-left:3px solid #0f766e;
-    border-radius:0 6px 6px 0;
-    page-break-inside:avoid;
-}
-.exam-num{
-    display:inline-block;
-    min-width:13px;
-    height:13px;
-    line-height:13px;
-    text-align:center;
-    border-radius:7px;
-    background:#ccfbf1;
-    color:#0f766e;
-    font-size:7px;
-    font-weight:bold;
-    margin-right:4px;
-}
-
-.exam-header{
-
-    width:100%;
-
-}
-
-.exam-name{
-
-    font-size:8px;
-
-    font-weight:bold;
-
-}
-
-.exam-code{
-
-    color:#0f766e;
-
-    font-weight:bold;
-
-}
-
-.exam-priority{
-    display:inline-block;
-    margin-top:2px;
-    padding:1px 6px;
-    border:1px solid #d97706;
-    border-radius:8px;
-    background:#fffbeb;
-
-    color:#d97706;
-
-    font-size:7px;
-
-    font-weight:bold;
-
-}
-
-.exam-detail{
-
-    margin-top:3px;
-
-    margin-left:10px;
-
-    font-size:7px;
-
-    color:#555;
-
-    line-height:1.3;
-
-}
-
-.empty{
-
-    text-align:center;
-
-    color:#888;
-
-    padding:12px;
-
-    font-style:italic;
-
-}
-
-/* the requested exams in two columns, small type (saves space: many exams per page) */
-.exam-list{
-    column-count:2;
-    column-gap:10px;
-}
-.exam-list .exam-item{
-    margin-bottom:3px;
-    padding:2px 5px;
-    border-left-width:2px;
-    break-inside:avoid;
-    page-break-inside:avoid;
-}
-.exam-list .exam-name{ font-size:7px; }
-.exam-list .exam-num{ min-width:10px; height:10px; line-height:10px; font-size:6px; margin-right:3px; }
-.exam-list .exam-priority,
-.exam-list .exam-detail{ font-size:6.5px; line-height:1.25; }
-.exam-list .empty{ column-span:all; }
 </style>
 </head>
 
@@ -402,7 +272,7 @@
       </td>
 
       <td class="title">
-        <h1>Pedido de Exames</h1>
+        <h1>{{ labels.title }}</h1>
         <div class="subtitle">{{ entity.name }}</div>
       </td>
 
@@ -418,147 +288,94 @@
 <div class="content">
 
   <div class="box">
-    <div class="box-title">Dados do Paciente</div>
-
     <table class="patient-table">
       <tr>
-        <td class="label">Nome:</td>
-        <td colspan="3">{{ paciente.person.full_name }}</td>
+        <td class="label">{{ labels.name|capfirst }}:</td>
+        <td colspan="3" class="patient-name">{{ person.full_name|default:"-" }}</td>
       </tr>
-
       <tr>
-        <td class="label">NID:</td>
-        <td>{{ paciente.nid }}</td>
+        <td class="label">{{ labels.address }}:</td>
+        <td>{{ address|default:"-" }}</td>
 
-        <td class="label">Contacto:</td>
-        <td>{{ paciente.person.phone|default:"-" }}</td>
+        <td class="label">{{ labels.age }}:</td>
+        <td>{% if age is not None %}{{ age }} {{ labels.years }}{% else %}-{% endif %}</td>
       </tr>
-
       <tr>
-        <td class="label">Profissão:</td>
-        <td>{{ paciente.person.occupation|default:"-" }}</td>
-
-        <td class="label">Data:</td>
-        <td>
-
-          {% if pedido.data %}
-            {{ pedido.data|date:"d/m/Y" }}
-          {% else %}
-            -
-          {% endif %}
-        </td>
+        <td class="label">{{ labels.nid }}:</td>
+        <td colspan="3">{{ paciente.nid|default:"-" }}</td>
       </tr>
     </table>
   </div>
 
   <div class="box">
-    <div class="box-title">Informação Clínica</div>
+    <div class="box-title">{{ labels.clinical_information }}</div>
 
     <div class="clinical-text">
-
       {% if pedido.informacao_clinica %}
         {{ pedido.informacao_clinica|safe }}
       {% else %}
-        Sem informação clínica registada.
+        <span class="empty">{{ labels.no_clinical_information }}</span>
       {% endif %}
     </div>
   </div>
 
-  <!-- the exam list may continue on the next page (only each exam stays whole):
-       one unbreakable box with every exam was pushed to page 2, leaving page 1 empty -->
   <div class="box box--list">
+    <div class="box-title">{{ labels.exams }}</div>
 
-      <div class="box-title">
-          Exames Solicitados
-      </div>
-
- 
-      <!-- two columns, small type: many exams fit on one page -->
-      <div class="exam-list">
+    <div class="exam-list">
       {% for item in items %}
-
         <div class="exam-item">
+          {% if item.exame.codigo %}<span class="exam-code">{{ item.exame.codigo }} --</span>{% endif %}
+          {{ item.exame.nome }}
+          {% if item.prioridade %}
+            <span class="exam-priority">{{ item.get_prioridade_display|default:item.prioridade }}</span>
+          {% endif %}
 
-            <div class="exam-header">
-
-                <div class="exam-name">
-
-                    <span class="exam-num">{{ forloop.counter }}</span>{% if item.exame.codigo %}
-                        <span class="exam-code">
-                            {{ item.exame.codigo }}
-                        </span>
-                    {% endif %}
-
-                    {{ item.exame.nome }}
-
-                </div>
-
-                {% if item.prioridade %}
-                    <div class="exam-priority">
-                        {{ item.get_prioridade_display|default:item.prioridade }}
-                    </div>
-                {% endif %}
-
-            </div>
-
-            {% if item.instrucoes %}
-                <div class="exam-detail">
-                    <strong>Instruções:</strong>
-                    {{ item.instrucoes|safe }}
-                </div>
-            {% endif %}
-
-            {% if item.observacao %}
-                <div class="exam-detail">
-                    <strong>Observação:</strong>
-                    {{ item.observacao|safe }}
-                </div>
-            {% endif %}
-
+          {% if item.instrucoes %}
+            <div class="exam-detail"><strong>{{ labels.instructions }}:</strong> {{ item.instrucoes|safe }}</div>
+          {% endif %}
+          {% if item.observacao %}
+            <div class="exam-detail"><strong>{{ labels.observation }}:</strong> {{ item.observacao|safe }}</div>
+          {% endif %}
         </div>
       {% empty %}
-
-          <div class="empty">
-              Nenhum exame solicitado.
-          </div>
-
+        <div class="empty">{{ labels.no_exams }}</div>
       {% endfor %}
-      </div>
-
+    </div>
   </div>
-
 
   {% if pedido.outros_exames %}
   <div class="box">
-    <div class="box-title">Outros Exames</div>
-
-    
-      {{ pedido.outros_exames|safe }}
-
+    <div class="box-title">{{ labels.other_exams }}</div>
+    {{ pedido.outros_exames|safe }}
   </div>
   {% endif %}
 
-  {% if  pedido.observacao %}
+  {% if pedido.observacao %}
   <div class="box">
-    <div class="box-title">Observações Gerais</div>
-
-      {{ pedido.observacao|safe }}
-
+    <div class="box-title">{{ labels.general_notes }}</div>
+    {{ pedido.observacao|safe }}
   </div>
   {% endif %}
 
-  <div class="signature">
-    <div class="signature-line">
-
-      {% if signer_name %}
-        <strong class="signer-name">{{ signer_name }}</strong>
-      {% else %}
-        Médico Solicitante
-      {% endif %}
-      <br>
-      Médico
-    </div>
-  </div>
+  <table class="closing">
+    <tr>
+      <td class="date">
+        {% if pedido.data %}{{ pedido.data|date:"d/m/Y" }}{% else %}-{% endif %}
+      </td>
+      <td style="width: 10%;"></td>
+      <td>
+        <div class="signature">
+          {% if signer_name %}
+            <strong class="signer-name">{{ signer_name }}</strong>
+          {% else %}
+            {{ labels.requesting_doctor }}
+          {% endif %}
+        </div>
+        <div class="signature-line">{{ labels.doctor }}</div>
+      </td>
+    </tr>
+  </table>
 
 </div>
 
@@ -572,7 +389,7 @@
   <table class="footer-table">
     <tr>
       <td class="footer-left">{{ entity.name }}</td>
-      <td class="footer-right">Pedido de Exames Médicos</td>
+      <td class="footer-right">{{ labels.footer }}</td>
     </tr>
 
     <tr>

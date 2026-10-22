@@ -1,6 +1,6 @@
-"""Catalogue medicine media: a main photo (MedicineCatalogItem.image) and a
-gallery of photos and videos (MedicineCatalogMedia), shown in the
-marketplace search."""
+"""Catalogue medicine media stored as django_resaas File rows: a main photo
+(MedicineCatalogItem.main_photo) and a gallery of photos and videos
+(MedicineCatalogMedia.media_file), shown in the marketplace search."""
 import io
 import shutil
 import tempfile
@@ -20,8 +20,8 @@ from django_resaas.saas.models.user import User
 
 from farmacia.models import MedicineCatalogMedia
 from farmacia.models.medicine_catalog_media import MAX_MEDIA_PER_ITEM
-from farmacia.serializers.medicine_catalog_item import validate_photo_size
-from farmacia.serializers.medicine_catalog_media import MedicineCatalogMediaSerializer
+from django_resaas.saas.models.file import File
+from farmacia import catalogue_media_service as media_service
 from farmacia.tests.test_marketplace import MarketplaceTestCase
 
 ITEMS = "/api/farmacia/medicinecatalogitems/"
@@ -52,17 +52,38 @@ class MedicineMediaTests(MarketplaceTestCase):
         self.root = self.near.client  # tests' shared "Root" group: every CRUD permission
 
     def add_media(self, item, client=None, file=None, **extra):
-        return (client or self.root).post(MEDIA_URL, {"catalog_item": str(item.id), "file": file or png(), **extra},
+        return (client or self.root).post(MEDIA_URL, {"catalog_item": str(item.id), "upload": file or png(), **extra},
                                           format="multipart")
 
-    def test_main_photo_is_stored_under_the_catalogue_item(self):
-        response = self.root.patch(f"{ITEMS}{self.paracetamol.id}/", {"image": png()}, format="multipart")
+    def test_main_photo_is_a_resaas_file_of_the_uploaders_entity(self):
+        response = self.root.patch(f"{ITEMS}{self.paracetamol.id}/", {"upload_main_photo": png()}, format="multipart")
 
         self.assertIn(response.status_code, (200, 202), response.content)
         self.paracetamol.refresh_from_db()
-        self.assertTrue(self.paracetamol.image.name.startswith(f"farmacia/catalogue/{self.paracetamol.id}/"))
-        self.assertIn("token=", response.json()["image"]["url"])
-        self.assertEqual(response.json()["image"]["kind"], "image")
+        photo = self.paracetamol.main_photo
+        self.assertIsInstance(photo, File)
+        self.assertEqual(photo.entity_id, self.near.entity.id)
+        self.assertEqual((photo.model, photo.funcionalidade, photo.chamador),
+                         ("farmacia.MedicineCatalogItem", "Photo", media_service.SOURCE))
+        self.assertEqual(photo.size, photo.file.size)
+        body = response.json()["main_photo"]
+        self.assertEqual((body["id"], body["kind"]), (str(photo.id), "image"))
+        self.assertIn("token=", body["url"])
+
+    def test_main_photo_is_never_linked_by_id_and_can_be_removed(self):
+        foreign = File.objects.create(entity=self.far.entity, file=png(), size=10, model="x")
+        self.root.patch(f"{ITEMS}{self.paracetamol.id}/", {"main_photo": str(foreign.id)}, format="json")
+        self.paracetamol.refresh_from_db()
+        self.assertIsNone(self.paracetamol.main_photo)  # read only: another tenant's File is not linked
+
+        self.root.patch(f"{ITEMS}{self.paracetamol.id}/", {"upload_main_photo": png()}, format="multipart")
+        self.paracetamol.refresh_from_db()
+        self.assertIsNotNone(self.paracetamol.main_photo)
+        response = self.root.patch(f"{ITEMS}{self.paracetamol.id}/", {"remove_main_photo": True}, format="json")
+        self.assertIn(response.status_code, (200, 202), response.content)
+        self.paracetamol.refresh_from_db()
+        self.assertIsNone(self.paracetamol.main_photo)
+        self.assertIsNone(response.json()["main_photo"])
 
     def test_gallery_photos_and_videos_are_listed_per_medicine_in_order(self):
         self.assertEqual(self.add_media(self.paracetamol, caption="Box", position=2).status_code, 201)
@@ -72,9 +93,14 @@ class MedicineMediaTests(MarketplaceTestCase):
 
         rows = self.root.get(MEDIA_URL, {"catalog_item": str(self.paracetamol.id)}).json()["results"]
 
-        self.assertEqual([(row["caption"], row["file"]["kind"]) for row in rows], [("How to use", "video"), ("Box", "image")])
+        self.assertEqual([(row["caption"], row["media_file"]["kind"]) for row in rows], [("How to use", "video"), ("Box", "image")])
         media = MedicineCatalogMedia.objects.get(caption="Box")
-        self.assertTrue(media.file.name.startswith(f"farmacia/catalogue/{self.paracetamol.id}/"))
+        self.assertEqual(media.media_file.entity_id, self.near.entity.id)
+        self.assertEqual(media.media_file.model, "farmacia.MedicineCatalogMedia")
+        # the file of an item is not swapped: delete it and add another
+        swap = self.root.patch(f"{MEDIA_URL}{media.id}/", {"upload": png()}, format="multipart")
+        self.assertEqual(swap.status_code, 400)
+        self.assertEqual(self.root.patch(f"{MEDIA_URL}{media.id}/", {"caption": "Pack"}, format="json").status_code, 200)
 
     def test_a_medicine_has_at_most_ten_photos_or_videos(self):
         for _ in range(MAX_MEDIA_PER_ITEM):
@@ -91,18 +117,21 @@ class MedicineMediaTests(MarketplaceTestCase):
         self.assertEqual(self.add_media(self.paracetamol, file=text).status_code, 400)
         fake = SimpleUploadedFile("fake.png", b"not an image", content_type="image/png")
         self.assertEqual(self.add_media(self.paracetamol, file=fake).status_code, 400)
+        missing = self.root.post(MEDIA_URL, {"catalog_item": str(self.paracetamol.id)}, format="multipart")
+        self.assertEqual(missing.status_code, 400)
+        video_as_main = self.root.patch(f"{ITEMS}{self.paracetamol.id}/", {"upload_main_photo": mp4()}, format="multipart")
+        self.assertEqual(video_as_main.status_code, 400)  # the main photo is a photo
 
         big_video = mp4()
         big_video.size = 50 * 1024 * 1024 + 1
         with self.assertRaises(serializers.ValidationError):
-            MedicineCatalogMediaSerializer().validate_file(big_video)
+            media_service.validate_upload(big_video, allow_video=True)
         big_photo = png()
         big_photo.size = 5 * 1024 * 1024 + 1
         with self.assertRaises(serializers.ValidationError):
-            MedicineCatalogMediaSerializer().validate_file(big_photo)
-        with self.assertRaises(serializers.ValidationError):
-            validate_photo_size(None, big_photo)  # the main photo too
+            media_service.validate_upload(big_photo, allow_video=True)
         self.assertFalse(MedicineCatalogMedia.objects.exists())
+        self.assertFalse(File.objects.filter(chamador=media_service.SOURCE).exists())  # nothing stored on refusal
 
     def test_writing_media_needs_the_permission(self):
         group = Group.objects.create(name="Media plain")
@@ -118,12 +147,12 @@ class MedicineMediaTests(MarketplaceTestCase):
         client.credentials(HTTP_X_RESAAS_CONTEXT=token, HTTP_L="1")
 
         self.assertEqual(self.add_media(self.paracetamol, client=client).status_code, 403)
-        self.assertEqual(client.patch(f"{ITEMS}{self.paracetamol.id}/", {"image": png()},
+        self.assertEqual(client.patch(f"{ITEMS}{self.paracetamol.id}/", {"upload_main_photo": png()},
                                       format="multipart").status_code, 403)
         self.assertFalse(MedicineCatalogMedia.objects.exists())
 
     def test_marketplace_search_shows_the_main_photo_and_the_gallery(self):
-        self.root.patch(f"{ITEMS}{self.paracetamol.id}/", {"image": png()}, format="multipart")
+        self.root.patch(f"{ITEMS}{self.paracetamol.id}/", {"upload_main_photo": png()}, format="multipart")
         self.add_media(self.paracetamol, caption="Box", position=1)
         self.add_media(self.paracetamol, file=mp4(), caption="How to use", position=2)
 

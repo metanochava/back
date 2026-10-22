@@ -105,6 +105,21 @@ class PharmacyDemoSeedTests(TestCase):
         self.assertEqual(PharmacyOffer.objects.filter(entity=self.real.entity).count(), 1)
         self.assertEqual(PharmacyOffer.objects.filter(catalog_item=item).count(), 4)
 
+    def test_region_places_the_pharmacies_with_its_country_and_currency(self):
+        report = self.run_seed(region="ahmedabad", pharmacies=2)
+
+        demo = Entity.objects.filter(name__startswith=DEMO_PREFIX)
+        self.assertEqual(demo.count(), 2)
+        self.assertEqual(report.total("offers"), 2 * len(MEDICINES))
+        for listing in PharmacyListing.objects.filter(entity__in=demo):
+            self.assertEqual(listing.currency, "INR")
+            address = listing.branch.addresses.get()
+            self.assertEqual((address.country, address.locality), ("India", "Ahmedabad"))
+        with self.assertRaises(SeedError):
+            self.run_seed(region="ahmedabad", pharmacies=3)
+        with self.assertRaises(SeedError):
+            self.run_seed(region="nowhere")
+
     def test_inputs_are_explicit(self):
         with self.assertRaises(SeedError):
             self.run_seed(actor_user="nobody")

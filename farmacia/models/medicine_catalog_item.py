@@ -4,6 +4,9 @@ import uuid
 from django.db import models
 
 from django_resaas.saas.core.base.models import TimeModel
+# imported, not referenced by name: django_resaas.saas.models does not import
+# file.py, so "django_resaas.File" would stay an unresolved lazy relation
+from django_resaas.saas.models.file import File
 
 PHOTO_EXTENSIONS = ("png", "jpg", "jpeg", "webp")
 VIDEO_EXTENSIONS = ("mp4", "webm", "mov")
@@ -14,8 +17,9 @@ VIDEO_MAX_SIZE = 50 * 1024 * 1024
 
 
 def medicine_photo_path(instance, file_name):
-    """farmacia/catalogue/<item id>/<uuid>.<ext>: the catalogue has no Entity,
-    so the Entity based upload_path() does not apply."""
+    """farmacia/catalogue/<item id>/<uuid>.<ext>. No field uses it any more
+    (photos and videos are django_resaas File rows, see catalogue_media_service);
+    kept because earlier migrations import it."""
     item_id = getattr(instance, "catalog_item_id", None) or instance.id or "tmp"
     ext = os.path.splitext(file_name)[1].lower()
     return f"farmacia/catalogue/{item_id}/{uuid.uuid4()}{ext}"
@@ -43,9 +47,12 @@ class MedicineCatalogItem(TimeModel):
     code = models.CharField(verbose_name="Code", max_length=60, null=True, blank=True, unique=True)
     prescription_required = models.BooleanField(verbose_name="Prescription required", default=False)
     active = models.BooleanField(verbose_name="Active", default=True)
-    # the photo shown first; more photos and videos in MedicineCatalogMedia (media)
-    image = models.ImageField(
-        verbose_name="Main photo", upload_to=medicine_photo_path, max_length=500, null=True, blank=True,
+    # the photo shown first (a django_resaas File); more photos and videos in
+    # MedicineCatalogMedia (media). Written through the serializer's
+    # upload_main_photo / remove_main_photo, never by id from the client.
+    main_photo = models.ForeignKey(
+        File, verbose_name="Main photo", null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="+",
     )
 
     class Meta:
@@ -68,9 +75,6 @@ class MedicineCatalogItem(TimeModel):
             "view": "view_medicinecatalogitem",
             "add": "add_medicinecatalogitem",
             "change": "change_medicinecatalogitem",
-        }
-        fields = {
-            "image": {"accept": PHOTO_ACCEPT, "max_size": PHOTO_MAX_SIZE, "multiple": False},
         }
 
     def __str__(self):

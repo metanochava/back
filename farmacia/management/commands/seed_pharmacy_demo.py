@@ -2,6 +2,7 @@
 
     python manage.py seed_pharmacy_demo --actor-user metano
     python manage.py seed_pharmacy_demo --actor-user metano --pharmacies 5 --entity-type Farmacia
+    python manage.py seed_pharmacy_demo --actor-user metano --region ahmedabad --pharmacies 2
     python manage.py seed_pharmacy_demo ... --dry-run
 
 Each pharmacy is a new Entity named "[DEMO] ..."; no real pharmacy, price or
@@ -24,7 +25,10 @@ class Command(BaseCommand):
                             help="Username or email of an existing user, recorded as author of the demo data.")
         parser.add_argument("--entity-type", default="Farmacia", help="EntityType of the pharmacies (default Farmacia).")
         parser.add_argument("--pharmacies", type=int, default=3,
-                            help=f"Demo pharmacies to have (1-{len(demo_seed_service.PHARMACIES)}, default 3).")
+                            help="Demo pharmacies to have in the region (default 3; mozambique has "
+                                 f"{len(demo_seed_service.PHARMACIES)}).")
+        parser.add_argument("--region", default="mozambique", choices=list(demo_seed_service.REGIONS),
+                            help="Where the demo pharmacies are (default mozambique).")
         parser.add_argument("--dry-run", action="store_true", help="Show what would be created, write nothing.")
         parser.add_argument("--allow-production", action="store_true", help="Required when DEBUG is off.")
 
@@ -35,7 +39,7 @@ class Command(BaseCommand):
         try:
             report = demo_seed_service.run(
                 actor_user=options["actor_user"], entity_type=options["entity_type"],
-                pharmacies=options["pharmacies"], dry_run=options["dry_run"],
+                pharmacies=options["pharmacies"], dry_run=options["dry_run"], region=options["region"],
             )
         except SeedError as error:
             raise CommandError(str(error))

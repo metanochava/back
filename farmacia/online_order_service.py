@@ -269,7 +269,8 @@ def branch_offers(*, entity_id, branch_id, q=None, limit=30):
     items = MedicineCatalogItem.objects.filter(active=True).filter(_catalog_filter(q))
     offers = list(
         PharmacyOffer.objects.filter(entity_id=entity_id, branch_id=branch_id, active=True, catalog_item__in=items)
-        .select_related("catalog_item").prefetch_related("catalog_item__media")
+        .select_related("catalog_item", "catalog_item__main_photo")
+        .prefetch_related("catalog_item__media__media_file")
         .order_by("catalog_item__name", "catalog_item__strength")[:limit]
     )
     stock = inventory_services.branch_available_quantities([o.product_id for o in offers], entity_id=entity_id,

@@ -107,9 +107,13 @@ def _matches_place(pharmacy, *, q=None, country=None, city=None, neighborhood=No
     def has(value, wanted):
         return not wanted or (value and wanted.lower() in value.lower())
 
-    text = " ".join(filter(None, [pharmacy["name"], pharmacy["organisation"], pharmacy["address"]]))
+    # q is the one "Name or address" field: every word must appear in the name,
+    # organisation, address, neighbourhood, city or country (a formatted
+    # address may leave out the city or the country)
+    text = " ".join(filter(None, [pharmacy["name"], pharmacy["organisation"], pharmacy["address"],
+                                  pharmacy["neighborhood"], pharmacy["city"], pharmacy["country"]]))
     return (
-        has(text, q)
+        all(has(text, word) for word in (q or "").split())
         and has(pharmacy["country"], country)
         and has(pharmacy["city"], city)
         and has(pharmacy["neighborhood"], neighborhood)
@@ -158,11 +162,12 @@ def _medicine(item):
         "presentation": item.presentation,
         "code": item.code,
         "prescription_required": item.prescription_required,
-        # MEDIA paths; the view turns them into file URLs (photo_urls)
-        "image": item.image.url if item.image else None,
+        # MEDIA paths of the django_resaas Files; the view turns them into
+        # signed URLs (photo_urls)
+        "image": item.main_photo.file.url if item.main_photo_id and item.main_photo.file else None,
         "media": [
-            {"url": media.file.url, "kind": media.kind, "caption": media.caption or None}
-            for media in item.media.all() if media.file
+            {"url": media.media_file.file.url, "kind": media.kind, "caption": media.caption or None}
+            for media in item.media.all() if media.media_file.file
         ],
     }
 
@@ -206,7 +211,8 @@ def search_offers(*, q=None, catalog_item_id=None, dosage_form=None, strength=No
 
     offers = list(
         PharmacyOffer.objects.filter(active=True, branch_id__in=list(listings), catalog_item__in=items)
-        .select_related("catalog_item").prefetch_related("catalog_item__media")[: MAX_CANDIDATE_OFFERS + 1]
+        .select_related("catalog_item", "catalog_item__main_photo")
+        .prefetch_related("catalog_item__media__media_file")[: MAX_CANDIDATE_OFFERS + 1]
     )
     if len(offers) > MAX_CANDIDATE_OFFERS:
         raise SearchTooBroad()
