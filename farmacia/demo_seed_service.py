@@ -47,6 +47,16 @@ PHARMACIES = [
     ("Farmácia Demo Liberdade", "Matola", "Liberdade", "-25.9620", "32.4590"),
 ]
 
+# --region: where the demo pharmacies are. "mozambique" is the default and uses
+# PHARMACIES; the others let a developer try the map from where they are.
+REGIONS = {
+    "mozambique": dict(country="Mozambique", currency="MZN", phone="+258 00 000 0000", pharmacies=PHARMACIES),
+    "ahmedabad": dict(country="India", currency="INR", phone="+91 00000 00000", pharmacies=[
+        ("Farmácia Demo Chandkheda", "Ahmedabad", "Chandkheda", "23.1105", "72.5835"),
+        ("Farmácia Demo Chandkheda Sul", "Ahmedabad", "Chandkheda", "23.1012", "72.5927"),
+    ]),
+}
+
 # catalogue key, base price in MZN, prescription required
 MEDICINES = [
     (("Paracetamol", "Paracetamol", "", "500 mg", "Tablet", "Box of 20 tablets"), "45", False),
@@ -133,7 +143,7 @@ def _stock(pharmacy_index, medicine_index):
     return 0 if quantity < 6 else quantity
 
 
-def ensure_pharmacy(index, spec, entity_type, apps, catalog, actor, *, dry_run):
+def ensure_pharmacy(index, spec, entity_type, apps, catalog, actor, *, dry_run, region=REGIONS["mozambique"]):
     name, city, neighbourhood, lat, lng = spec
     full_name = DEMO_PREFIX + name
     result = {"name": full_name, "created": False, "products": 0, "offers": 0, "stock": 0}
@@ -153,7 +163,7 @@ def ensure_pharmacy(index, spec, entity_type, apps, catalog, actor, *, dry_run):
         if dry_run:
             return result
         branch = Branch.objects.create(name=name, entity=entity)
-        branch.set_address(locality=city, neighborhood=neighbourhood, country="Mozambique",
+        branch.set_address(locality=city, neighborhood=neighbourhood, country=region["country"],
                            formatted_address=f"{neighbourhood}, {city} (demo)", latitude=lat, longitude=lng)
 
     base = dict(entity=entity, branch=branch, created_by=actor, updated_by=actor)
@@ -164,7 +174,7 @@ def ensure_pharmacy(index, spec, entity_type, apps, catalog, actor, *, dry_run):
             EntityApp.objects.get_or_create(entity=entity, app=app, defaults={"state": "Active"})
         PharmacyListing.all_objects.get_or_create(
             branch=branch,
-            defaults=dict(published=True, currency="MZN", public_phone="+258 00 000 0000",
+            defaults=dict(published=True, currency=region["currency"], public_phone=region["phone"],
                           opening_hours="Demo pharmacy - fictitious data", show_quantity=index % 2 == 0,
                           online_orders=True, entity=entity, created_by=actor, updated_by=actor),
         )
@@ -206,9 +216,12 @@ def ensure_pharmacy(index, spec, entity_type, apps, catalog, actor, *, dry_run):
     return result
 
 
-def run(*, actor_user, entity_type="Farmacia", pharmacies=3, dry_run=False):
-    if not 1 <= pharmacies <= len(PHARMACIES):
-        raise SeedError(f"--pharmacies must be between 1 and {len(PHARMACIES)}.")
+def run(*, actor_user, entity_type="Farmacia", pharmacies=3, dry_run=False, region="mozambique"):
+    if region not in REGIONS:
+        raise SeedError(f"--region must be one of: {', '.join(REGIONS)}.")
+    specs = REGIONS[region]["pharmacies"]
+    if not 1 <= pharmacies <= len(specs):
+        raise SeedError(f"--pharmacies must be between 1 and {len(specs)}.")
     report = SeedReport()
     actor = resolve_actor(actor_user)
     report.actor = actor.username
@@ -217,8 +230,9 @@ def run(*, actor_user, entity_type="Farmacia", pharmacies=3, dry_run=False):
 
     with transaction.atomic():
         catalog = ensure_catalog(report, dry_run=dry_run)
-        for index, spec in enumerate(PHARMACIES[:pharmacies]):
-            report.pharmacies.append(ensure_pharmacy(index, spec, kind, apps, catalog, actor, dry_run=dry_run))
+        for index, spec in enumerate(specs[:pharmacies]):
+            report.pharmacies.append(ensure_pharmacy(index, spec, kind, apps, catalog, actor, dry_run=dry_run,
+                                                     region=REGIONS[region]))
         if dry_run:
             transaction.set_rollback(True)
     return report

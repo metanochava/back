@@ -414,3 +414,65 @@ def forbid_cancelled(item):
     if item.estado_exame == CANCELLED:
         raise ConflictError("This exam is cancelled.", code="invalid_exam_state")
 
+
+
+# ------------------------------------------------------------------
+# PDF (saude/templates/saude/pedidoexamemedico.html), laid out like the
+# clinic's paper request: brand on the left, title and patient (name,
+# address, age) on the right, the exams as "CODE -- NAME" in two columns,
+# other exams, the doctor's name, the date and the signature line. Every
+# text in the requester's language (Translate.tdc).
+# ------------------------------------------------------------------
+
+def patient_address(person):
+    """Short address of the person for a document: neighbourhood and city
+    (the paper request shows e.g. "Matola"), else the formatted address."""
+    address = person.address if person else None
+    if not address:
+        return ""
+    parts = [p for p in (address.neighborhood, address.locality) if p]
+    unique = list(dict.fromkeys(parts))
+    return ", ".join(unique) or (address.formatted_address or "")
+
+
+def pdf_context(request, pedido):
+    from django_resaas.saas.core.utils.translate import Translate
+
+    t = lambda text: Translate.tdc(request, text) if text else ""  # noqa: E731
+
+    paciente = pedido.patient
+    person = paciente.person if paciente else None
+
+    items = list(
+        pedido.items
+        .select_related(
+            "exame",
+            "exame__classe_exame_medico",
+            "exame__classe_exame_medico__tipo_exame_medico",
+        )
+        .order_by(
+            "exame__classe_exame_medico__tipo_exame_medico__ordem",
+            "exame__classe_exame_medico__ordem",
+            "exame__nome",
+        )
+    )
+
+    return {
+        "pedido": pedido,
+        "paciente": paciente,
+        "person": person,
+        "items": items,
+        "address": patient_address(person),
+        "age": person.age if person else None,
+        "labels": {key: t(text) for key, text in {
+            "title": "Exam request",
+            "name": "Name", "address": "Address", "age": "Age", "years": "years", "nid": "NID",
+            "clinical_information": "Clinical information",
+            "no_clinical_information": "No clinical information recorded.",
+            "exams": "Exams", "no_exams": "No exam requested.",
+            "instructions": "Instructions", "observation": "Observation",
+            "other_exams": "Other exams", "general_notes": "General notes",
+            "requesting_doctor": "Requesting doctor", "doctor": "Doctor",
+            "footer": "Medical exam request",
+        }.items()},
+    }

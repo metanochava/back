@@ -6,5 +6,5 @@ from farmacia.serializers.medicine_catalog_media import MedicineCatalogMediaSeri
 
 @registerView("medicinecatalogmedia")
 class MedicineCatalogMediaAPIView(BaseAPIView):
-    queryset = MedicineCatalogMedia.objects.select_related("catalog_item")
+    queryset = MedicineCatalogMedia.objects.select_related("catalog_item", "media_file")
     serializer_class = MedicineCatalogMediaSerializer

@@ -1120,4 +1120,9 @@ key_value = {
     "Health system": "Health system",
     "The health system Clínica Amal works with: patient records, appointments, a laboratory with structured results and their evolution, pharmacy and sales.": "The health system Clínica Amal works with: patient records, appointments, a laboratory with structured results and their evolution, pharmacy and sales.",
     "Patient records": "Patient records",
+    # exam request PDF
+    'General notes': 'General notes',
+    'Requesting doctor': 'Requesting doctor',
+    'No exam requested.': 'No exam requested.',
+    'No clinical information recorded.': 'No clinical information recorded.',
 }

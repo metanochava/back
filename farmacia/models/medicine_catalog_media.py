@@ -1,10 +1,10 @@
-from django.core.validators import FileExtensionValidator
 from django.db import models
 
 from django_resaas.saas.core.base.models import TimeModel
-from farmacia.models.medicine_catalog_item import (
-    MEDIA_ACCEPT, PHOTO_EXTENSIONS, VIDEO_EXTENSIONS, VIDEO_MAX_SIZE, medicine_photo_path,
-)
+# imported, not referenced by name: django_resaas.saas.models does not import
+# file.py, so "django_resaas.File" would stay an unresolved lazy relation
+from django_resaas.saas.models.file import File
+from farmacia.models.medicine_catalog_item import VIDEO_EXTENSIONS
 
 MAX_MEDIA_PER_ITEM = 10
 
@@ -12,8 +12,9 @@ MAX_MEDIA_PER_ITEM = 10
 class MedicineCatalogMedia(TimeModel):
     """
     A photo or video of a catalogue medicine's gallery (the main photo is
-    MedicineCatalogItem.image). One generic file, like inventory.ProductMedia:
-    the serializer reports its kind ("image"/"video") from the extension.
+    MedicineCatalogItem.main_photo). The file itself is a django_resaas File
+    (created by catalogue_media_service from the upload); kind ("image"/"video")
+    comes from its extension.
     Platform scoped like the catalogue: managed by Root, the same for every
     pharmacy.
     """
@@ -21,9 +22,8 @@ class MedicineCatalogMedia(TimeModel):
     catalog_item = models.ForeignKey(
         "farmacia.MedicineCatalogItem", verbose_name="Medicine", on_delete=models.CASCADE, related_name="media",
     )
-    file = models.FileField(
-        verbose_name="Photo or video", upload_to=medicine_photo_path, max_length=500,
-        validators=[FileExtensionValidator(PHOTO_EXTENSIONS + VIDEO_EXTENSIONS)],
+    media_file = models.ForeignKey(
+        File, verbose_name="Photo or video", on_delete=models.PROTECT, related_name="+",
     )
     caption = models.CharField(verbose_name="Caption", max_length=200, blank=True, default="")
     position = models.PositiveIntegerField(verbose_name="Position", default=0)
@@ -43,13 +43,10 @@ class MedicineCatalogMedia(TimeModel):
             "add": "add_medicinecatalogmedia",
             "change": "change_medicinecatalogmedia",
         }
-        fields = {
-            "file": {"accept": MEDIA_ACCEPT, "max_size": VIDEO_MAX_SIZE, "multiple": False},
-        }
 
     @property
     def kind(self):
-        name = (self.file.name or "").lower()
+        name = (self.media_file.file.name if self.media_file_id and self.media_file.file else "").lower()
         return "video" if name.rsplit(".", 1)[-1] in VIDEO_EXTENSIONS else "image"
 
     def __str__(self):

@@ -617,8 +617,8 @@ name of **who created the document** - the same author as the edit rule above
   `created_by` -> its Person's `full_name`; a user without a Person -> its
   username; a document without `created_by` (older rows) -> the doctor of its
   consultation (`consulta.employee.person`). The view passes it as `signer_name`.
-- With no name known, the line keeps only the role (the exam request keeps
-  "Médico Solicitante").
+- With no name known, the line keeps only the role (the exam request prints
+  "Requesting doctor", translated).
 - The lab result PDF is unchanged: it is signed by **who validated** it
   (`validated_by`), not by who created it.
 - Exam request paging: the exam list is its own box that may continue on the
@@ -626,6 +626,28 @@ name of **who created the document** - the same author as the edit rule above
   information and every exam were one unbreakable box, pushed whole to page 2
   when long, leaving page 1 empty.
 - Tests: `saude/tests/test_document_signer.py`.
+
+### Exam request PDF
+
+`GET /api/saude/pedidoexamemedicos/{id}/pdf/` (`pdf_pedidoexamemedico`) keeps
+the pattern of the other saude PDFs (A6, fixed header with logo, title and QR,
+teal box titles, rotated barcode, footer with the Entity's name and `rodape`)
+and organises the content like the clinic's paper request:
+
+1. patient: name, address (`person.address`: neighbourhood and city, else the
+   formatted address - `exam_request_service.patient_address`), age
+   (`Person.age`) and NID;
+2. clinical information;
+3. the exams, one line each as `CODE -- NAME`, in two columns (ordered by type,
+   class and name), with priority, instructions and observation when present;
+4. other exams and general notes, when filled;
+5. the date on the left and, on the right, the author's name over the
+   signature line.
+
+A request with ~30 exams and a line of other exams fits on one page. Every
+text is translated in the requester's language
+(`exam_request_service.pdf_context`, `Translate.tdc`; keys in
+`saude/lang/*.py`). Tests: `saude/tests/test_exam_request_pdf.py`.
 
 ### Clinical Summary: allergies, conditions, medication in place
 
