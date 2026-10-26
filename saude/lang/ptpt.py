@@ -672,6 +672,8 @@ key_value = {
     "An online pharmacy and medicines marketplace, prescription review and dispensing, stock with movements and counts, sales and payments.": "Farmácia online e marketplace de medicamentos, revisão e dispensa de receitas, stock com movimentos e contagens, vendas e pagamentos.",
     "Two-factor authentication with policy levels, hashed recovery codes, session control, temporary passwords and an audit trail.": "Autenticação de dois factores com níveis de política, códigos de recuperação com hash, controlo de sessões, passwords temporárias e registo de auditoria.",
     "Public websites": "Websites públicos",
+    "ReSaaS modules": "Módulos ReSaaS",
+    "Published packages": "Pacotes publicados",
     "Branded websites for clinics and the RESAAS documentation site, served by the same application according to the domain.": "Websites com marca própria para clínicas e o site de documentação do RESAAS, servidos pela mesma aplicação conforme o domínio.",
     "RESAAS documentation": "Documentação do RESAAS",
     "Tools I work with": "Ferramentas com que trabalho",
