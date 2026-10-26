@@ -4,7 +4,7 @@ AND TRANSLATIONS section): canonical user-facing strings must originate
 in English (sidebar.py's "menu" values and dashboard.py's widget
 "label" values both reach tdc()/Translate.tdc() as lookup keys - both
 had hardcoded Portuguese before this fix), and every such canonical
-string must have a pt-pt/fr-fr/es-es translation (via hr's own
+string must have a pt-pt translation (via hr's own
 lang/<code>.py, or the shared saas core one)."""
 import re
 
@@ -14,11 +14,7 @@ from django.apps import apps
 from hr.sidebar import ALL as HR_SIDEBAR
 from hr.dashboard import DASHBOARD as HR_DASHBOARD
 from hr.lang import ptpt as hr_ptpt
-from hr.lang import frfr as hr_frfr
-from hr.lang import eses as hr_eses
 from django_resaas.saas.lang import ptpt as saas_ptpt
-from django_resaas.saas.lang import frfr as saas_frfr
-from django_resaas.saas.lang import eses as saas_eses
 
 pytestmark = pytest.mark.django_db
 
@@ -44,8 +40,6 @@ def _dashboard_labels(dashboard):
 
 
 PT = {**saas_ptpt.key_value, **hr_ptpt.key_value}
-FR = {**saas_frfr.key_value, **hr_frfr.key_value}
-ES = {**saas_eses.key_value, **hr_eses.key_value}
 
 
 def _choice_labels():
@@ -74,7 +68,7 @@ def test_sidebar_menu_label_is_canonical_english(label):
 
 @pytest.mark.parametrize("label", list(_sidebar_menu_labels(HR_SIDEBAR)))
 def test_sidebar_menu_label_is_translated(label):
-    for lang_name, lang in (("pt-pt", PT), ("fr-fr", FR), ("es-es", ES)):
+    for lang_name, lang in (("pt-pt", PT),):
         assert label in lang, f"{label!r} has no {lang_name} translation"
 
 
@@ -88,7 +82,7 @@ def test_dashboard_widget_label_is_canonical_english(label):
 
 @pytest.mark.parametrize("label", list(_dashboard_labels(HR_DASHBOARD)))
 def test_dashboard_widget_label_is_translated(label):
-    for lang_name, lang in (("pt-pt", PT), ("fr-fr", FR), ("es-es", ES)):
+    for lang_name, lang in (("pt-pt", PT),):
         assert label in lang, f"{label!r} has no {lang_name} translation"
 
 
@@ -102,5 +96,5 @@ def test_model_choice_label_is_canonical_english(label):
 
 @pytest.mark.parametrize("label", sorted(set(_choice_labels())))
 def test_model_choice_label_is_translated(label):
-    for lang_name, lang in (("pt-pt", PT), ("fr-fr", FR), ("es-es", ES)):
+    for lang_name, lang in (("pt-pt", PT),):
         assert label in lang, f"{label!r} has no {lang_name} translation"

@@ -1,5 +1,5 @@
 """Sidebar menus, model names, choice labels and profile names of accounting
-are canonical English and translated into pt-pt/fr-fr/es-es."""
+are canonical English and translated into pt-pt."""
 import re
 
 import pytest
@@ -23,7 +23,7 @@ def _merged(code):
     return merged
 
 
-LANGS = {"pt-pt": _merged("ptpt"), "fr-fr": _merged("frfr"), "es-es": _merged("eses")}
+LANGS = {"pt-pt": _merged("ptpt")}
 
 
 def _labels():

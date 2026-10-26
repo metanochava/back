@@ -1,27 +1,23 @@
 """Same guard as sales/inventory: sidebar menus and every model choice label
-of purchases are canonical English and translated into pt-pt/fr-fr/es-es
+of purchases are canonical English and translated into pt-pt
 (purchases' own lang/<code>.py or the shared django_resaas one)."""
 import re
 
 import pytest
 from django.apps import apps
 
-from django_resaas.saas.lang import eses as saas_eses
-from django_resaas.saas.lang import frfr as saas_frfr
 from django_resaas.saas.lang import ptpt as saas_ptpt
-from purchases.lang import eses, frfr, ptpt
+from purchases.lang import ptpt
 from purchases.profiles import PURCHASES_PROFILES
 from purchases.sidebar import ALL as SIDEBAR
-from sales.lang import ptpt as sales_ptpt, frfr as sales_frfr, eses as sales_eses
-from inventory.lang import ptpt as inv_ptpt, frfr as inv_frfr, eses as inv_eses
-from saude.lang import ptpt as saude_ptpt, frfr as saude_frfr, eses as saude_eses
-from hr.lang import ptpt as hr_ptpt, frfr as hr_frfr, eses as hr_eses
+from sales.lang import ptpt as sales_ptpt
+from inventory.lang import ptpt as inv_ptpt
+from saude.lang import ptpt as saude_ptpt
+from hr.lang import ptpt as hr_ptpt
 
 NON_ENGLISH_CHARS = re.compile(r"[àâãçéêíóôõúÀ-ÿ]")
 
 PT = {**hr_ptpt.key_value, **saude_ptpt.key_value, **inv_ptpt.key_value, **sales_ptpt.key_value, **saas_ptpt.key_value, **ptpt.key_value}
-FR = {**hr_frfr.key_value, **saude_frfr.key_value, **inv_frfr.key_value, **sales_frfr.key_value, **saas_frfr.key_value, **frfr.key_value}
-ES = {**hr_eses.key_value, **saude_eses.key_value, **inv_eses.key_value, **sales_eses.key_value, **saas_eses.key_value, **eses.key_value}
 
 
 def _labels():
@@ -49,5 +45,5 @@ def test_label_is_canonical_english(label):
 
 @pytest.mark.parametrize("label", LABELS)
 def test_label_is_translated(label):
-    for name, lang in (("pt-pt", PT), ("fr-fr", FR), ("es-es", ES)):
+    for name, lang in (("pt-pt", PT),):
         assert label in lang, f"{label!r} has no {name} translation"

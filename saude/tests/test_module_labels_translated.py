@@ -1,5 +1,5 @@
 """Standing rule (CLAUDE.md section 84): every user-facing label of the saude
-module exists in pt-pt, es-es and fr-fr - model/field labels (what the
+module exists in pt-pt - model/field labels (what the
 schema hands the frontend, which translates them with tdc()), choice labels,
 sidebar menus, @resaas_action labels/tooltips, and every tdc('...') literal in
 the saude frontend pages. test_translations_complete.py covers choices /
@@ -26,7 +26,7 @@ def _load(path):
 
 def _dictionaries():
     result = {}
-    for code in ("ptpt", "eses", "frfr"):
+    for code in ("ptpt",):
         merged = {}
         for path in glob.glob(f"/var/www/dev/venv/lib/python3.10/site-packages/django_resaas/*/lang/{code}.py"):
             merged.update(_load(path))

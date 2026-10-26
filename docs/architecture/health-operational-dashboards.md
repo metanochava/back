@@ -864,7 +864,7 @@ The first tab by `order` is the default (Reception 1, Nursing 2, My Patients
 3, Clinic 10). The engine renders everything else (`DashboardRenderer`, one
 component per widget type, loading/empty/error per widget). Queues refresh
 every 60 s (`refresh.interval`). All labels are canonical English, translated
-with `tdc()` (`saude/lang/*.py`, four languages).
+with `tdc()` (`saude/lang/ptpt.py`; English is the key).
 
 ## Extending
 
