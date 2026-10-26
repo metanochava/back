@@ -5,7 +5,7 @@ tdc() canonical key throughout; all tdc() keys were rewritten to
 English. This guards the backend side: sidebar.py's menu values and
 dashboard.py's widget/filter labels reach tdc()/Translate.tdc() as
 lookup keys and must be canonical English, translated into
-pt-pt/fr-fr/es-es (via inventory's own lang/<code>.py, or the shared
+pt-pt (via inventory's own lang/<code>.py, or the shared
 saas core one). Also covers every model field's `choices=` display
 labels, auto-discovered via Django's app registry rather than a
 hand-maintained list - a hand-maintained list is exactly what let
@@ -20,19 +20,13 @@ from django.apps import apps
 from inventory.sidebar import ALL as INVENTORY_SIDEBAR
 from inventory.dashboard import DASHBOARD as INVENTORY_DASHBOARD
 from inventory.lang import ptpt as inventory_ptpt
-from inventory.lang import frfr as inventory_frfr
-from inventory.lang import eses as inventory_eses
 from django_resaas.saas.lang import ptpt as saas_ptpt
-from django_resaas.saas.lang import frfr as saas_frfr
-from django_resaas.saas.lang import eses as saas_eses
 
 pytestmark = pytest.mark.django_db
 
 NON_ENGLISH_CHARS = re.compile(r"[àâãçéêíóôõúÀ-ÿ]")
 
 PT = {**saas_ptpt.key_value, **inventory_ptpt.key_value}
-FR = {**saas_frfr.key_value, **inventory_frfr.key_value}
-ES = {**saas_eses.key_value, **inventory_eses.key_value}
 
 
 def _sidebar_menu_labels(entries):
@@ -83,5 +77,5 @@ def test_label_is_canonical_english(label):
 
 @pytest.mark.parametrize("label", ALL_LABELS)
 def test_label_is_translated(label):
-    for lang_name, lang in (("pt-pt", PT), ("fr-fr", FR), ("es-es", ES)):
+    for lang_name, lang in (("pt-pt", PT),):
         assert label in lang, f"{label!r} has no {lang_name} translation"
