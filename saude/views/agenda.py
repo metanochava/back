@@ -202,3 +202,17 @@ class AgendaAPIView(BaseAPIView):
         agenda = appointment_flow.check_out(self._locked())
         return Response(self.get_serializer(agenda).data)
 
+    # Undo a reception step done by mistake: the same permission as the step
+    # (whoever may check in may undo a check-in), state checked by the service.
+    @resaas_action(detail=True, methods=["post"], label="Undo check-in", icon="undo", permission="check_in_agenda")
+    @transaction.atomic
+    def undo_check_in(self, request, *args, **kwargs):
+        agenda = appointment_flow.undo_check_in(self._locked())
+        return Response(self.get_serializer(agenda).data)
+
+    @resaas_action(detail=True, methods=["post"], label="Undo check-out", icon="undo", permission="check_out_agenda")
+    @transaction.atomic
+    def undo_check_out(self, request, *args, **kwargs):
+        agenda = appointment_flow.undo_check_out(self._locked())
+        return Response(self.get_serializer(agenda).data)
+

@@ -136,7 +136,7 @@ QUEUE_COLUMNS = [
     {"name": "check_in", "label": "Check-in"},
     {"name": "doctor", "label": "Doctor"},
     {"name": "waiting", "label": "Waiting (min)"},
-    {"name": "waiting_band", "label": "Waiting"},
+    {"name": "waiting_band", "label": "Waiting", "badge": {"Normal": "positive", "Attention": "warning", "Long wait": "negative"}},
     # badge: the dashboard table shows these values as coloured labels
     # (Quasar brand colours - they follow the Theme; any other value is grey)
     {"name": "vital_signs", "label": "Vital Signs", "badge": {"Recorded": "positive", "Pending": "warning"}},
@@ -524,7 +524,7 @@ class LabQueueProvider(FlowProvider):
                 {"name": "patient", "label": "Patient"},
                 {"name": "arrival", "label": "Arrival"},
                 {"name": "waiting", "label": "Waiting (min)"},
-                {"name": "waiting_band", "label": "Waiting"},
+                {"name": "waiting_band", "label": "Waiting", "badge": {"Normal": "positive", "Attention": "warning", "Long wait": "negative"}},
                 {"name": "exams", "label": "Exams"},
                 {"name": "origin", "label": "Origin"},
                 {"name": "urgent", "label": "Urgent"},

@@ -42,6 +42,8 @@ reported, never created):
 | Medical Receptionist | patient registration, appointments, exam-only requests, lab check-in, **patient portal grant** | Reception (`view_dashboard_saude_reception`) |
 | Medical Laboratory Technician | collect / reject samples, record results | Laboratory (`view_dashboard_saude_laboratory`) |
 | Medical Laboratory Scientist | Technician + validate, release, amend results, configure exam parameters and reference ranges | Laboratory |
+| Radiology Technician | imaging exams: check in, perform (collect / start processing), record results | Laboratory (the exam queue; no separate imaging workflow yet) |
+| Radiologist | Radiology Technician + report (change), validate, release, amend results, result PDF; reads the consultation | Laboratory |
 | Pharmacist | prescriptions and medicines (the `farmacia` module adds dispensing to the same Group) | - |
 | Cashier | the patient only (`view_paciente`); billing permissions come from the `sales` module, which seeds the same Group | - |
 | Healthcare Administrator | read-only supervision of clinical activity | Clinic (`view_dashboard_saude_clinica`) |
@@ -88,7 +90,7 @@ even listed). Providers: `saude/dashboard_flow_providers.py`.
 | | `checked_in_today` | stat | `view_agenda` | today's appointments with `checked_in_at` |
 | | `waiting_now` | stat | `view_agenda` | today's appointments in `em_espera` |
 | | `average_waiting` | stat | `view_agenda` | average check-in -> service start, today (minutes) |
-| | `reception_queue` | table | `view_agenda` | today's appointments by scheduled time; row actions: check in (`check_in_agenda`, scheduled/confirmed rows), check out (`check_out_agenda`, waiting/in-progress rows), open patient (`view_paciente`); toolbar: register patient (`add_paciente`); patients (`list_paciente`) - one click opens `list_paciente`, a double click the same list in a full-screen dialog (`dblclick_action` → `saude.patient_list`, `PatientListDialog.vue`, the list shared with the page in `PacienteList.vue`) |
+| | `reception_queue` | table | `view_agenda` | today's appointments by scheduled time; row actions: check in (`check_in_agenda`, scheduled/confirmed rows), check out (`check_out_agenda`, waiting/in-progress rows), revert check-in (`check_in_agenda`, waiting rows), revert check-out (`check_out_agenda`, completed rows), open patient (`view_paciente`); toolbar: register patient (`add_paciente`); patients (`list_paciente`) - one click opens `list_paciente`, a double click the same list in a full-screen dialog (`dblclick_action` → `saude.patient_list`, `PatientListDialog.vue`, the list shared with the page in `PacienteList.vue`) |
 | | `reception_calendar` | calendar | `view_agenda` | every appointment of the unit (all doctors, "patient — doctor"), 30 days back and 90 ahead, cancelled excluded; status colours as the queue badges; click → patient record (`view_paciente`); shares the row with `reception_queue` from md up (queue 8 + calendar 4) |
 | Nursing | `waiting_now` | stat | `view_agenda` | as above |
 | | `vitals_pending` | stat | `view_agenda` + `view_dadovital` | waiting, no vital signs since check-in |
@@ -164,13 +166,20 @@ editing its state:
 |---|---|---|---|---|
 | `POST /api/saude/agendas/{id}/check_in/` | `check_in_agenda` | `marcada`, `confirmada` | `em_espera` (`checked_in_at`) | only on the appointment day (`409 not_appointment_day`) |
 | `POST /api/saude/agendas/{id}/check_out/` | `check_out_agenda` | `em_espera`, `em_atendimento` | `concluida` (`completed_at`) | a waiting patient may leave too (the doctor may not have pressed "start") |
+| `POST /api/saude/agendas/{id}/undo_check_in/` | `check_in_agenda` | `em_espera` | `marcada` (`checked_in_at` cleared) | reverts a check-in done by mistake; not once the service started; only today |
+| `POST /api/saude/agendas/{id}/undo_check_out/` | `check_out_agenda` | `concluida` | `em_atendimento` when the service had started, else `em_espera` (`completed_at` cleared) | reverts a check-out done by mistake; only today |
 
 - Any other state gives `409 invalid_appointment_state` and nothing changes.
   The row is locked (`select_for_update`), so a double click moves it once.
 - `get_object()` keeps the appointment inside the current Entity/Branch
   (another tenant's id → 404). The `Medical Receptionist` profile gets both
   permissions (`saude/profiles.py`, additive seed).
-- Where: **Reception Queue** row buttons, each shown only on the rows whose
+- Reverting goes back one step only and clears the timestamp of the step it
+  undoes, so the waiting-time metrics stay true. It reuses the permission of
+  the step (whoever may check in may undo a check-in): no new permission.
+  Another day's appointment gives `409 not_appointment_day`.
+- Where: **Reception Queue** row buttons (revert ones after a confirmation),
+  each shown only on the rows whose
   `estado` allows it (dashboard action `type: "request"` + `when`), and the
   **Upcoming Appointments** list of the patient record (`PacienteVPage`,
   check-in only for today's appointments, check-out after a confirmation).
