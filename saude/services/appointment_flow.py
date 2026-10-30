@@ -97,6 +97,49 @@ def check_out(agenda, now=None):
                  "This appointment cannot be checked out in its current state.", "invalid_appointment_state", now)
 
 
+# ------------------------------------------------------------------
+# Reception: undo a check-in / check-out done by mistake (the queue's
+# "revert" buttons). Each one only goes back one step, only on the day of
+# the appointment, and clears the timestamp of the step it undoes, so the
+# waiting-time metrics stay true. Anything else is 409 and nothing changes.
+# ------------------------------------------------------------------
+SCHEDULED = "marcada"
+
+
+def _undo(agenda, target, clear_field, now=None):
+    from django_resaas.saas.core.exceptions import ConflictError
+
+    today = timezone.localdate(now) if now else timezone.localdate()
+    if agenda.data != today:
+        raise ConflictError("Only today's appointments can be reverted.", code="not_appointment_day")
+
+    agenda.estado = target
+    setattr(agenda, clear_field, None)
+    agenda.save(update_fields=["estado", clear_field, "updated_at"])
+    return agenda
+
+
+def undo_check_in(agenda, now=None):
+    """Checked in by mistake: waiting -> scheduled (checked_in_at cleared).
+    Not once the service started (the doctor has the patient)."""
+    from django_resaas.saas.core.exceptions import ConflictError
+
+    if agenda.estado != WAITING:
+        raise ConflictError("Only a waiting patient's check-in can be reverted.", code="invalid_appointment_state")
+    return _undo(agenda, SCHEDULED, "checked_in_at", now=now)
+
+
+def undo_check_out(agenda, now=None):
+    """Checked out by mistake: completed -> in progress when the service had
+    started, else waiting (completed_at cleared)."""
+    from django_resaas.saas.core.exceptions import ConflictError
+
+    if agenda.estado != COMPLETED:
+        raise ConflictError("Only a completed appointment's check-out can be reverted.", code="invalid_appointment_state")
+    target = IN_PROGRESS if agenda.service_started_at else WAITING
+    return _undo(agenda, target, "completed_at", now=now)
+
+
 def scheduled_at(agenda):
     moment = datetime.combine(agenda.data, agenda.hora_inicio)
     return timezone.make_aware(moment) if timezone.is_naive(moment) else moment

@@ -20,10 +20,11 @@ class SaudeProfilesTests(TestCase):
     OFFICIAL = {
         "Doctor", "Nurse", "Medical Receptionist",
         "Medical Laboratory Technician", "Medical Laboratory Scientist",
+        "Radiology Technician", "Radiologist",
         "Pharmacist", "Cashier", "Healthcare Administrator", "Patient",
     }
 
-    def test_the_nine_official_profiles_exist_once(self):
+    def test_the_official_profiles_exist_once(self):
         # Garante que as Permission (view_paciente, etc.) já existem -
         # create_model_permissions só corre com uma EntityType já
         # criada, o que bootstrap_tenant() já garante.
@@ -92,6 +93,20 @@ class SaudeProfilesTests(TestCase):
             codenames = set(Group.objects.get(name=name).permissions.values_list("codename", flat=True))
             self.assertIn("list_tipoexamemedico", codenames, name)
             self.assertTrue({"list_specialty", "view_specialty", "list_medico", "view_medico"} <= codenames, name)
+
+    def test_radiology_profiles_work_the_exam_flow(self):
+        bootstrap_tenant("profile-radiology")
+        group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+
+        technician = set(Group.objects.get(name="Radiology Technician").permissions.values_list("codename", flat=True))
+        radiologist = set(Group.objects.get(name="Radiologist").permissions.values_list("codename", flat=True))
+
+        self.assertIn("record_result_itempedidoexamemedico", technician)
+        self.assertNotIn("validate_resultadoexamemedico", technician)
+        self.assertTrue({"validate_resultadoexamemedico", "release_resultadoexamemedico",
+                         "amend_resultadoexamemedico"} <= radiologist)
+        # the exam catalogue stays with the lab scientist and the administrator
+        self.assertNotIn("add_examemedico", radiologist)
 
     def test_patient_has_only_portal_capabilities(self):
         """No clinical model permission: those would open clinical

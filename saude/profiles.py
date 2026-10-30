@@ -267,6 +267,58 @@ LABORATORY_PROFILES = [
     },
 ]
 
+# Imaging (radiology). There is no separate imaging workflow yet: imaging
+# exams (X-ray, ultrasound, CT...) are exams of the same exam request and
+# result flow as the laboratory, so these profiles reuse its permissions and
+# its queue (Laboratory dashboard). They are not limited to imaging exams:
+# that needs an exam-type scope the module does not have yet.
+RADIOLOGY_PROFILES = [
+    {
+        # performs the exam and records the result (like the lab technician)
+        "name": "Radiology Technician",
+        "permissions": [
+            "view_paciente",
+            "view_pedidoexamemedico", "list_pedidoexamemedico",
+            "view_itempedidoexamemedico", "change_itempedidoexamemedico",
+            "view_examemedico", "view_tipoexamemedico", "view_classeexamemedico",
+            "check_in_pedidoexamemedico",
+            "collect_itempedidoexamemedico",
+            "start_processing_itempedidoexamemedico", "cancel_itempedidoexamemedico",
+            "record_result_itempedidoexamemedico",
+            "view_resultadoexamemedico", "add_resultadoexamemedico", "list_resultadoexamemedico",
+            "view_resultparametervalue", "add_resultparametervalue",
+            "view_dashboard_saude_laboratory",
+            "view_dashboard_saude_exames",
+        ],
+    },
+    {
+        # reports, validates and releases the result (like the lab scientist,
+        # without the exam catalogue configuration)
+        "name": "Radiologist",
+        "permissions": [
+            "view_paciente", "list_paciente",
+            "view_pedidoexamemedico", "list_pedidoexamemedico",
+            "view_itempedidoexamemedico", "change_itempedidoexamemedico",
+            "view_examemedico", "view_tipoexamemedico", "view_classeexamemedico",
+            "check_in_pedidoexamemedico",
+            "collect_itempedidoexamemedico",
+            "start_processing_itempedidoexamemedico", "cancel_itempedidoexamemedico",
+            "record_result_itempedidoexamemedico",
+            "view_resultadoexamemedico", "add_resultadoexamemedico", "change_resultadoexamemedico",
+            "list_resultadoexamemedico",
+            "view_resultparametervalue", "add_resultparametervalue", "change_resultparametervalue",
+            "validate_resultadoexamemedico",
+            "release_resultadoexamemedico",
+            "amend_resultadoexamemedico",
+            "pdf_resultadoexamemedico", "pdf_list_resultadoexamemedico",
+            # the clinical context of the request
+            "view_consulta", "list_consulta",
+            "view_dashboard_saude_laboratory",
+            "view_dashboard_saude_exames",
+        ],
+    },
+]
+
 PHARMACY_PROFILES = [
     {
         "name": "Pharmacist",
@@ -364,6 +416,7 @@ SAUDE_PROFILES = (
     CLINICAL_PROFILES
     + FRONT_OFFICE_PROFILES
     + LABORATORY_PROFILES
+    + RADIOLOGY_PROFILES
     + PHARMACY_PROFILES
     + FINANCE_PROFILES
     + MANAGEMENT_PROFILES

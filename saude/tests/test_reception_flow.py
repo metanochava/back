@@ -112,6 +112,87 @@ class ReceptionCheckInOutTests(TestCase):
         self.assertEqual(actions["check_out"]["request"]["endpoint"], "saude/agendas/{id}/check_out/")
         self.assertEqual(rows[0]["estado"], "marcada")
 
+    # -- revert a step done by mistake --------------------------------
+
+    def test_undo_check_in_puts_the_patient_back_to_scheduled(self):
+        agenda = _appointment(self.tenant, self.patient, self.doctor, "marcada")
+        self._post(agenda, "check_in")
+
+        response = self._post(agenda, "undo_check_in")
+
+        self.assertIn(response.status_code, (200, 202), response.content)
+        agenda.refresh_from_db()
+        self.assertEqual(agenda.estado, "marcada")
+        self.assertIsNone(agenda.checked_in_at)
+        # and the patient can be checked in again
+        self.assertIn(self._post(agenda, "check_in").status_code, (200, 202))
+
+    def test_undo_check_in_only_while_waiting(self):
+        for estado in ("marcada", "em_atendimento", "concluida", "cancelada"):
+            agenda = _appointment(self.tenant, self.patient, self.doctor, estado)
+
+            response = self._post(agenda, "undo_check_in")
+
+            self.assertEqual(response.status_code, 409, estado)
+            agenda.refresh_from_db()
+            self.assertEqual(agenda.estado, estado)
+
+    def test_undo_check_out_goes_back_to_in_progress_or_waiting(self):
+        started = _appointment(self.tenant, self.patient, self.doctor, "concluida",
+                               service_started_at=timezone.now(), completed_at=timezone.now())
+        not_started = _appointment(self.tenant, self.patient, self.doctor, "concluida",
+                                   checked_in_at=timezone.now(), completed_at=timezone.now())
+
+        for agenda, expected in ((started, "em_atendimento"), (not_started, "em_espera")):
+            response = self._post(agenda, "undo_check_out")
+
+            self.assertIn(response.status_code, (200, 202), response.content)
+            agenda.refresh_from_db()
+            self.assertEqual(agenda.estado, expected)
+            self.assertIsNone(agenda.completed_at)
+
+    def test_undo_check_out_only_of_a_completed_visit(self):
+        for estado in ("marcada", "em_espera", "em_atendimento", "faltou"):
+            agenda = _appointment(self.tenant, self.patient, self.doctor, estado)
+
+            self.assertEqual(self._post(agenda, "undo_check_out").status_code, 409, estado)
+
+    def test_only_todays_appointments_can_be_reverted(self):
+        agenda = _appointment(self.tenant, self.patient, self.doctor, "em_espera",
+                              checked_in_at=timezone.now())
+        Agenda.objects.filter(pk=agenda.pk).update(data=timezone.localdate() - timedelta(days=1))
+
+        response = self._post(agenda, "undo_check_in")
+
+        self.assertEqual(response.status_code, 409)
+        self.assertEqual(response.json()["error"]["code"], "not_appointment_day")
+
+    def test_reverting_needs_the_permission_of_the_step(self):
+        waiting = _appointment(self.tenant, self.patient, self.doctor, "em_espera")
+        done = _appointment(self.tenant, self.patient, self.doctor, "concluida")
+        client = _client_with(self.tenant, RECEPTION)
+
+        self.assertEqual(self._post(waiting, "undo_check_in", client).status_code, 403)
+        self.assertEqual(self._post(done, "undo_check_out", client).status_code, 403)
+
+    def test_another_tenants_appointment_cannot_be_reverted(self):
+        other = bootstrap_tenant("reception-undo-other", modules=("saude", "hr"))
+        theirs = _appointment(other, _patient(other, "Rui"), _employee(other, Person.objects.create(name="X")), "em_espera")
+
+        self.assertEqual(self._post(theirs, "undo_check_in").status_code, 404)
+
+    def test_the_queue_offers_the_revert_buttons_by_state(self):
+        client = _client_with(self.tenant, FRONT_DESK)
+        widget = next(
+            w for w in client.get("/api/django_resaas/dashboard/saude_reception/").json()["dashboard"]["widgets"]
+            if w["name"] == "reception_queue"
+        )
+        actions = {a["name"]: a for a in widget["row_actions"]}
+
+        self.assertEqual(actions["undo_check_in"]["when"], {"field": "estado", "in": ["em_espera"]})
+        self.assertEqual(actions["undo_check_out"]["when"], {"field": "estado", "in": ["concluida"]})
+        self.assertEqual(actions["undo_check_out"]["request"]["endpoint"], "saude/agendas/{id}/undo_check_out/")
+
     def test_the_queue_links_to_the_patient_list_and_its_dialog(self):
         """One click: list_paciente; double click: the same list in a dialog
         (dblclick_action). Both need list_paciente."""

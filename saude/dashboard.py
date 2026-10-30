@@ -337,6 +337,34 @@ _CHECK_OUT = {
     "permissions": ["check_out_agenda"],
 }
 
+# Undo a reception step done by mistake (same permission as the step); the
+# server checks the state and the day (409 otherwise).
+_UNDO_CHECK_IN = {
+    "name": "undo_check_in",
+    "type": "request",
+    "request": {"method": "POST", "endpoint": "saude/agendas/{id}/undo_check_in/"},
+    "when": {"field": "estado", "in": ["em_espera"]},
+    "icon": "undo",
+    "color": "warning",
+    "tooltip": "Revert the check-in",
+    "confirm": "Revert this patient's check-in? The appointment goes back to scheduled.",
+    "success": "Check-in reverted.",
+    "permissions": ["check_in_agenda"],
+}
+
+_UNDO_CHECK_OUT = {
+    "name": "undo_check_out",
+    "type": "request",
+    "request": {"method": "POST", "endpoint": "saude/agendas/{id}/undo_check_out/"},
+    "when": {"field": "estado", "in": ["concluida"]},
+    "icon": "undo",
+    "color": "warning",
+    "tooltip": "Revert the check-out",
+    "confirm": "Revert this patient's check-out? The appointment goes back to waiting or in progress.",
+    "success": "Check-out reverted.",
+    "permissions": ["check_out_agenda"],
+}
+
 _RECORD_VITALS = {
     "name": "record_vital_signs",
     "type": "dialog",
@@ -423,7 +451,7 @@ DASHBOARDS = [
                   "timer", ["view_agenda"], 40, "From check-in to the start of the consultation, today."),
             _queue("reception_queue", "Reception Queue", "saude.reception.queue", ["view_agenda"], 50,
                    "Today's appointments in scheduled order: check the patient in on arrival and out on leaving.",
-                   row_actions=[_CHECK_IN, _CHECK_OUT], cols=_QUEUE_BESIDE_CALENDAR_COLS,
+                   row_actions=[_CHECK_IN, _CHECK_OUT, _UNDO_CHECK_IN, _UNDO_CHECK_OUT], cols=_QUEUE_BESIDE_CALENDAR_COLS,
                    actions=[{
                        "name": "add_patient",
                        "type": "route",
