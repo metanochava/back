@@ -15,7 +15,9 @@ authors = [
 ]
 
 dependencies = [
-  "django_resaas>=0.0.659",
+  "django_resaas>=0.0.664",
+  # Celery broker client (saas/celery.py, CELERY_BROKER_URL = local Redis)
+  "redis>=5",
   "Django==5.2.10",
   "djangorestframework==3.16.1",
   "djangorestframework_simplejwt==5.5.1",

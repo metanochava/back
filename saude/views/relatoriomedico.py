@@ -82,4 +82,5 @@ class RelatorioMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
             barcode_b64=barcode_b64,
             relatorio=relatorio,
             signer_name=author_name(relatorio),
+            labels=consultation_service.patient_header_labels(request),
         )

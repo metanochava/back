@@ -1,22 +1,29 @@
-from __future__ import absolute_import, unicode_literals
+# Celery app of this project (django_resaas docs/features/notifications.md,
+# "Wiring Celery + Beat in a host project"). The notifications outbox
+# (django_resaas.notifications.tasks) binds to it through @shared_task.
+# Broker: CELERY_BROKER_URL (the local Redis); a worker and Beat run as the
+# systemd units celery_<env>_worker / celery_<env>_beat.
 import os
+
 from celery import Celery
-from django.conf import settings
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mytech.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saas.settings")
 
-app = Celery("mytech")
-app.conf.enable_utc = False
-app.conf.update(timezone = os.environ.get("TIME_ZONE"))
-
-app.config_from_object(settings, namespace="CELERY")
-
-# Celere Beat settings
-app.conf.beat_schedule = {
-    
-}
-
+app = Celery("saas")
+app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
-@app.task(bind=True)
-def debug_task(self):
-    print(f'Request: {self.request!r}')
+
+app.conf.beat_schedule = {
+    "notifications-dispatch-pending": {
+        "task": "django_resaas.notifications.dispatch_pending_notifications",
+        "schedule": 30.0,  # OUTBOX_RECOVERY_INTERVAL_SECONDS
+    },
+    "notifications-recover-stuck": {
+        "task": "django_resaas.notifications.recover_stuck_notifications",
+        "schedule": 60.0,
+    },
+    "notifications-cleanup": {
+        "task": "django_resaas.notifications.cleanup_notifications",
+        "schedule": 86400.0,  # daily
+    },
+}

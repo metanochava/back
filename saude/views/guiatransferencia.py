@@ -83,4 +83,5 @@ class GuiaTransferenciaAPIView(DocumentEditWindowMixin, BaseAPIView):
             barcode_b64=barcode_b64,
             guiatransferencia=guiatransferencia,
             signer_name=author_name(guiatransferencia),
+            labels=consultation_service.patient_header_labels(request),
         )

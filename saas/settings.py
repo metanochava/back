@@ -40,6 +40,14 @@ def _env_flag(name, default="0"):
 # URLconf, settings and local variables to whoever triggers it.
 DEBUG = _env_flag("DEBUG")
 TIME_ZONE = os.environ.get("TIME_ZONE")
+
+# Celery (saas/celery.py): broker = the local Redis (CELERY_BROKER_URL in .env).
+# Without a broker the outbox keeps notifications pending and retries them.
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+CELERY_TASK_ALWAYS_EAGER = bool(int(os.environ.get("CELERY_TASK_ALWAYS_EAGER", "0")))
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_ACKS_LATE = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 LANGUAGE_CODE = 'EN-US'
 
 # --------------------------

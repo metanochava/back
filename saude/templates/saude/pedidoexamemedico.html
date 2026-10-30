@@ -44,7 +44,7 @@
     top: -74px;
     left: 0;
     right: 0;
-    height: 67px;
+    height: 55px;
     border-bottom: 1px solid #ddd;
     background: white;
   }
@@ -142,8 +142,7 @@
   }
 
   .patient-table .label {
-    color: #0f766e;
-    font-weight: bold;
+    font-weight: normal;
     width: 1%;
     white-space: nowrap;
     padding-right: 4px;
@@ -184,10 +183,9 @@
   .exam-priority {
     font-size: 6px;
     font-weight: bold;
-    color: #d97706;
-    border: 1px solid #d97706;
+    color: #6b7280;
+    border: 1px solid #6b7280;
     border-radius: 6px;
-    background: #fffbeb;
     padding: 0 3px;
     text-transform: none;
   }
@@ -257,6 +255,12 @@
   .footer-left { text-align: left; }
   .footer-center { text-align: center; }
   .footer-right { text-align: right; }
+
+  /* patient header: right under the header line */
+  .patient-box { margin-top: -25px; }
+
+  /* urgent exams in the danger colour */
+  .exam-priority--urgente { color: #c10015; border-color: #c10015; }
 </style>
 </head>
 
@@ -287,22 +291,21 @@
 
 <div class="content">
 
-  <div class="box">
+  <div class="box patient-box">
     <table class="patient-table">
       <tr>
-        <td class="label">{{ labels.name|capfirst }}:</td>
-        <td colspan="3" class="patient-name">{{ person.full_name|default:"-" }}</td>
-      </tr>
-      <tr>
-        <td class="label">{{ labels.address }}:</td>
-        <td>{{ address|default:"-" }}</td>
+        <td class="label">{{ labels.name }}:</td>
+        <td class="patient-name">{{ person.full_name|default:"-" }}</td>
 
         <td class="label">{{ labels.age }}:</td>
-        <td>{% if age is not None %}{{ age }} {{ labels.years }}{% else %}-{% endif %}</td>
+        <td><strong>{% if age is not None %}{{ age }} {{ labels.years }}{% else %}-{% endif %}</strong></td>
       </tr>
       <tr>
         <td class="label">{{ labels.nid }}:</td>
-        <td colspan="3">{{ paciente.nid|default:"-" }}</td>
+        <td><strong>{{ paciente.nid|default:"-" }}</strong></td>
+
+        <td class="label">{{ labels.address }}:</td>
+        <td><strong>{{ address|default:"-" }}</strong></td>
       </tr>
     </table>
   </div>
@@ -328,7 +331,7 @@
           {% if item.exame.codigo %}<span class="exam-code">{{ item.exame.codigo }} --</span>{% endif %}
           {{ item.exame.nome }}
           {% if item.prioridade %}
-            <span class="exam-priority">{{ item.get_prioridade_display|default:item.prioridade }}</span>
+            <span class="exam-priority exam-priority--{{ item.prioridade }}">{{ item.priority_short }}</span>
           {% endif %}
 
           {% if item.instrucoes %}
