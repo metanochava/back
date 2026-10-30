@@ -212,3 +212,44 @@ class SaudeProfilesTests(TestCase):
         custom_group.permissions.add(perm)
 
         self.assertTrue(custom_group.permissions.filter(codename="view_paciente").exists())
+
+
+class SaudeProfilesOnTheSaudeTypeTests(TestCase):
+    """create_saude_groups() also links the health profiles to the Saude
+    EntityType and, when that link is new, to the existing Saude Entities
+    (saude/apps.py, link_saude_profiles_to_type)."""
+
+    def setUp(self):
+        from django_resaas.saas.models.entity import Entity
+        from django_resaas.saas.models.entity_type import EntityType
+
+        self.saude_type, _ = EntityType.objects.get_or_create(name="Saude", defaults={"state": "Active"})
+        self.clinic = Entity.objects.create(name="Clinic profiles", entity_type=self.saude_type)
+
+    def _link(self):
+        from saude.apps import link_saude_profiles_to_type
+
+        group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+        link_saude_profiles_to_type(SAUDE_PROFILES)
+
+    def test_every_profile_is_linked_to_the_type_and_its_entities(self):
+        from django_resaas.saas.models.entity_group import EntityGroup
+        from django_resaas.saas.models.entity_type_group import EntityTypeGroup
+
+        self._link()
+
+        for name in ("Doctor", "Radiology Technician", "Radiologist"):
+            group = Group.objects.get(name=name)
+            self.assertTrue(EntityTypeGroup.objects.filter(entity_type=self.saude_type, group=group).exists(), name)
+            self.assertTrue(EntityGroup.objects.filter(entity=self.clinic, group=group).exists(), name)
+
+    def test_a_profile_an_entity_removed_is_not_put_back(self):
+        from django_resaas.saas.models.entity_group import EntityGroup
+
+        self._link()
+        radiologist = Group.objects.get(name="Radiologist")
+        EntityGroup.objects.filter(entity=self.clinic, group=radiologist).delete()
+
+        self._link()
+
+        self.assertFalse(EntityGroup.objects.filter(entity=self.clinic, group=radiologist).exists())

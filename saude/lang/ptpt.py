@@ -488,7 +488,7 @@ key_value = {
     "Medical Laboratory Technician": "Técnico de laboratório clínico",
     "Medical Laboratory Scientist": "Analista clínico",
     "Radiology Technician": "Técnico de radiologia",
-    "Radiologist": "Médico de radiologia",
+    "Radiologist": "Radiologista",
     "Radiologic Technologist": "Técnico de radiologia",
     "Medical Imaging Technologist": "Técnico de imagiologia médica",
     "Diagnostic Medical Sonographer": "Técnico de ecografia",
