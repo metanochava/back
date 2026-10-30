@@ -3,21 +3,21 @@
 {# (consultation_service.pdf_context); vital-sign status and calculations  #}
 {# use the same adult references as the form (vital_signs_service).        #}
 <style>
-  .c-meta { font-size: 12px; margin-bottom: 8px; }
+  .c-meta { font-size: 11px; margin-bottom: 8px; }
   .c-section { margin-bottom: 8px; page-break-inside: avoid; }
   .c-title {
-    font-size: 11px; font-weight: bold; letter-spacing: .04em; text-transform: uppercase;
+    font-size: 13px; font-weight: bold; letter-spacing: .04em; text-transform: uppercase;
     color: #075da3; border-bottom: 1px solid #cfe0f0; padding-bottom: 2px; margin-bottom: 4px;
   }
   .c-sub { font-size: 10px; color: #666; margin-bottom: 4px; }
   .v-grid { width: 100%; border-collapse: separate; border-spacing: 3px; }
   .v-tile { border: 1px solid #ddd; border-left: 3px solid #bbb; padding: 3px 4px; vertical-align: top; width: 16.6%; }
   .v-tile.normal { border-left-color: #21ba45; }
-  .v-tile.attention { border-left-color: #f9a825; background: #fffaf0; }
-  .v-tile.warning { border-left-color: #ef6c00; background: #fff4ec; }
-  .v-tile.critical { border-left-color: #c10015; background: #fdeeee; }
+  .v-tile.attention { border-left-color: #f9a825; }
+  .v-tile.warning { border-left-color: #ef6c00; }
+  .v-tile.critical { border-left-color: #c10015; }
   .v-label { font-size: 9px; color: #555; }
-  .v-value { font-size: 12px; font-weight: bold; }
+  .v-value { font-size: 11px; font-weight: bold; }
   .v-status { font-size: 8px; float: right; margin-top: 2px; }
   .v-status.attention { color: #b07800; } .v-status.warning { color: #c05600; } .v-status.critical { color: #c10015; }
   .v-summary { text-align: center; font-size: 10px; margin-top: 3px; }
@@ -27,8 +27,8 @@
   .v-chip.attention, .v-alert.attention { border-color: #f9a825; color: #b07800; }
   .v-alert { display: inline-block; border: 1px solid; border-radius: 3px; padding: 1px 4px; margin: 1px; font-weight: bold; }
   .v-notes { font-size: 9px; color: #555; text-align: left; margin-top: 3px; }
-  .c-text { border: 1px solid #cdcdcd; padding: 4px; min-height: 30px; }
-  .c-text.main { border-color: #075da3; background: #f8fbff; }
+  .c-text { font-size: 12px; border: 1px solid #cdcdcd; padding: 4px; min-height: 30px; }
+  .c-text.main { border-color: #075da3; }
   .c-cols { width: 100%; border-collapse: separate; border-spacing: 0; }
   .c-cols td { width: 50%; vertical-align: top; }
   .c-disclaimer { font-size: 8px; color: #888; margin-top: 2px; }

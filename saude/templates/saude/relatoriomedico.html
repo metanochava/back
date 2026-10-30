@@ -14,7 +14,7 @@
 
     @bottom-right {
       content: counter(page) " - " counter(pages);
-      font-size: 14px;
+      font-size: 10px;
       color: #0f766e;
       font-family: Arial, sans-serif;
       font-weight: bold;
@@ -29,7 +29,7 @@
 
   body {
     font-family: Arial, sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     color: #333;
     margin: 0;
     padding: 0;
@@ -78,7 +78,7 @@
 
   .title .subtitle {
     color: #777;
-    font-size: 15px;
+    font-size: 13px;
     margin-top: 2px;
   }
 
@@ -130,7 +130,7 @@
 
   .relatorio-text {
     font-family: "Times New Roman", Times, serif;
-    font-size: 14px;
+    font-size: 12px;
     text-align: justify;
     line-height: 1.45;
   }
@@ -139,7 +139,7 @@
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 10px;
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .dados td {
@@ -154,7 +154,7 @@
   .assinatura {
     margin-top: 18px;
     text-align: right;
-    font-size: 14px;
+    font-size: 12px;
   }
 
   .linha-assinatura {
@@ -162,7 +162,7 @@
     margin-top: 22px;
     border-top: 1px solid #0f766e;
     color: #0f766e;
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: .04em;
     text-transform: uppercase;
     width: 170px;
@@ -177,7 +177,7 @@
     right: 0;
     min-height: 28px;
     border-top: 1px solid #ddd;
-    font-size: 13px;
+    font-size: 10px;
     color: #777;
     background: white;
     padding-top: 4px;
@@ -209,7 +209,7 @@
   .box-title { font-weight: bold; color: #0f766e; border-left: 3px solid #0f766e; padding-left: 5px;
                margin-bottom: 4px; text-transform: uppercase; font-size: 13px; }
   .box.declaracao { border-left: 3px solid #0f766e; }
-  .campo { margin-top: 8px; padding: 6px 8px; background: #f8fafc; border-radius: 4px; border-left: 3px solid #99f6e4; }
+  .campo { margin-top: 8px; padding: 6px 8px; border-radius: 4px; border-left: 3px solid #99f6e4; }
   .campo-titulo { font-size: 10px; font-weight: bold; color: #0f766e; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
 </style>
 </head>
@@ -247,29 +247,23 @@
 
 <div class="content">
 
-  <div class="box">
-
-    <div class="box-title">Dados do Paciente</div>
+  <div class="box patient-box">
 
     <table class="dados">
 
       <tr>
         <td class="label">
-          Nome: {{ relatorio.consulta.paciente.person.full_name }}
+          {{ labels.name }}: <strong>{{ relatorio.consulta.paciente.person.full_name }}</strong>
         </td>
       </tr>
 
       <tr>
         <td class="label">
-          NID: {{ relatorio.consulta.paciente.nid }}
+          {{ labels.nid }}: <strong>{{ relatorio.consulta.paciente.nid }}</strong>
         </td>
 
         <td class="label">
-          Profissão: {{ relatorio.consulta.paciente.person.occupation|default:"-" }}
-        </td>
-
-        <td class="label">
-          Contacto: {{ relatorio.consulta.paciente.person.phone|default:"-" }}
+          {{ labels.contact }}: <strong>{{ relatorio.consulta.paciente.person.phone|default:"-" }}</strong>
         </td>
       </tr>
 

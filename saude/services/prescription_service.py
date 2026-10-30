@@ -88,7 +88,7 @@ def pdf_context(request, receita):
         ),
         "labels": {key: t(text) for key, text in {
             "title": "Medical prescription",
-            "name": "Name", "nid": "NID", "occupation": "Occupation", "contact": "Contact",
+            "name": "Patient name", "nid": "Patient NID", "contact": "Contact",
             "medication": "Medication", "quantity": "Quantity", "notes": "Notes",
         }.items()},
     }

@@ -32,7 +32,6 @@ class ItemPedidoExameMedico(BaseModel):
         choices=[
             ("normal", "Normal"),
             ("urgente", "Urgent"),
-            ("muito_urgente", "Very Urgent"),
         ],
         default="normal"
     )

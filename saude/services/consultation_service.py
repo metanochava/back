@@ -82,6 +82,15 @@ def _plain(value):
     return text.rstrip("0").rstrip(".") if "." in text else text
 
 
+def patient_header_labels(request):
+    """Translated labels of the patient header shared by the visit PDFs."""
+    from django_resaas.saas.core.utils.translate import Translate
+
+    return {key: Translate.tdc(request, text) for key, text in {
+        "name": "Patient name", "nid": "Patient NID", "contact": "Contact",
+    }.items()}
+
+
 def pdf_context(request, consulta):
     from django_resaas.saas.core.utils.translate import Translate
     from saude.services import vital_signs_service as vs
@@ -130,12 +139,12 @@ def pdf_context(request, consulta):
         "professional_position": str(consulta.employee.position) if consulta.employee_id and consulta.employee.position_id else "",
         "labels": {key: t(text) for key, text in {
             "title": "Medical consultation",
-            "name": "Name", "nid": "NID", "occupation": "Occupation", "contact": "Contact",
+            "name": "Patient name", "nid": "Patient NID", "contact": "Contact",
             "professional": "Professional", "appointment": "Appointment",
             "latest_vitals": "Latest vital signs", "recorded_by": "Recorded by",
             "calculations": "Calculations", "alerts": "Alerts", "notes": "Notes",
             "no_vitals": "No vital signs recorded for this patient.",
-            "dc": "Chief complaint and history of present illness",
+            "dc": "Chief complaint, history of present illness and physical examination",
             "diagnostico": "Diagnosis", "conduta": "Plan",
             "disclaimer": "Reference values for adults. They support, and never replace, clinical judgement.",
         }.items()},

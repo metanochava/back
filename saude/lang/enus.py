@@ -560,7 +560,7 @@ key_value = {
     "Edit consultation": "Edit consultation",
     "New consultation": "New consultation",
     "Professional": "Professional",
-    "Chief complaint and history of present illness": "Chief complaint and history of present illness",
+    "Chief complaint, history of present illness and physical examination": "Chief complaint, history of present illness and physical examination",
     "What brings the patient, since when, how it evolved.": "What brings the patient, since when, how it evolved.",
     "Diagnosis": "Diagnosis",
     "Working or final diagnosis.": "Working or final diagnosis.",

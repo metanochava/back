@@ -13,7 +13,7 @@
 
     @bottom-right {
       content: counter(page) " - " counter(pages);
-      font-size: 14px;
+      font-size: 10px;
       color: #0f766e;
       font-family: Arial, sans-serif;
       font-weight: bold;
@@ -28,7 +28,7 @@
 
   body {
     font-family: Arial, sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     color: #333;
     margin: 0;
     padding: 0;
@@ -77,7 +77,7 @@
 
   .title .subtitle {
     color: #777;
-    font-size: 15px;
+    font-size: 13px;
     margin-top: 2px;
   }
 
@@ -131,7 +131,7 @@
 
   .guia-text {
     font-family: "Times New Roman", Times, serif;
-    font-size: 14px;
+    font-size: 12px;
     text-align: justify;
     line-height: 1.45;
   }
@@ -140,7 +140,7 @@
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 10px;
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .dados td {
@@ -156,7 +156,7 @@
   .assinatura {
     margin-top: 18px;
     text-align: right;
-    font-size: 14px;
+    font-size: 12px;
   }
 
   .linha-assinatura {
@@ -164,7 +164,7 @@
     margin-top: 22px;
     border-top: 1px solid #0f766e;
     color: #0f766e;
-    font-size: 11px;
+    font-size: 10px;
     letter-spacing: .04em;
     text-transform: uppercase;
     width: 170px;
@@ -179,7 +179,7 @@
     right: 0;
     min-height: 28px;
     border-top: 1px solid #ddd;
-    font-size: 13px;
+    font-size: 10px;
     color: #777;
     background: white;
     padding-top: 4px;
@@ -208,10 +208,10 @@
   }
 
   /* each clinical part of the referral: a soft block with its title */
-  .campo { margin-top: 8px; padding: 6px 8px; background: #f8fafc; border-radius: 4px; border-left: 3px solid #99f6e4; }
+  .campo { margin-top: 8px; padding: 6px 8px; border-radius: 4px; border-left: 3px solid #99f6e4; }
   .campo-titulo { font-size: 10px; font-weight: bold; color: #0f766e; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
-  .campo.destino { background: #f0fdfa; border-left-color: #0f766e; }
-  .campo.destino .valor { font-weight: bold; font-size: 15px; color: #111827; }
+  .campo.destino { border-left-color: #0f766e; }
+  .campo.destino .valor { font-weight: bold; font-size: 12px; color: #111827; }
 </style>
 </head>
 
@@ -246,21 +246,16 @@
 
 <div class="content">
 
-  <div class="box">
-
-    <div class="box-title">
-      Dados do Paciente
-    </div>
+  <div class="box patient-box">
 
     <table class="dados">
       <tr>
-        <td class="label">Nome: {{ guiatransferencia.consulta.paciente.person.full_name }}</td>
+        <td class="label" colspan="2">{{ labels.name }}: <strong>{{ guiatransferencia.consulta.paciente.person.full_name }}</strong></td>
       </tr>
 
       <tr>
-        <td class="label">NID: {{ guiatransferencia.consulta.paciente.nid }}</td>
-        <td class="label">Profissão: {{ guiatransferencia.consulta.paciente.person.occupation|default:"-" }}</td>
-        <td class="label">Contacto: {{ guiatransferencia.consulta.paciente.person.phone|default:"-" }}</td>
+        <td class="label">{{ labels.nid }}: <strong>{{ guiatransferencia.consulta.paciente.nid }}</strong></td>
+        <td class="label">{{ labels.contact }}: <strong>{{ guiatransferencia.consulta.paciente.person.phone|default:"-" }}</strong></td>
       </tr>
     </table>
 
@@ -268,28 +263,7 @@
 
   <div class="box">
 
-    <div class="box-title">
-      Informação da Transferência
-    </div>
-
     <div class="guia-text">
-
-      Eu,
-      <b>
-        <u style="text-transform: uppercase;">
-          {{ guiatransferencia.consulta.employee.person.full_name }}
-        </u>
-      </b>,
-
-      prestando serviço nesta unidade sanitária, venho por este meio solicitar a transferência do(a) paciente
-
-      <b>
-        {{ guiatransferencia.consulta.paciente.person.full_name }}
-      </b>
-
-      para a unidade sanitária indicada, por motivos clínicos descritos neste documento.
-
-      <br><br>
 
       <div class="campo destino">
         <div class="campo-titulo">Unidade de destino</div>
@@ -351,7 +325,7 @@
     </tr>
 
     <tr>
-      <td colspan="2" class="footer-center" style="width:100%; font-size: 12px;">
+      <td colspan="2" class="footer-center" style="width:100%; font-size: 10px;">
         {{ entity.rodape|default:""|safe }}
       </td>
     </tr>

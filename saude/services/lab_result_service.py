@@ -823,7 +823,7 @@ def pdf_context(request, resultado):
         "validated_by": _person_of_user(resultado.validado_por),
         "labels": {key: t(text) for key, text in {
             "title": "Exam result",
-            "patient": "Patient", "name": "Name", "nid": "NID", "contact": "Contact",
+            "name": "Patient name", "nid": "Patient NID", "contact": "Contact",
             "exam": "Exam", "requested_by": "Requested by", "collected": "Collected",
             "result_date": "Result", "validated": "Validated", "revision": "Revision",
             "parameter": "Parameter", "value": "Value", "unit": "Unit", "reference": "Reference",

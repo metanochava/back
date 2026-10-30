@@ -456,6 +456,9 @@ def pdf_context(request, pedido):
             "exame__nome",
         )
     )
+    # the priority goes on the PDF as its first three letters (Nor / Urg)
+    for item in items:
+        item.priority_short = t(item.get_prioridade_display())[:3]
 
     return {
         "pedido": pedido,
@@ -466,7 +469,7 @@ def pdf_context(request, pedido):
         "age": person.age if person else None,
         "labels": {key: t(text) for key, text in {
             "title": "Exam request",
-            "name": "Name", "address": "Address", "age": "Age", "years": "years", "nid": "NID",
+            "name": "Patient name", "address": "Address", "age": "Age", "years": "years", "nid": "Patient NID",
             "clinical_information": "Clinical information",
             "no_clinical_information": "No clinical information recorded.",
             "exams": "Exams", "no_exams": "No exam requested.",
