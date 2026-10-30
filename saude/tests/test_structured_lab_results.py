@@ -495,7 +495,7 @@ class LaboratoryQueueActionsTests(LabFixture):
         self.assertEqual(row["checked_in"], "no")
 
     def test_lab_profiles_hold_the_queue_actions(self):
-        for name in ("Medical Laboratory Technician", "Medical Laboratory Scientist"):
+        for name in ("Clinical Lab Technician", "Laboratory Technician"):
             profile = next(p for p in SAUDE_PROFILES if p["name"] == name)
             self.assertTrue({"start_processing_itempedidoexamemedico", "cancel_itempedidoexamemedico"}
                             <= set(profile["permissions"]), name)
@@ -674,7 +674,7 @@ class ExamConfigurationTests(LabFixture):
         self.assertEqual(technician.get(PARAMS).status_code, 403)
 
     def test_the_scientist_profile_holds_the_configuration_lists(self):
-        scientist = next(p for p in SAUDE_PROFILES if p["name"] == "Medical Laboratory Scientist")
+        scientist = next(p for p in SAUDE_PROFILES if p["name"] == "Laboratory Technician")
 
         self.assertTrue({"list_examparameter", "list_examreferencerange"} <= set(scientist["permissions"]))
 
@@ -900,14 +900,14 @@ class LabProfilesStructuredTests(TestCase):
         def codenames(name):
             return set(Group.objects.get(name=name).permissions.values_list("codename", flat=True))
 
-        scientist, technician = codenames("Medical Laboratory Scientist"), codenames("Medical Laboratory Technician")
+        scientist, technician = codenames("Laboratory Technician"), codenames("Clinical Lab Technician")
         sensitive = {"release_resultadoexamemedico", "amend_resultadoexamemedico", "validate_resultadoexamemedico",
                      "add_examreferencerange"}
         self.assertTrue(sensitive <= scientist)
         self.assertFalse(sensitive & technician)
         self.assertTrue({"collect_itempedidoexamemedico", "reject_sample_itempedidoexamemedico"} <= technician)
-        self.assertNotIn("Medical Laboratory Scientist", report["permissions_missing"])
-        self.assertNotIn("Medical Laboratory Technician", report["permissions_missing"])
+        self.assertNotIn("Laboratory Technician", report["permissions_missing"])
+        self.assertNotIn("Clinical Lab Technician", report["permissions_missing"])
 
 
 class LabPermissionsSeparationTests(TestCase):
@@ -927,7 +927,7 @@ class LabPermissionsSeparationTests(TestCase):
         bootstrap_tenant("slr-separation", modules=("saude", "hr"))
         group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
         doctor = Group.objects.get(name="Doctor")
-        scientist = Group.objects.get(name="Medical Laboratory Scientist")
+        scientist = Group.objects.get(name="Laboratory Technician")
         # what the earlier profile file / the database had granted
         doctor.permissions.add(*Permission.objects.filter(codename__in=self.REVOKED_FROM_DOCTOR))
         scientist.permissions.add(*Permission.objects.filter(codename="hard_delete_resultparametervalue"))

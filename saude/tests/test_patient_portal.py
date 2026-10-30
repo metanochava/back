@@ -264,7 +264,7 @@ class PortalDataTests(TestCase):
 
         group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
 
-        self.assertTrue(Group.objects.get(name="Medical Receptionist").permissions
+        self.assertTrue(Group.objects.get(name="Receptionist").permissions
                         .filter(codename="grant_portal_access_paciente").exists())
         self.assertFalse(Group.objects.get(name="Nurse").permissions
                          .filter(codename="grant_portal_access_paciente").exists())

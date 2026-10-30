@@ -130,7 +130,7 @@ CLINICAL_PROFILES = [
             "add_vacina", "change_vacina", "delete_vacina", "hard_delete_vacina", "list_vacina", "pdf_list_vacina", "pdf_vacina", "restore_vacina",
         ],
         # laboratory phase 5: validating, releasing and amending a lab result
-        # are the laboratory's (Medical Laboratory Scientist), and a result
+        # are the laboratory's (Laboratory Technician), and a result
         # or its values are never hard-deleted. Taken away where an earlier
         # version of this file (or the database) granted them.
         "revoke": [
@@ -161,7 +161,7 @@ CLINICAL_PROFILES = [
 
 FRONT_OFFICE_PROFILES = [
     {
-        "name": "Medical Receptionist",
+        "name": "Receptionist",
         "permissions": [
             "view_paciente", "add_paciente", "change_paciente", "list_paciente",
             "register_paciente", "search_candidates_paciente",
@@ -198,7 +198,7 @@ FRONT_OFFICE_PROFILES = [
 
 LABORATORY_PROFILES = [
     {
-        "name": "Medical Laboratory Technician",
+        "name": "Clinical Lab Technician",
         "permissions": [
             "view_paciente",
             "view_pedidoexamemedico", "list_pedidoexamemedico",
@@ -221,7 +221,7 @@ LABORATORY_PROFILES = [
         ],
     },
     {
-        "name": "Medical Laboratory Scientist",
+        "name": "Laboratory Technician",
         "permissions": [
             "view_paciente",
             "view_pedidoexamemedico", "list_pedidoexamemedico",
@@ -250,7 +250,7 @@ LABORATORY_PROFILES = [
             "list_resultadoexamemedico",
             # exam catalogue: the exams themselves (types and classes above); exams statistics dashboard
             "list_examemedico", "add_examemedico", "change_examemedico", "view_dashboard_saude_exames",
-            # --- granted to the Medical Laboratory Scientist group in the database (dev),
+            # --- granted to the Laboratory Technician group in the database (dev),
             # codified on 2026-10-04: the code is the source of truth ---
             # results: PDF, delete / restore / hard delete; their parameter values
             "pdf_resultadoexamemedico", "pdf_list_resultadoexamemedico",
@@ -353,7 +353,7 @@ FINANCE_PROFILES = [
 
 MANAGEMENT_PROFILES = [
     {
-        "name": "Healthcare Administrator",
+        "name": "Health Administrator",
         "permissions": [
             "view_paciente", "list_paciente",
             "view_agenda", "list_agenda",
@@ -430,11 +430,12 @@ SAUDE_PROFILES = (
 SAUDE_RENAME_FROM = {
     "Doctor": ["General Practitioner", "Médico Geral"],
     "Nurse": ["Registered Nurse", "Enfermeiro"],
-    "Medical Receptionist": "Recepcionista",
-    "Medical Laboratory Technician": "Técnico de Laboratório",
-    "Medical Laboratory Scientist": "Analista Clínico",
+    # 2026-10-30: shorter English names (the Portuguese ones translated)
+    "Receptionist": ["Medical Receptionist", "Recepcionista"],
+    "Clinical Lab Technician": ["Medical Laboratory Technician", "Técnico de Laboratório"],
+    "Laboratory Technician": ["Medical Laboratory Scientist", "Analista Clínico"],
     "Pharmacist": "Farmacêutico",
     "Cashier": "Faturamento",
-    "Healthcare Administrator": "Administrador",
+    "Health Administrator": ["Healthcare Administrator", "Administrador"],
     # Patient é novo; não há Group antigo verificado para renomear.
 }

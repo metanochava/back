@@ -474,7 +474,7 @@ key_value = {
     "Valor Resultado": "Valor do resultado",
 
     # group names (saude)
-    "Medical Receptionist": "Recepcionista",
+    "Receptionist": "Recepcionista",
     "General Practitioner": "Médico de clínica geral",
     "Specialist Physician": "Médico especialista",
     "Surgeon": "Cirurgião",
@@ -485,8 +485,8 @@ key_value = {
     "Psychologist": "Psicólogo",
     "Dietitian and Nutritionist": "Dietista e nutricionista",
     "Pharmacy Technician": "Técnico de farmácia",
-    "Medical Laboratory Technician": "Técnico de laboratório clínico",
-    "Medical Laboratory Scientist": "Técnico de Laboratório",
+    "Clinical Lab Technician": "Técnico de laboratório clínico",
+    "Laboratory Technician": "Técnico de Laboratório",
     "Radiology Technician": "Técnico de radiologia",
     "Radiologist": "Radiologista",
     "Radiologic Technologist": "Técnico de radiologia",
@@ -499,7 +499,7 @@ key_value = {
     "Triage Coordinator": "Coordenador de triagem",
     "Clinical Coordinator": "Coordenador clínico",
     "Medical Director": "Diretor clínico",
-    "Healthcare Administrator": "Administrador de saúde",
+    "Health Administrator": "Administrador de saúde",
     "Finance Manager": "Gestor financeiro",
     "Accountant": "Contabilista",
     "Treasurer": "Tesoureiro",

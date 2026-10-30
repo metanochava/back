@@ -18,10 +18,10 @@ from testutils.tenant import bootstrap_tenant
 class SaudeProfilesTests(TestCase):
 
     OFFICIAL = {
-        "Doctor", "Nurse", "Medical Receptionist",
-        "Medical Laboratory Technician", "Medical Laboratory Scientist",
+        "Doctor", "Nurse", "Receptionist",
+        "Clinical Lab Technician", "Laboratory Technician",
         "Radiology Technician", "Radiologist",
-        "Pharmacist", "Cashier", "Healthcare Administrator", "Patient",
+        "Pharmacist", "Cashier", "Health Administrator", "Patient",
     }
 
     def test_the_official_profiles_exist_once(self):
@@ -66,7 +66,7 @@ class SaudeProfilesTests(TestCase):
 
         group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
 
-        codenames = set(Group.objects.get(name="Medical Receptionist").permissions.values_list("codename", flat=True))
+        codenames = set(Group.objects.get(name="Receptionist").permissions.values_list("codename", flat=True))
         for model in ("specialty", "medico", "consultorio", "horariomedico"):
             self.assertTrue({f"list_{model}", f"view_{model}"} <= codenames, model)
 
@@ -76,7 +76,7 @@ class SaudeProfilesTests(TestCase):
 
         group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
 
-        for name in ("Medical Laboratory Scientist", "Healthcare Administrator"):
+        for name in ("Laboratory Technician", "Health Administrator"):
             codenames = set(Group.objects.get(name=name).permissions.values_list("codename", flat=True))
             for model in ("tipoexamemedico", "classeexamemedico"):
                 self.assertTrue({f"list_{model}", f"add_{model}", f"change_{model}"} <= codenames, (name, model))
@@ -89,7 +89,7 @@ class SaudeProfilesTests(TestCase):
 
         group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
 
-        for name in ("Doctor", "Medical Receptionist"):
+        for name in ("Doctor", "Receptionist"):
             codenames = set(Group.objects.get(name=name).permissions.values_list("codename", flat=True))
             self.assertIn("list_tipoexamemedico", codenames, name)
             self.assertTrue({"list_specialty", "view_specialty", "list_medico", "view_medico"} <= codenames, name)
@@ -253,3 +253,24 @@ class SaudeProfilesOnTheSaudeTypeTests(TestCase):
         self._link()
 
         self.assertFalse(EntityGroup.objects.filter(entity=self.clinic, group=radiologist).exists())
+
+
+class ShortEnglishProfileNamesTests(TestCase):
+    """2026-10-30: the long English names were shortened (the Portuguese ones
+    translated). An installation still on the old names gets them renamed in
+    place - same Group id, users and permissions."""
+
+    def test_old_long_names_are_renamed_in_place(self):
+        old = {
+            "Medical Receptionist": "Receptionist",
+            "Medical Laboratory Scientist": "Laboratory Technician",
+            "Medical Laboratory Technician": "Clinical Lab Technician",
+            "Healthcare Administrator": "Health Administrator",
+        }
+        ids = {name: Group.objects.create(name=name).id for name in old}
+
+        group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+
+        for old_name, new_name in old.items():
+            self.assertFalse(Group.objects.filter(name=old_name).exists(), old_name)
+            self.assertEqual(Group.objects.get(name=new_name).id, ids[old_name], new_name)

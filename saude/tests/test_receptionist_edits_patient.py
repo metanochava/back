@@ -1,4 +1,4 @@
-"""The Medical Receptionist profile (saude/profiles.py) can edit a patient
+"""The Receptionist profile (saude/profiles.py) can edit a patient
 on change_paciente: the patient, its Person, contacts and documents - the
 requests quasar_resaas usePersonIntake.saveExisting() sends."""
 from django.contrib.contenttypes.models import ContentType
@@ -11,7 +11,7 @@ from saude.profiles import SAUDE_PROFILES
 from saude.tests.test_operational_dashboards import _client_with, _patient
 from testutils.tenant import bootstrap_tenant
 
-RECEPTIONIST = next(p for p in SAUDE_PROFILES if p["name"] == "Medical Receptionist")["permissions"]
+RECEPTIONIST = next(p for p in SAUDE_PROFILES if p["name"] == "Receptionist")["permissions"]
 API = "/api/django_resaas/"
 
 
