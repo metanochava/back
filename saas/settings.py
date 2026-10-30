@@ -43,6 +43,9 @@ TIME_ZONE = os.environ.get("TIME_ZONE")
 
 # Celery (saas/celery.py): broker = the local Redis (CELERY_BROKER_URL in .env).
 # Without a broker the outbox keeps notifications pending and retries them.
+# Notifications kill switch (django_resaas.notifications): opt-in per
+# environment through .env, off when unset (pro stays off until enabled there)
+NOTIFICATIONS_ENABLED = bool(int(os.environ.get("NOTIFICATIONS_ENABLED", "0")))
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
 CELERY_TASK_ALWAYS_EAGER = bool(int(os.environ.get("CELERY_TASK_ALWAYS_EAGER", "0")))
 CELERY_TIMEZONE = TIME_ZONE
