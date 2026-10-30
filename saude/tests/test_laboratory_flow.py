@@ -498,9 +498,9 @@ class LaboratoryProfilesTests(TestCase):
         def codenames(name):
             return set(Group.objects.get(name=name).permissions.values_list("codename", flat=True))
 
-        self.assertIn("validate_resultadoexamemedico", codenames("Medical Laboratory Scientist"))
-        self.assertNotIn("validate_resultadoexamemedico", codenames("Medical Laboratory Technician"))
-        self.assertTrue({"add_pedidoexamemedico", "check_in_pedidoexamemedico"} <= codenames("Medical Receptionist"))
+        self.assertIn("validate_resultadoexamemedico", codenames("Laboratory Technician"))
+        self.assertNotIn("validate_resultadoexamemedico", codenames("Clinical Lab Technician"))
+        self.assertTrue({"add_pedidoexamemedico", "check_in_pedidoexamemedico"} <= codenames("Receptionist"))
         self.assertTrue(Permission.objects.filter(codename="view_dashboard_saude_laboratory").exists())
         added = {"view_dashboard_saude_laboratory", "check_in_pedidoexamemedico",
                  "validate_resultadoexamemedico", "add_pedidoexamemedico", "add_itempedidoexamemedico"}
@@ -508,12 +508,12 @@ class LaboratoryProfilesTests(TestCase):
             self.assertFalse(added & set(missing), missing)
         # the dead ParamentroResultadoExameMedico codenames were replaced by
         # the real ExamParameter / ExamReferenceRange ones
-        self.assertNotIn("Medical Laboratory Scientist", report["permissions_missing"])
+        self.assertNotIn("Laboratory Technician", report["permissions_missing"])
 
 
 class ExamRequestItemsTests(TestCase):
     """GET pedidoexamemedicos/{id}/items/ (the request's exams with their
-    results) is a read of the request: the Medical Laboratory Technician
+    results) is a read of the request: the Clinical Lab Technician
     profile reaches it with view_pedidoexamemedico. It had no permission,
     so it answered 403 to everyone but Root."""
 
@@ -524,7 +524,7 @@ class ExamRequestItemsTests(TestCase):
         ItemPedidoExameMedico.objects.create(pedido=self.pedido, exame=_exame(self.tenant), **_audit(self.tenant))
 
     def test_the_lab_technician_profile_reads_the_items(self):
-        technician = next(p for p in SAUDE_PROFILES if p["name"] == "Medical Laboratory Technician")["permissions"]
+        technician = next(p for p in SAUDE_PROFILES if p["name"] == "Clinical Lab Technician")["permissions"]
 
         response = _client_with(self.tenant, technician).get(f"{PEDIDOS}{self.pedido.id}/items/")
 
@@ -548,7 +548,7 @@ class ResultsExplorerPermissionTests(TestCase):
     """GET/POST resultadoexamemedicos/explorer/ (folders and files of results):
     listing needs list_resultadoexamemedico, creating also
     add_resultadoexamemedico. It was a plain @action with no permission, so it
-    answered 403 to everyone but Root (Medical Laboratory Scientist).
+    answered 403 to everyone but Root (Laboratory Technician).
     It is always ONE patient's results: `paciente` is required and must be a
     patient of the caller's Entity."""
 
@@ -556,7 +556,7 @@ class ResultsExplorerPermissionTests(TestCase):
 
     def setUp(self):
         self.tenant = bootstrap_tenant("lab-explorer", modules=("saude", "hr"))
-        self.scientist = next(p for p in SAUDE_PROFILES if p["name"] == "Medical Laboratory Scientist")["permissions"]
+        self.scientist = next(p for p in SAUDE_PROFILES if p["name"] == "Laboratory Technician")["permissions"]
         self.maria = _patient(self.tenant, "Maria")
         self.rui = _patient(self.tenant, "Rui")
 

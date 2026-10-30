@@ -424,11 +424,11 @@ class OperationalProfilesSeedTests(TestCase):
         def codenames(name):
             return set(Group.objects.get(name=name).permissions.values_list("codename", flat=True))
 
-        self.assertIn("view_dashboard_saude_reception", codenames("Medical Receptionist"))
+        self.assertIn("view_dashboard_saude_reception", codenames("Receptionist"))
         self.assertIn("view_dashboard_saude_nursing", codenames("Nurse"))
         self.assertTrue({"view_dashboard_saude_doctor", "add_dadovital"} <= codenames("Doctor"))
         self.assertNotIn("view_dashboard_saude_doctor", codenames("Nurse"))
-        self.assertFalse(Group.objects.filter(name__in=["General Practitioner", "Registered Nurse", "Receptionist"]).exists())
+        self.assertFalse(Group.objects.filter(name__in=["General Practitioner", "Registered Nurse", "Medical Receptionist"]).exists())
 
     def test_seed_is_idempotent_and_keeps_custom_permissions(self):
         group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
