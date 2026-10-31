@@ -1,3 +1,4 @@
+import uuid
 from django.db.models import Count, Q
 
 from rest_framework.decorators import action
@@ -531,6 +532,69 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
     ##########################################################
     # BREADCRUMB
     ##########################################################
+
+    # Every results folder of ONE patient (?paciente=<id>) with its path, for
+    # the "where does this file go" choice when entering a result. A read of
+    # the explorer: list_resultadoexamemedico; same Entity/Branch scope and
+    # patient check as `explorer`.
+    @resaas_action(detail=False, methods=["GET"], label="Results folders", icon="folder",
+                   permission="list_resultadoexamemedico", visible=False)
+    def folders(self, request):
+        paciente = request.GET.get("paciente")
+        if not paciente:
+            raise ResaasAPIException(
+                "The patient is required.", code="patient_required",
+                details={"paciente": ["This field is required."]}, status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        if not Paciente.objects.filter(id=paciente, entity_id=request.entity_id).exists():
+            raise ResaasAPIException(
+                "Patient not found.", code="patient_not_found", status_code=status.HTTP_404_NOT_FOUND,
+            )
+
+        rows = list(
+            ResultadoExameMedico.objects
+            .filter(paciente_id=paciente, tipo=ResultadoExameMedico.FOLDER,
+                    entity_id=request.entity_id, branch_id=request.branch_id, na_lixeira=False)
+            .values("id", "nome", "pai_id")
+        )
+        by_id = {row["id"]: row for row in rows}
+
+        def path(row):
+            names, seen = [], set()
+            while row and row["id"] not in seen:
+                seen.add(row["id"])
+                names.insert(0, row["nome"])
+                row = by_id.get(row["pai_id"])
+            return " / ".join(names)
+
+        data = sorted(({"id": row["id"], "nome": row["nome"], "path": path(row)} for row in rows),
+                      key=lambda folder: folder["path"].lower())
+        return Response(data)
+
+    # The results page's "Data" view: what was entered for ONE patient's exams
+    # (?paciente=<id>&search=&page=&page_size=), validated or not, with the values of
+    # their parameters - lab_result_service.history(only_validated=False). A
+    # read of the results: list_resultadoexamemedico, like `explorer`.
+    @resaas_action(detail=False, methods=["GET"], label="Results data", icon="table_chart",
+                   permission="list_resultadoexamemedico", visible=False)
+    def data(self, request):
+        try:
+            paciente_id = uuid.UUID(str(request.GET.get("paciente")))
+        except ValueError:
+            paciente_id = None
+        paciente = Paciente.objects.filter(id=paciente_id, entity_id=request.entity_id).first() if paciente_id else None
+        if paciente is None:
+            raise ResaasAPIException(
+                "Patient not found.", code="patient_not_found", status_code=status.HTTP_404_NOT_FOUND,
+            )
+        try:
+            page, page_size = int(request.GET.get("page") or 1), int(request.GET.get("page_size") or 20)
+        except ValueError:
+            raise ResaasAPIException("Invalid filter.", code="invalid_filter", status_code=status.HTTP_400_BAD_REQUEST)
+        return Response(lab_result_service.history(
+            paciente, request.entity_id, page=page, page_size=page_size, only_validated=False,
+            search=(request.GET.get("search") or "").strip() or None,
+        ))
 
     # Breadcrumb: view_resultadoexamemedico (a plain @action had no permission:
     # BaseAPIView refused it to everyone but Root)

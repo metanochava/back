@@ -274,3 +274,16 @@ class ShortEnglishProfileNamesTests(TestCase):
         for old_name, new_name in old.items():
             self.assertFalse(Group.objects.filter(name=old_name).exists(), old_name)
             self.assertEqual(Group.objects.get(name=new_name).id, ids[old_name], new_name)
+
+
+class TechniciansSeeThePatientListTests(TestCase):
+    """The technicians open the patient list like the receptionist (list and
+    view), without the receptionist's registration/editing permissions."""
+
+    def test_every_technician_lists_patients_but_does_not_register_them(self):
+        group_creator(SAUDE_PROFILES, rename_from=SAUDE_RENAME_FROM)
+
+        for name in ("Clinical Lab Technician", "Laboratory Technician", "Radiology Technician"):
+            codenames = set(Group.objects.get(name=name).permissions.values_list("codename", flat=True))
+            self.assertTrue({"list_paciente", "view_paciente"} <= codenames, name)
+            self.assertFalse({"add_paciente", "change_paciente", "register_paciente"} & codenames, name)

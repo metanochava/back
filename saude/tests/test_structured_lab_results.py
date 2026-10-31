@@ -1057,3 +1057,89 @@ class FreeFormReportTests(LabFixture):
         response = self.report(_client_with(self.tenant, TECHNICIAN), {"laudo": "x"}, item=foreign)
 
         self.assertEqual(response.status_code, 404)
+
+
+class ResultFileFolderTests(LabFixture):
+    """The results modal places the attached file in one of the patient's
+    results folders: record_report `pai` (validated: a folder of THIS patient
+    in the caller's Entity/Branch) and resultadoexamemedicos/folders/."""
+
+    def setUp(self):
+        super().setUp()
+        self.lab = ResultadoExameMedico.objects.create(
+            tipo=ResultadoExameMedico.FOLDER, nome="Laboratório", paciente=self.patient, **_audit(self.tenant))
+        self.blood = ResultadoExameMedico.objects.create(
+            tipo=ResultadoExameMedico.FOLDER, nome="Sangue", paciente=self.patient, pai=self.lab, **_audit(self.tenant))
+        other = _patient(self.tenant, "Other folders")
+        self.foreign = ResultadoExameMedico.objects.create(
+            tipo=ResultadoExameMedico.FOLDER, nome="Outro", paciente=other, **_audit(self.tenant))
+
+    def report(self, data):
+        return _client_with(self.tenant, TECHNICIAN).post(
+            f"{ITEMS}{self.item.id}/record_report/", data, format="multipart")
+
+    def test_the_patient_folders_come_with_their_path(self):
+        response = _client_with(self.tenant, ["list_resultadoexamemedico"]).get(
+            f"{RESULTS}folders/", {"paciente": str(self.patient.id)})
+
+        self.assertEqual(response.status_code, 200, response.data)
+        self.assertEqual([f["path"] for f in response.json()], ["Laboratório", "Laboratório / Sangue"])
+
+    def test_the_file_goes_into_the_chosen_folder(self):
+        response = self.report({"valor_resultado": "12", "pai": str(self.blood.id)})
+
+        self.assertEqual(response.status_code, 202, response.data)
+        self.assertEqual(ResultadoExameMedico.objects.get(item_pedido=self.item).pai_id, self.blood.id)
+
+    def test_a_folder_of_another_patient_is_refused(self):
+        response = self.report({"valor_resultado": "12", "pai": str(self.foreign.id)})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"]["code"], "invalid_folder")
+        self.assertFalse(ResultadoExameMedico.objects.filter(item_pedido=self.item).exists())
+
+    def test_without_pai_the_folder_is_kept(self):
+        self.report({"valor_resultado": "12", "pai": str(self.lab.id)})
+        self.report({"valor_resultado": "13"})
+
+        result = ResultadoExameMedico.objects.get(item_pedido=self.item)
+        self.assertEqual((result.valor_resultado, result.pai_id), ("13", self.lab.id))
+
+
+class ResultsDataViewTests(LabFixture):
+    """resultadoexamemedicos/data/ (results page "Data"): what was entered for
+    the patient's exams, validated or not, with the parameter values; the lab
+    history (lab_history) stays validated-only."""
+
+    def test_entered_results_come_with_their_values_even_before_validation(self):
+        self.assertEqual(self.record(_client_with(self.tenant, TECHNICIAN), self.VALID).status_code, 202)
+
+        response = _client_with(self.tenant, ["list_resultadoexamemedico"]).get(
+            f"{RESULTS}data/", {"paciente": str(self.patient.id)})
+
+        self.assertEqual(response.status_code, 200, response.data)
+        rows = response.json()["results"]
+        self.assertEqual(len(rows), 1)
+        self.assertFalse(rows[0]["validated"])
+        values = {v["code"]: v["value"] for v in rows[0]["values"]}
+        self.assertEqual(values["hb"], "14.2")
+
+        validated_only = lab_result_service.history(self.patient, self.tenant["entity"].id)
+        self.assertEqual(validated_only["results"], [])
+
+    def test_the_search_filters_by_exam_or_parameter(self):
+        self.record(_client_with(self.tenant, TECHNICIAN), self.VALID)
+        client = _client_with(self.tenant, ["list_resultadoexamemedico"])
+
+        def found(text):
+            return len(client.get(f"{RESULTS}data/", {"paciente": str(self.patient.id), "search": text}).json()["results"])
+
+        self.assertEqual(found(self.exame.nome[:4]), 1)
+        self.assertEqual(found("Hemoglobin"), 1)
+        self.assertEqual(found("nothing-like-this"), 0)
+
+    def test_unknown_patient_and_missing_permission(self):
+        self.assertEqual(_client_with(self.tenant, ["list_resultadoexamemedico"]).get(
+            f"{RESULTS}data/", {"paciente": "x"}).status_code, 404)
+        self.assertEqual(_client_with(self.tenant, ["view_paciente"]).get(
+            f"{RESULTS}data/", {"paciente": str(self.patient.id)}).status_code, 403)

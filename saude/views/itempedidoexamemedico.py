@@ -101,6 +101,8 @@ class ItemPedidoExameMedicoAPIView(BaseAPIView):
             laudo=request.data.get("laudo"),
             observacao=request.data.get("observacao"),
             file=request.FILES.get("file"),
+            # the patient's results folder the file goes into ("" = root)
+            folder=request.data.get("pai"),
         )
         # read again with the view's prefetch: refresh_from_db() would keep
         # the stale prefetched results (lab phase 17)
