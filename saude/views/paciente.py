@@ -349,6 +349,25 @@ class PacienteAPIView(BaseAPIView):
         Data only: no interpretation."""
         return Response(lab_result_service.doctor_summary(self.get_object(), request.entity_id))
 
+    # The patient's exam requests (own and the old ones through a
+    # consultation - PedidoExameMedico.patient_filter), newest first: the
+    # patient list's and header's "Enter results" pick one. A read of the
+    # requests: list_pedidoexamemedico; the patient is the scoped get_object().
+    @resaas_action(methods=["get"], detail=True, label="Exam requests", icon="biotech",
+                   permission="list_pedidoexamemedico", visible=False)
+    def exam_requests(self, request, *args, **kwargs):
+        from saude.models.pedidoexamemedico import PedidoExameMedico
+        from saude.serializers.pedidoexamemedico import PedidoExameMedicoSerializer
+
+        patient = self.get_object()
+        queryset = (
+            PedidoExameMedico.objects
+            .filter(PedidoExameMedico.patient_filter(patient), entity_id=patient.entity_id)
+            .order_by("-created_at")[:50]
+        )
+        data = PedidoExameMedicoSerializer(queryset, many=True, context={"request": request}).data
+        return Response(data)
+
     @resaas_action(methods=["get"], detail=True, label="Lab history", icon="history",
                    permission="lab_evolution_paciente", visible=False)
     def lab_history(self, request, *args, **kwargs):

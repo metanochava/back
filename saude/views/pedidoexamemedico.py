@@ -1,3 +1,4 @@
+import uuid
 
 from django_resaas.saas.core.base.views import BaseAPIView
 from saude.services.document_edit_policy import DocumentEditWindowMixin, author_name
@@ -25,6 +26,21 @@ from saude.services import exam_request_service
 class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
     queryset = PedidoExameMedico.objects.all()   
     serializer_class = PedidoExameMedicoSerializer
+
+    def get_queryset(self):
+        """?patient=<id>: one patient's requests - its own and the old ones
+        made through a consultation (PedidoExameMedico.patient_filter); used
+        by the results page's history. Applied on the tenant-scoped queryset;
+        an id that is not a patient of this scope just matches nothing."""
+        queryset = super().get_queryset()
+        patient_id = self.request.query_params.get("patient")
+        if patient_id:
+            try:
+                uuid.UUID(str(patient_id))
+            except ValueError:
+                return queryset.none()
+            queryset = queryset.filter(PedidoExameMedico.patient_filter(patient_id))
+        return queryset
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):

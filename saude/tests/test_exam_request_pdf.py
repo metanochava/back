@@ -85,3 +85,49 @@ class ExamRequestPdfTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content[:4], b"%PDF")
+
+    def test_the_patient_lists_its_exam_requests_for_result_entry(self):
+        """pacientes/{id}/exam_requests/ (patient list and header "Enter
+        results"): the patient's requests with list_pedidoexamemedico, 403
+        without it, and never another patient's."""
+        other = _patient(self.tenant, "Other")
+        PedidoExameMedico.objects.create(paciente=other, origin="direct", **_audit(self.tenant))
+        url = f"/api/saude/pacientes/{self.paciente.id}/exam_requests/"
+
+        response = _client_with(self.tenant, ["view_paciente", "list_pedidoexamemedico"]).get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([str(r["id"]) for r in response.json()], [str(self.pedido.id)])
+
+        self.assertEqual(_client_with(self.tenant, ["view_paciente"]).get(url).status_code, 403)
+
+    def test_the_request_list_filters_by_patient(self):
+        """?patient=<id> (the results page's history): only that patient's
+        requests; an invalid id matches nothing."""
+        other = _patient(self.tenant, "Other history")
+        PedidoExameMedico.objects.create(paciente=other, origin="direct", **_audit(self.tenant))
+        client = _client_with(self.tenant, ["list_pedidoexamemedico"])
+
+        rows = client.get(PEDIDOS, {"patient": str(self.paciente.id), "page_size": 50}).json()
+        rows = rows.get("results", rows) if isinstance(rows, dict) else rows
+        self.assertEqual([str(r["id"]) for r in rows], [str(self.pedido.id)])
+
+        rows = client.get(PEDIDOS, {"patient": "not-an-id"}).json()
+        rows = rows.get("results", rows) if isinstance(rows, dict) else rows
+        self.assertEqual(rows, [])
+
+    def test_a_technician_sees_the_requested_exams_and_the_pdf(self):
+        """The three technician profiles open the request page: its exams
+        (items action) and its PDF (the button at the top of the page)."""
+        from saude.profiles import SAUDE_PROFILES
+
+        for name in ("Clinical Lab Technician", "Laboratory Technician", "Radiology Technician"):
+            perms = next(p for p in SAUDE_PROFILES if p["name"] == name)["permissions"]
+            client = _client_with(self.tenant, perms)
+
+            items = client.get(f"{PEDIDOS}{self.pedido.id}/items/")
+            self.assertEqual(items.status_code, 200, name)
+            self.assertTrue(items.json()["data"], name)
+
+            pdf = client.get(f"{PEDIDOS}{self.pedido.id}/pdf/")
+            self.assertEqual(pdf.status_code, 200, name)
+            self.assertEqual(pdf.content[:4], b"%PDF", name)

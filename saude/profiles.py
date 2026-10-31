@@ -200,8 +200,9 @@ LABORATORY_PROFILES = [
     {
         "name": "Clinical Lab Technician",
         "permissions": [
-            "view_paciente",
-            "view_pedidoexamemedico", "list_pedidoexamemedico",
+            # the patient list, like the receptionist (not registering/editing)
+            "view_paciente", "list_paciente",
+            "view_pedidoexamemedico", "list_pedidoexamemedico", "pdf_pedidoexamemedico",
             "view_itempedidoexamemedico", "change_itempedidoexamemedico",
             "view_examemedico", "view_tipoexamemedico", "view_classeexamemedico",
             "view_examparameter", "view_examreferencerange",
@@ -224,7 +225,7 @@ LABORATORY_PROFILES = [
         "name": "Laboratory Technician",
         "permissions": [
             "view_paciente",
-            "view_pedidoexamemedico", "list_pedidoexamemedico",
+            "view_pedidoexamemedico", "list_pedidoexamemedico", "pdf_pedidoexamemedico",
             "view_itempedidoexamemedico", "change_itempedidoexamemedico",
             "view_examemedico", "view_tipoexamemedico", "view_classeexamemedico",
             # exam catalogue (types and classes of exam); deleting stays with Admin
@@ -277,8 +278,9 @@ RADIOLOGY_PROFILES = [
         # performs the exam and records the result (like the lab technician)
         "name": "Radiology Technician",
         "permissions": [
-            "view_paciente",
-            "view_pedidoexamemedico", "list_pedidoexamemedico",
+            # the patient list, like the receptionist (not registering/editing)
+            "view_paciente", "list_paciente",
+            "view_pedidoexamemedico", "list_pedidoexamemedico", "pdf_pedidoexamemedico",
             "view_itempedidoexamemedico", "change_itempedidoexamemedico",
             "view_examemedico", "view_tipoexamemedico", "view_classeexamemedico",
             "check_in_pedidoexamemedico",

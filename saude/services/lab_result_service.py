@@ -292,14 +292,49 @@ VALUE_MAX_LENGTH = ResultadoExameMedico._meta.get_field("valor_resultado").max_l
 
 
 @transaction.atomic
-def record_report(request, item, *, valor_resultado=None, laudo=None, observacao=None, file=None):
+def resolve_patient_folder(request, patient, folder_id):
+    """The patient's results folder a result file is placed in (record_report
+    `pai`): a folder of THIS patient in the caller's Entity/Branch, not in the
+    trash. Empty = the patient's root. Anything else is refused - a file never
+    lands in another patient's tree."""
+
+    if folder_id in (None, "", "null", "None"):
+        return None
+    folder = (
+        ResultadoExameMedico.objects
+        .filter(pk=folder_id, tipo=ResultadoExameMedico.FOLDER, paciente=patient,
+                entity_id=request.entity_id, branch_id=request.branch_id, na_lixeira=False)
+        .first()
+        if _is_uuid(folder_id) else None
+    )
+    if folder is None:
+        raise _error("Choose a folder of this patient.", "invalid_folder",
+                     details={"pai": ["Choose a folder of this patient."]})
+    return folder
+
+
+def _is_uuid(value):
+    import uuid
+
+    try:
+        uuid.UUID(str(value))
+        return True
+    except ValueError:
+        return False
+
+
+def record_report(request, item, *, valor_resultado=None, laudo=None, observacao=None, file=None, folder=None):
     """The free-form way of entering a result (the one the result screen had
     before structured parameters): a value, the report text, an observation
     and/or an attached file, on the SAME result record the structured form
     uses - the item's current, not yet validated revision (created when there
     is none). A validated result is never changed: amend it first.
 
-    Collection and result times are the server's (item.data_colheita, now)."""
+    Collection and result times are the server's (item.data_colheita, now).
+
+    `folder` (id, optional): the patient's results folder the file goes into
+    (resolve_patient_folder); not given = the result keeps its folder (a new
+    one starts at the patient's root)."""
 
     from saude.services.exam_request_service import forbid_cancelled
 
@@ -340,6 +375,8 @@ def record_report(request, item, *, valor_resultado=None, laudo=None, observacao
             setattr(result, field, value)
     if file:
         result.file = file
+    if folder is not None:
+        result.pai = resolve_patient_folder(request, item.pedido.patient, folder)
     result.data_resultado = now
     result.updated_by = request.user
     result.save()
@@ -548,22 +585,31 @@ HISTORY_MAX_PAGE_SIZE = 50
 
 
 def history(patient, entity_id, *, exam_id=None, parameter_code=None, date_from=None, date_to=None,
-            page=1, page_size=HISTORY_PAGE_SIZE):
+            page=1, page_size=HISTORY_PAGE_SIZE, only_validated=True, search=None):
     """Validated exam results of ONE patient (lab phase 11), newest first,
     latest revision of each exam item only, each with its SNAPSHOT values
     (what was recorded, never today's configuration). Filtered and paginated
     in the database: by exam, by parameter (results that have it) and by
-    result date."""
+    result date. only_validated=False also returns what was entered and not
+    validated yet (the results page's "Data" view); each row says which.
+    search: text in the exam name, a parameter name or the free value."""
 
     newer = ResultadoExameMedico.objects.filter(
         item_pedido_id=OuterRef("item_pedido_id"), numero_revisao__gt=OuterRef("numero_revisao"),
     )
     qs = (
         ResultadoExameMedico.objects
-        .filter(paciente=patient, entity_id=entity_id, item_pedido__isnull=False,
-                validado=True, na_lixeira=False)
+        .filter(paciente=patient, entity_id=entity_id, item_pedido__isnull=False, na_lixeira=False)
         .annotate(_superseded=Exists(newer)).filter(_superseded=False)
     )
+    if only_validated:
+        qs = qs.filter(validado=True)
+    if search:
+        qs = qs.filter(
+            Q(item_pedido__exame__nome__icontains=search)
+            | Q(parameter_values__parameter_name__icontains=search)
+            | Q(valor_resultado__icontains=search)
+        ).distinct()
     if exam_id:
         qs = qs.filter(item_pedido__exame_id=exam_id)
     if parameter_code:
@@ -589,6 +635,7 @@ def history(patient, entity_id, *, exam_id=None, parameter_code=None, date_from=
                 "exam": {"id": str(r.item_pedido.exame_id), "name": r.item_pedido.exame.nome},
                 "date": (r.data_resultado or r.created_at).isoformat(),
                 "revision": r.numero_revisao,
+                "validated": r.validado,
                 "released": r.released,
                 "validated_at": r.data_validacao.isoformat() if r.data_validacao else None,
                 "value": r.valor_resultado,
