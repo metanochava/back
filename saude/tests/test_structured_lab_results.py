@@ -1143,3 +1143,46 @@ class ResultsDataViewTests(LabFixture):
             f"{RESULTS}data/", {"paciente": "x"}).status_code, 404)
         self.assertEqual(_client_with(self.tenant, ["view_paciente"]).get(
             f"{RESULTS}data/", {"paciente": str(self.patient.id)}).status_code, 403)
+
+
+class ResultExamValuesTests(LabFixture):
+    """resultadoexamemedicos/{id}/exam_values/ (the explorer's file preview):
+    what was entered with the file - exam, value, report, observation and the
+    parameter values - for a result of the caller's tenant."""
+
+    def setUp(self):
+        super().setUp()
+        self.assertEqual(self.record(_client_with(self.tenant, TECHNICIAN), self.VALID).status_code, 202)
+        _client_with(self.tenant, TECHNICIAN).post(
+            f"{ITEMS}{self.item.id}/record_report/", {"laudo": "Normal findings", "observacao": "Fasting"},
+            format="multipart")
+        self.result = ResultadoExameMedico.objects.get(item_pedido=self.item)
+
+    def get(self, permissions, result=None, tenant=None):
+        return _client_with(tenant or self.tenant, permissions).get(f"{RESULTS}{(result or self.result).id}/exam_values/")
+
+    def test_the_file_comes_with_what_was_entered(self):
+        response = self.get(["view_resultadoexamemedico"])
+
+        self.assertEqual(response.status_code, 200, response.data)
+        data = response.json()
+        self.assertEqual(data["exam"]["name"], self.exame.nome)
+        self.assertEqual((data["report"], data["observation"]), ("Normal findings", "Fasting"))
+        self.assertEqual({v["code"]: v["value"] for v in data["values"]}["hb"], "14.2")
+
+    def test_a_file_uploaded_on_its_own_has_no_exam(self):
+        loose = ResultadoExameMedico.objects.create(
+            tipo=ResultadoExameMedico.FILE, nome="scan.pdf", paciente=self.patient, **_audit(self.tenant))
+
+        data = self.get(["view_resultadoexamemedico"], result=loose).json()
+
+        self.assertEqual((data["exam"], data["values"]), (None, []))
+
+    def test_folders_permission_and_tenant(self):
+        folder = ResultadoExameMedico.objects.create(
+            tipo=ResultadoExameMedico.FOLDER, nome="Lab", paciente=self.patient, **_audit(self.tenant))
+        other = bootstrap_tenant("slr-other", modules=("saude", "hr"))
+
+        self.assertEqual(self.get(["view_resultadoexamemedico"], result=folder).status_code, 400)
+        self.assertEqual(self.get(["list_paciente"]).status_code, 403)
+        self.assertEqual(self.get(["view_resultadoexamemedico"], tenant=other).status_code, 404)

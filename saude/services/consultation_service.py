@@ -4,6 +4,8 @@ signed in, in this Branch) and the patient, both resolved by the server.
 The consultation itself is saved through POST consultas/, where
 ConsultaAPIView.perform_create sets the professional again server-side.
 """
+import uuid
+
 from django.utils import timezone
 from rest_framework import status
 
@@ -171,7 +173,11 @@ def resolve_for_document(request, paciente_id, consulta_id=None):
     )
 
     if consulta_id:
-        consulta = todays.filter(id=consulta_id).first()
+        # not a uuid: the same answer as an unknown one (never a 500)
+        try:
+            consulta = todays.filter(id=uuid.UUID(str(consulta_id))).first()
+        except ValueError:
+            consulta = None
         if consulta is None:
             raise ResaasAPIException(
                 "The consultation is not one of this patient today.",

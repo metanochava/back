@@ -48,6 +48,7 @@ class SignatureLineTests(SimpleTestCase):
     TEMPLATES = (
         "saude/atestadomedico.html",
         "saude/relatoriomedico.html",
+        "saude/clinicalsummary.html",
         "saude/guiatransferencia.html",
         "saude/pedidoexamemedico.html",
     )

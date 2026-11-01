@@ -596,6 +596,17 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
             search=(request.GET.get("search") or "").strip() or None,
         ))
 
+    # what was entered with this file when it was uploaded (the preview's panel)
+    @resaas_action(detail=True, methods=["GET"], label="Exam values", icon="table_chart",
+                   permission="view_resultadoexamemedico", visible=False)
+    def exam_values(self, request, *args, **kwargs):
+        result = self.get_object()
+        if result.is_folder:
+            raise ResaasAPIException(
+                "Folders have no exam values.", code="folder_has_no_values", status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(lab_result_service.result_values(result))
+
     # Breadcrumb: view_resultadoexamemedico (a plain @action had no permission:
     # BaseAPIView refused it to everyone but Root)
     @resaas_action(detail=True, methods=["GET"], label="Breadcrumb", permission="view_resultadoexamemedico", visible=False)

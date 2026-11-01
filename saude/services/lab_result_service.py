@@ -629,25 +629,40 @@ def history(patient, entity_id, *, exam_id=None, parameter_code=None, date_from=
     )
 
     return {
-        "results": [
-            {
-                "id": str(r.id),
-                "exam": {"id": str(r.item_pedido.exame_id), "name": r.item_pedido.exame.nome},
-                "date": (r.data_resultado or r.created_at).isoformat(),
-                "revision": r.numero_revisao,
-                "validated": r.validado,
-                "released": r.released,
-                "validated_at": r.data_validacao.isoformat() if r.data_validacao else None,
-                "value": r.valor_resultado,
-                "values": [
-                    {"code": v.parameter_code, "name": v.parameter_name, **_value_dict(v)}
-                    for v in sorted(r.parameter_values.all(), key=lambda v: v.parameter_name)
-                ],
-            }
-            for r in rows
-        ],
+        "results": [_result_row(r) for r in rows],
         "pagination": {"page": page, "page_size": page_size, "total": total},
     }
+
+
+def _result_row(r):
+    """One result as the results page shows it: the exam, its SNAPSHOT values
+    and what was typed with it (value, report, observation)."""
+
+    item = r.item_pedido
+    return {
+        "id": str(r.id),
+        "exam": {"id": str(item.exame_id), "name": item.exame.nome} if item else None,
+        "date": (r.data_resultado or r.created_at).isoformat(),
+        "revision": r.numero_revisao,
+        "validated": r.validado,
+        "released": r.released,
+        "validated_at": r.data_validacao.isoformat() if r.data_validacao else None,
+        "value": r.valor_resultado,
+        "report": r.laudo,
+        "observation": r.observacao,
+        "values": [
+            {"code": v.parameter_code, "name": v.parameter_name, **_value_dict(v)}
+            for v in sorted(r.parameter_values.all(), key=lambda v: v.parameter_name)
+        ],
+    }
+
+
+def result_values(result):
+    """What was entered with a stored result file (the explorer's preview):
+    the same row as the Data view; a file uploaded on its own (no exam
+    request item) has no exam and no values."""
+
+    return _result_row(result)
 
 
 SUMMARY_RESULTS = 5

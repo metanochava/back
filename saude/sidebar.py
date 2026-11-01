@@ -131,6 +131,14 @@ ALL = [{
                 "route": "list_relatoriomedico",
             },
             {
+                "add_role": "add_clinicalsummary",
+                "add_route": "add_clinicalsummary",
+                "icon": "summarize",
+                "menu": "Clinical Summary",
+                "role": "list_clinicalsummary",
+                "route": "list_clinicalsummary",
+            },
+            {
                 "add_role": "add_guiatransferencia",
                 "add_route": "add_guiatransferencia",
                 "icon": "transfer_within_a_station",
