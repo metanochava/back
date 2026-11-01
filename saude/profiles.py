@@ -43,6 +43,7 @@ CLINICAL_PROFILES = [
             "view_atestadomedico", "add_atestadomedico",
             "view_guiatransferencia", "add_guiatransferencia",
             "view_relatoriomedico", "add_relatoriomedico",
+            "view_clinicalsummary", "add_clinicalsummary",
             "view_procedimento", "view_internamento", "view_cirurgia",
             "view_pedidoexamemedico", "add_pedidoexamemedico", "list_pedidoexamemedico",
             "view_itempedidoexamemedico", "add_itempedidoexamemedico",
@@ -54,12 +55,14 @@ CLINICAL_PROFILES = [
             # exam request and result, and the patient card
             "pdf_consulta", "pdf_receitamedica", "pdf_atestadomedico", "pdf_guiatransferencia",
             "pdf_relatoriomedico", "pdf_pedidoexamemedico", "pdf_resultadoexamemedico", "pdf_paciente",
+            "pdf_clinicalsummary",
             # the documents the doctor issues - listed in their side menus,
             # edited / reprinted and (soft) deleted there; restoring stays with
             # restore_* (not granted). Consultations are not deleted by doctors.
             "list_atestadomedico", "change_atestadomedico", "delete_atestadomedico",
             "list_guiatransferencia", "change_guiatransferencia", "delete_guiatransferencia",
             "list_relatoriomedico", "change_relatoriomedico", "delete_relatoriomedico",
+            "list_clinicalsummary", "change_clinicalsummary", "delete_clinicalsummary",
             "change_receitamedica", "delete_receitamedica",
             "list_itemreceita", "change_itemreceita", "delete_itemreceita",
             "change_pedidoexamemedico", "delete_pedidoexamemedico",
@@ -122,6 +125,7 @@ CLINICAL_PROFILES = [
             "add_procedimento", "change_procedimento", "delete_procedimento", "hard_delete_procedimento", "list_procedimento", "pdf_list_procedimento", "pdf_procedimento", "restore_procedimento",
             "hard_delete_receitamedica", "pdf_list_receitamedica", "restore_receitamedica",
             "hard_delete_relatoriomedico", "pdf_list_relatoriomedico", "restore_relatoriomedico",
+            "hard_delete_clinicalsummary", "pdf_list_clinicalsummary", "restore_clinicalsummary",
             "record_result_itempedidoexamemedico",
             "add_resultadoexamemedico", "change_resultadoexamemedico", "delete_resultadoexamemedico", "pdf_list_resultadoexamemedico", "restore_resultadoexamemedico",
             "add_resultparametervalue", "change_resultparametervalue", "delete_resultparametervalue", "list_resultparametervalue", "pdf_list_resultparametervalue", "pdf_resultparametervalue", "restore_resultparametervalue", "view_resultparametervalue",
@@ -372,6 +376,7 @@ MANAGEMENT_PROFILES = [
             "view_cirurgia", "list_cirurgia",
             "view_receitamedica", "list_receitamedica", "view_itemreceita",
             "view_atestadomedico", "view_guiatransferencia", "view_relatoriomedico",
+            "view_clinicalsummary",
             "view_pedidoexamemedico", "list_pedidoexamemedico",
             "view_itempedidoexamemedico",
             "view_examemedico", "view_tipoexamemedico", "view_classeexamemedico",

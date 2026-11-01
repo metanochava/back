@@ -8,6 +8,7 @@ from saude.models.receitamedica import ReceitaMedica
 from saude.models.itemreceita import ItemReceita
 from saude.models.atestadomedico import AtestadoMedico
 from saude.models.relatoriomedico import RelatorioMedico
+from saude.models.clinicalsummary import ClinicalSummary
 from saude.models.guiatransferencia import GuiaTransferencia
 from saude.models.pedidoexamemedico import PedidoExameMedico
 from saude.models.dadovital import DadoVital
