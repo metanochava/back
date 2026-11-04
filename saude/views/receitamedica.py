@@ -13,6 +13,7 @@ import barcode
 import qrcode
 
 from saude.services import prescription_service
+from saude.services.pdf_properties import pdf_properties
 
 
 
@@ -84,4 +85,5 @@ class ReceitaMedicaAPIView(DocumentEditWindowMixin, BaseAPIView):
             "saude/receitamedica.html", request,
             entity=entity, logo_b64=logo_b64, qr_b64=qr_b64, barcode_b64=barcode_b64,
             **prescription_service.pdf_context(request, receita),
+            **pdf_properties("Prescription", receita),
         )

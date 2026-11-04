@@ -2189,7 +2189,6 @@ key_value = {
     'Recommendations and follow-up': 'Recomendações e seguimento',
     'Attending physician': 'Médico assistente',
     'Background': 'Antecedentes',
-    'Latest vital signs': 'Últimos sinais vitais',
     'Prescribed today': 'Prescrito hoje',
     'Fill from the record': 'Preencher a partir do processo',
     'Fill the sections with what the record already says (to review before issuing)': 'Preencher as secções com o que o processo já tem (para rever antes de emitir)',

@@ -76,6 +76,12 @@ class ClinicalSummaryTests(TestCase):
 
         pdf = self.client.get(f"{URL}{summary.id}/pdf/")
         self.assertEqual(pdf.status_code, 200)
+        # named after the title ("<subject> - <patient>") without spaces,
+        # joined to the creation date (django_resaas PDF())
+        name = self.patient.person.full_name.replace(" ", "")
+        disposition = pdf["Content-Disposition"]
+        self.assertIn(f"-{name}_{timezone.localdate().isoformat()}.pdf", disposition)
+        self.assertTrue(disposition.startswith('inline; filename="ClinicalSummary-') or "ResumoClinico-" in disposition, disposition)
 
     def test_a_consultation_that_is_not_a_uuid_is_a_400(self):
         self._consulta()

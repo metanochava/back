@@ -43,6 +43,7 @@ from saude.services.patient_registration_service import (
 )
 from saude.services.patient_merge_service import PatientMergeService
 from saude.services.patient_timeline_service import PatientTimelineService
+from saude.services.pdf_properties import pdf_properties
 
 
 def _as_drf_validation_error(exc):
@@ -180,6 +181,7 @@ class PacienteAPIView(BaseAPIView):
             "saude/paciente.html",
             request,
             **patient_card_service.pdf_context(request, paciente),
+            **pdf_properties("Patient card", paciente),
             logo_b64=self.file_to_b64(getattr(paciente.entity, "logo", None)),
             profile_b64=profile_b64,
             qr_b64=make_qr_b64(str(paciente.id)),

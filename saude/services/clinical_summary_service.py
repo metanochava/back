@@ -127,7 +127,7 @@ def draft(request, paciente_id, consulta_id=None):
         consulta.dc or "",
         _labelled(request, "Background", background(request, patient)),
     ])
-    findings = _labelled(request, "Latest vital signs", latest_vital_signs(request, patient, entity_id))
+    findings = _labelled(request, "Latest Vital Signs", latest_vital_signs(request, patient, entity_id))
     treatment = "".join([
         consulta.conduta_a_estabelecer or "",
         _labelled(request, "Prescribed today", prescription(request, consulta)),

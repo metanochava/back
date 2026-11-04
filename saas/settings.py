@@ -116,6 +116,8 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 if DEBUG:
     CORS_ALLOWED_ORIGIN_REGEXES.append(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
+# the browser reads a PDF's file name (django_resaas PDF()) from this header
+CORS_EXPOSE_HEADERS = ["Content-Disposition"]
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
 # outside DEBUG the session/CSRF cookies (admin) only travel over HTTPS;
 # HTTPS redirect and HSTS are set by the web server in front of gunicorn

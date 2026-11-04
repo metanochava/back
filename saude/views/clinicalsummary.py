@@ -10,6 +10,7 @@ from saude.models.clinicalsummary import ClinicalSummary
 from saude.serializers.clinicalsummary import ClinicalSummarySerializer
 from saude.services import clinical_summary_service, consultation_service
 from saude.services.document_edit_policy import DocumentEditWindowMixin
+from saude.services.pdf_properties import pdf_properties
 
 
 @registerView("clinicalsummaries")
@@ -50,5 +51,7 @@ class ClinicalSummaryAPIView(DocumentEditWindowMixin, BaseAPIView):
 
     @action(detail=True, methods=["GET"])
     def pdf(self, request, *args, **kwargs):
+        summary = self.get_object()
         return PDF("saude/clinicalsummary.html", request,
-                   **clinical_summary_service.pdf_context(request, self.get_object()))
+                   **clinical_summary_service.pdf_context(request, summary),
+                   **pdf_properties("Clinical Summary", summary))
