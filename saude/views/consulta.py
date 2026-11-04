@@ -18,6 +18,7 @@ from saude.serializers.consulta import ConsultaSerializer
 from saude.services.exam_request_service import require_professional, resolve_patient
 from saude.services import consultation_service, prescription_service
 from django_resaas.saas.core.decorators.action import resaas_action
+from saude.services.pdf_properties import pdf_properties
 
 
 @registerView("consultas")
@@ -94,6 +95,7 @@ class ConsultaAPIView(DocumentEditWindowMixin, BaseAPIView):
             consulta=consulta,
             # same content and order as the consultation form (ConsultaSEPage)
             **consultation_service.pdf_context(request, consulta),
+            **pdf_properties("Consultation", consulta),
         )
 
     # ==========================================

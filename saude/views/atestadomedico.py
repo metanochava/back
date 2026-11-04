@@ -11,6 +11,7 @@ from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_byt
 
 import barcode
 import qrcode
+from saude.services.pdf_properties import pdf_properties
 
 
 
@@ -81,4 +82,5 @@ class AtestadoMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
             barcode_b64=barcode_b64,
             atestado=atestado,
             signer_name=author_name(atestado),
+            **pdf_properties("Medical Certificate", atestado),
         )

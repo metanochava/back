@@ -11,6 +11,7 @@ from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_byt
 
 import barcode
 import qrcode
+from saude.services.pdf_properties import pdf_properties
 
 
 
@@ -83,5 +84,6 @@ class GuiaTransferenciaAPIView(DocumentEditWindowMixin, BaseAPIView):
             barcode_b64=barcode_b64,
             guiatransferencia=guiatransferencia,
             signer_name=author_name(guiatransferencia),
+            **pdf_properties("Transfer Referral", guiatransferencia),
             labels=consultation_service.patient_header_labels(request),
         )

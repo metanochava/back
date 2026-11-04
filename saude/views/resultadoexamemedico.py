@@ -31,6 +31,7 @@ from saude.models.resultadoexamemedico import (
     ResultadoExameMedico,
 )
 
+from saude.services.pdf_properties import pdf_properties
 from saude.serializers.resultadoexamemedico import (
     ResultadoExameMedicoSerializer,
 )
@@ -687,6 +688,8 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
             # the result itself (the template used to be a copy of the exam
             # request's and showed no result): lab_result_service.pdf_context
             **lab_result_service.pdf_context(request, resultado),
+
+            **pdf_properties("Exam Result", resultado),
 
             qr_b64=make_qr_b64(
                 str(resultado.id)

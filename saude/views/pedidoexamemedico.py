@@ -19,6 +19,7 @@ import qrcode
 from django.db import transaction
 from django_resaas.saas.core.decorators.action import resaas_action
 from saude.services import exam_request_service
+from saude.services.pdf_properties import pdf_properties
 
 
 @registerView('pedidoexamemedicos')
@@ -109,6 +110,7 @@ class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
             qr_b64=make_qr_b64(str(pedido.id)),
             barcode_b64=make_barcode_b64(str(pedido.id)),
             signer_name=author_name(pedido),
+            **pdf_properties("Exam Request", pedido),
             **exam_request_service.pdf_context(request, pedido),
         )
 
