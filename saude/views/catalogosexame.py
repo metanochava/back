@@ -49,7 +49,7 @@ class CatalogoExameAPIView(BaseAPIView):
             .filter(
                 entity=entity
             )
-            .order_by("nome")
+            .order_by("ordem", "nome")  # the "Display order", then the name
             .prefetch_related(
                 Prefetch(
                     "exames",
@@ -63,7 +63,7 @@ class CatalogoExameAPIView(BaseAPIView):
             .filter(
                 entity=entity
             )
-            .order_by("nome")
+            .order_by("ordem", "nome")
             .prefetch_related(
                 Prefetch(
                     "classes_exames",

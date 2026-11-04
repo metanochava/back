@@ -48,6 +48,8 @@ CLINICAL_PROFILES = [
             "view_pedidoexamemedico", "add_pedidoexamemedico", "list_pedidoexamemedico",
             "view_itempedidoexamemedico", "add_itempedidoexamemedico",
             "view_examemedico", "view_tipoexamemedico", "view_classeexamemedico",
+            # the Entity's quick list of exams on the exam request (shared)
+            "list_favouriteexam", "add_favouriteexam", "delete_favouriteexam",
             "view_resultadoexamemedico", "lab_evolution_paciente",
             "view_dashboard_saude_doctor",
             # PDF of the documents the doctor already sees (same content, another
@@ -186,6 +188,8 @@ FRONT_OFFICE_PROFILES = [
             "check_in_agenda", "check_out_agenda",
             # exam catalogue of the exam request (saude/catalogoexames/)
             "list_tipoexamemedico",
+            # and its quick list of exams (read only)
+            "list_favouriteexam",
             # lookups of the booking dialog (specialty -> doctor -> room/schedule)
             "list_specialty", "view_specialty",
             "list_medico", "view_medico",
@@ -383,6 +387,8 @@ MANAGEMENT_PROFILES = [
             # exam catalogue (types and classes of exam); deleting stays with Admin
             "list_tipoexamemedico", "add_tipoexamemedico", "change_tipoexamemedico",
             "list_classeexamemedico", "add_classeexamemedico", "change_classeexamemedico",
+            # the quick list of exams of the exam request
+            "list_favouriteexam", "add_favouriteexam", "delete_favouriteexam",
             "view_resultadoexamemedico",
             "view_dashboard_saude_clinica",
             # Clinical Summary lists (read)

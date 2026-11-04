@@ -1,6 +1,7 @@
 key_value = {
 
     "HR": "RH",
+    "Human Resources": "Recursos Humanos",
 
     # =========================================================
     # GENERAL STATUS / LEVELS

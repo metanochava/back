@@ -14,6 +14,7 @@ from saude.models.pedidoexamemedico import PedidoExameMedico
 from saude.models.dadovital import DadoVital
 from saude.models.examemedico import ExameMedico
 from saude.models.classeexamemedico import ClasseExameMedico
+from saude.models.favouriteexam import FavouriteExam
 from saude.models.tipoexamemedico import TipoExameMedico
 from saude.models.medicamento import Medicamento
 from saude.models.medicacaocorrente import MedicacaoCorrente

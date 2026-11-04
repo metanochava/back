@@ -64,9 +64,9 @@ def latest_vital_signs(request, patient, entity_id):
         return ""
     parts = []
     if v.ta_sistolica and v.ta_diastolica:
-        parts.append(f"{_t(request, 'BP')} {v.ta_sistolica}/{v.ta_diastolica} mmHg")
+        parts.append(f"{_t(request, 'Blood Pressure')} {v.ta_sistolica}/{v.ta_diastolica} mmHg")
     for label, value, unit in (
-        ("HR", v.frequencia_cardiaca, "bpm"), ("RR", v.frequencia_respiratoria, "/min"),
+        ("Heart Rate", v.frequencia_cardiaca, "bpm"), ("Resp. Rate", v.frequencia_respiratoria, "/min"),
         ("Temp.", _num(v.temperatura), "°C"), ("SpO2", v.saturacao_oxigenio, "%"),
         ("Weight", _num(v.peso), "kg"), ("Height", _num(v.altura), "cm"),
         ("Glucose", _num(v.glicemia), "mg/dL"),
