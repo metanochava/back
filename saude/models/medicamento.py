@@ -47,6 +47,17 @@ class Medicamento(BaseModel):
     )
  
 
+    # the medication's name is always stored in capitals (the prescription
+    # prints it as stored): descricao and principio_ativo
+    UPPERCASE_FIELDS = ("descricao", "principio_ativo")
+
+    def save(self, *args, **kwargs):
+        for name in self.UPPERCASE_FIELDS:
+            value = getattr(self, name)
+            if isinstance(value, str):
+                setattr(self, name, value.strip().upper())
+        super().save(*args, **kwargs)
+
     class Meta:
         verbose_name = "Medicamento"
         verbose_name_plural = "Medicamentos"

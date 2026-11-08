@@ -8,11 +8,13 @@
   @page {
     size: A6 portrait;
     margin-top: 90px;
-    margin-bottom: 80px;
+    margin-bottom: 130px;
     margin-left: 28px;
     margin-right: 18px;
 
     @bottom-right {
+      vertical-align: bottom;
+      padding-bottom: 34px;
       content: " " counter(page) " - " counter(pages);
 
       font-size: 10px;
@@ -197,8 +199,10 @@
     margin-right: 4px;
   }
 
+  /* no bigger than the table's header (.items th) */
   .item-name {
     font-weight: bold;
+    font-size: 8px;
     color: #111827;
   }
 
@@ -220,7 +224,7 @@
 
   .footer {
     position: fixed;
-    bottom: -38px;
+    bottom: -88px;
     left: 0;
     right: 0;
     min-height: 28px;
@@ -322,7 +326,7 @@
         {% for item in items %}
         <tr>
           <td>
-            <span class="item-num">{{ forloop.counter }}</span><span class="item-name">{{ item.medicamento.descricao|default:item.medicamento }}</span>
+            <span class="item-num">{{ forloop.counter }}</span><span class="item-name">{{ item.medicamento.descricao|default:item.medicamento|upper }}</span>
             {% if item.dosagem %}<div class="item-dose">{{ item.dosagem }}</div>{% endif %}
           </td>
           <td style="text-align: right;">{% if item.quantidade %}<span class="item-qty">{{ item.quantidade }}</span>{% endif %}</td>
@@ -345,6 +349,8 @@
   </div>
 
 </div>
+
+{% include "saude/_signature.html" with sign_date=receita.created_at|date:"d/m/Y" sign_name=signer_name sign_role=labels.doctor %}
 
 <div class="footer">
 

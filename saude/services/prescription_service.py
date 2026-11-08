@@ -90,5 +90,6 @@ def pdf_context(request, receita):
             "title": "Medical prescription",
             "name": "Patient name", "nid": "Patient NID", "contact": "Contact",
             "medication": "Medication", "quantity": "Quantity", "notes": "Notes",
+            "doctor": "Doctor",
         }.items()},
     }

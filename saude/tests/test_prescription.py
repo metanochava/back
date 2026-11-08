@@ -165,7 +165,7 @@ class PrescriptionPdfTests(TestCase):
         context = prescription_service.pdf_context(RequestFactory().get("/", HTTP_L=str(pt.id)), self.receita)
 
         self.assertEqual(context["labels"]["quantity"], "Quantidade")
-        self.assertEqual([i.medicamento.descricao for i in context["items"]], ["Paracetamol"])
+        self.assertEqual([i.medicamento.descricao for i in context["items"]], ["PARACETAMOL"])
 
 
 class OtherVisitDocumentsTests(TestCase):

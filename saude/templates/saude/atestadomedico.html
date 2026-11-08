@@ -276,7 +276,7 @@
     {{ atestado.diagnostico|safe }}
   </div>
 
-  <div class="cert-place">Maputo aos {{ cert.issued_on }}</div>
+  <div class="cert-place">Maputo aos <b>{{ cert.issued_on }}</b></div>
 
   <div class="cert-sign">
     <span class="cert-sign-line">{% if signer_name %}<strong class="signer-name">{{ signer_name }}</strong>{% else %}&nbsp;{% endif %}</span>
