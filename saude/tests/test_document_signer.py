@@ -51,6 +51,7 @@ class SignatureLineTests(SimpleTestCase):
         "saude/clinicalsummary.html",
         "saude/guiatransferencia.html",
         "saude/pedidoexamemedico.html",
+        "saude/receitamedica.html",
     )
 
     def test_every_signed_pdf_prints_the_signers_name(self):

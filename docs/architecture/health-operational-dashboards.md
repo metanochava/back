@@ -642,9 +642,9 @@ name of **who created the document** - the same author as the edit rule above
   `{{ entity.name|clinic_name }}` (`saude/templatetags/clinic.py`) gives
   "Clínica Amal". A name that already starts with "Clínica"/"Clinica" stays
   as it is.
-- **Signature block** (`templates/saude/_signature.html`, used by the referral,
-  medical report, clinical summary, exam request and lab result): the date is
-  on the left, and the signature line is on the right with the name
+- **Signature block** (`templates/saude/_signature.html`, used by the
+  prescription, referral, medical report, clinical summary, exam request and lab
+  result): the date, three spaces in and in bold, on the left; the signature line is on the right with the name
   (`strong.signer-name`) and the role under it. The block is fixed right above
   the footer line of every page. Each template reserves its height: `@page`
   `margin-bottom` +50px, `.footer` `bottom` -50px (so the footer stays where it
@@ -666,6 +666,11 @@ name of **who created the document** - the same author as the edit rule above
   issue is not stored (`Document` has no such field), so it is not printed.
   The city is still the fixed "Maputo".
 - Tests: `saude/tests/test_medical_certificate.py`.
+- **Medication names in capitals:** `Medicamento.save()` stores `descricao` and
+  `principio_ativo` in upper case (migration `0016_medicamento_uppercase`
+  converts the existing rows). The prescription prints the name with `|upper`,
+  at the size of the table's header (8px). Test:
+  `saude/tests/test_medicamento_uppercase.py`.
 - **Right menu (dev/front `HistoryList.vue`):** a document added, edited or
   deleted through the page's store (`save()` -> `create()`/`update()`,
   `removeById()`, or a store's own `changed(row)` after a custom save, as in

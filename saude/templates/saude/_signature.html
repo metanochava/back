@@ -15,7 +15,7 @@ footer's bottom offset both grow by 50px (the footer stays where it was).
 </style>
 <table class="sign-block">
   <tr>
-    <td class="sign-date">{{ sign_date|default:"" }}</td>
+    <td class="sign-date">{% if sign_date %}&nbsp;&nbsp;&nbsp;<b>{{ sign_date }}</b>{% endif %}</td>
     <td class="sign-cell">
       <div class="sign-line">{% if sign_name %}<strong class="signer-name">{{ sign_name }}</strong>{% else %}&nbsp;{% endif %}</div>
       <div class="sign-role">{{ sign_role|default:"" }}</div>
