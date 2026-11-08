@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load clinic %}
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
@@ -7,11 +8,13 @@
   @page {
     size: A6 portrait;
     margin-top: 92px;
-    margin-bottom: 78px;
+    margin-bottom: 128px;
     margin-left: 28px;
     margin-right: 18px;
 
     @bottom-right {
+      vertical-align: bottom;
+      padding-bottom: 34px;
       content: " " counter(page) " - " counter(pages);
       font-size: 10px;
       color: #0f766e;
@@ -217,7 +220,7 @@
 
   .footer {
     position: fixed;
-    bottom: -38px;
+    bottom: -88px;
     left: 0;
     right: 0;
     min-height: 28px;
@@ -402,7 +405,7 @@
 
       <td class="title">
         <h1>{{ labels.title }}</h1>
-        <div class="subtitle">{{ entity.name }}</div>
+        <div class="subtitle">{{ entity.name|clinic_name }}</div>
       </td>
 
       <td class="qr">
@@ -480,14 +483,9 @@
     {% endif %}
   </div>
 
-  <div class="signature">
-    <div class="signature-line">
-      {{ validated_by|default:"" }}
-      <br>
-      {{ labels.validated_by }}{% if resultado.data_validacao %} · {{ resultado.data_validacao|date:"d/m/Y" }}{% endif %}
-    </div>
-  </div>
 </div>
+
+{% include "saude/_signature.html" with sign_date=resultado.data_validacao|date:"d/m/Y" sign_name=validated_by sign_role=labels.validated_by %}
 
 <div class="footer">
   <div class="barcode-header">
