@@ -538,10 +538,11 @@ it is not a menu entry.
 
 #### Doctor integration (lab phase 13)
 
-- **Consultation panel** `pages/saude/components/LatestLabResults.vue`, under
-  *Latest vital signs* on the consultation form (`ConsultaSEPage.vue`; mounted
-  only with `lab_evolution_paciente`, UX). Buttons open *Lab evolution* and *Lab
-  history* for the same patient.
+- **Consultation panel** `pages/saude/components/LatestLabResults.vue`: its
+  buttons open *Lab evolution* and *Lab history* for the same patient. Since
+  2026-11-08 the consultation form (`ConsultaSEPage.vue`) shows it neither on
+  `add_consulta` nor on `change_consulta` (owner's call). The component and
+  `lab_summary` stay available for other pages.
 - `GET /api/saude/pacientes/{id}/lab_summary/` (**PROTECTED**,
   `lab_evolution_paciente`; the patient is `get_object()`: another Entity's is
   `404`), `lab_result_service.doctor_summary`:

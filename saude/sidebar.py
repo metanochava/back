@@ -231,4 +231,15 @@ ALL = [{
             },
         ],
     },
-]}]
+]},
+
+# 👥 PACIENTES - a direct top-level link to the patient list (one click),
+# besides the "Patient" entry inside Saude above. ROUTE + ROLE: shown only
+# with list_paciente (django_resaas UserAPIView.menus).
+{
+    'MENU': "Patients",
+    'ICON': "groups",
+    'ROUTE': "list_paciente",
+    'ROLE': "list_paciente",
+},
+]
