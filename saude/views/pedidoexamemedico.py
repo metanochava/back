@@ -2,6 +2,8 @@ import uuid
 
 from django_resaas.saas.core.base.views import BaseAPIView
 from saude.services.document_edit_policy import DocumentEditWindowMixin, author_name
+from saude.services.document_signer import signer_role, with_category
+from django_resaas.saas.core.utils.translate import Translate
 from django_resaas.saas.core.base.views import registerView
 from saude.models.pedidoexamemedico import PedidoExameMedico
 from saude.serializers.pedidoexamemedico import PedidoExameMedicoSerializer
@@ -109,7 +111,8 @@ class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
             logo_b64=logo_b64,
             qr_b64=make_qr_b64(str(pedido.id)),
             barcode_b64=make_barcode_b64(str(pedido.id)),
-            signer_name=author_name(pedido),
+            signer_name=with_category(pedido, author_name(pedido)),
+            signer_role=signer_role(request, pedido, fallback=Translate.tdc(request, "Requesting doctor")),
             **pdf_properties("Exam Request", pedido),
             **exam_request_service.pdf_context(request, pedido),
         )

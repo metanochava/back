@@ -23,6 +23,24 @@ def _post(client, payload, files=None):
 
 class PatientRegistrationTests(TestCase):
 
+    _doc_seq = 0
+
+    def _doc(self):
+        """an identity document for a new person (a patient needs one)"""
+        PatientRegistrationTests._doc_seq += 1
+        return [{"tipo": str(self.doc_type.id), "numero": f"DOC-{PatientRegistrationTests._doc_seq}"}]
+
+    def _give_document(self, person, tenant=None):
+        from django.contrib.contenttypes.models import ContentType
+        tenant = tenant or self.tenant
+        entity, branch = tenant["entity"], tenant["branch"]
+        PatientRegistrationTests._doc_seq += 1
+        return Document.objects.create(
+            tipo=self.doc_type, numero=f"DOC-{PatientRegistrationTests._doc_seq}",
+            content_type=ContentType.objects.get_for_model(Person), object_id=person.id,
+            entity=entity, branch=branch,
+        )
+
     def setUp(self):
         self.tenant = bootstrap_tenant(
             "patient-register",
@@ -34,7 +52,7 @@ class PatientRegistrationTests(TestCase):
 
     def test_register_creates_person_documents_contacts_and_patient_atomically(self):
         response = _post(self.client_, {
-            "person": {
+            "documents": self._doc(), "person": {
                 "name": "Helena", "surname": "Marrengula",
                 "email": "helena.pac@example.com",
                 "occupation": "Teacher", "blood_type": "O+",
@@ -65,7 +83,7 @@ class PatientRegistrationTests(TestCase):
 
     def test_client_supplied_nid_and_state_are_ignored(self):
         response = _post(self.client_, {
-            "person": {"name": "Rui", "surname": "Cossa"},
+            "documents": self._doc(), "person": {"name": "Rui", "surname": "Cossa"},
             "patient": {"nid": "HACKED-1", "state": "Inactive"},
         })
 
@@ -76,6 +94,7 @@ class PatientRegistrationTests(TestCase):
 
     def test_register_reuses_existing_person_without_creating_a_new_one(self):
         person = Person.objects.create(name="Ines", surname="Tembe", email="ines.pac@example.com")
+        self._give_document(person)
 
         response = _post(self.client_, {"person_id": str(person.id), "patient": {}})
 
@@ -85,6 +104,7 @@ class PatientRegistrationTests(TestCase):
 
     def test_second_registration_of_same_person_in_same_branch_is_409_with_link(self):
         person = Person.objects.create(name="Ana", surname="Chilaule")
+        self._give_document(person)
         first = _post(self.client_, {"person_id": str(person.id)})
         self.assertEqual(first.status_code, 201, first.data)
 
@@ -96,7 +116,7 @@ class PatientRegistrationTests(TestCase):
 
     def test_failure_creating_the_patient_rolls_back_person_and_documents(self):
         response = _post(self.client_, {
-            "person": {"name": "Ghost", "surname": "Rollback"},
+            "documents": self._doc(), "person": {"name": "Ghost", "surname": "Rollback"},
             "documents": [{"tipo": str(self.doc_type.id), "numero": "ROLL-1"}],
             "patient": {"religion": "x" * 500},  # max_length=150 -> invalid
         })
@@ -109,7 +129,7 @@ class PatientRegistrationTests(TestCase):
         Person.objects.create(name="Dup", surname="Email", email="dup.pac@example.com")
 
         response = _post(self.client_, {
-            "person": {"name": "Other", "surname": "Person", "email": "dup.pac@example.com"},
+            "documents": self._doc(), "person": {"name": "Other", "surname": "Person", "email": "dup.pac@example.com"},
         })
 
         self.assertEqual(response.status_code, 400)
@@ -129,7 +149,7 @@ class PatientRegistrationTests(TestCase):
             *Permission.objects.filter(codename="add_person")
         )
 
-        response = _post(self.client_, {"person": {"name": "No", "surname": "Perm"}})
+        response = _post(self.client_, {"documents": self._doc(), "person": {"name": "No", "surname": "Perm"}})
 
         self.assertEqual(response.status_code, 403)
         self.assertFalse(Person.objects.filter(surname="Perm").exists())
@@ -149,7 +169,30 @@ class PatientRegistrationTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 201, response.data)
-        self.assertTrue(Document.objects.get(numero="F-1").arquivo.name.endswith("id.pdf"))
+        # the file is one of the document's files (DocumentFile)
+        files = list(Document.objects.get(numero="F-1").files.all())
+        self.assertEqual(len(files), 1)
+        self.assertTrue(files[0].arquivo.name.endswith("id.pdf"))
+
+    def test_a_document_can_have_several_files(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        response = _post(
+            self.client_,
+            {
+                "person": {"name": "Dulce", "surname": "Mondlane"},
+                "documents": [{"tipo": str(self.doc_type.id), "numero": "F-2",
+                               "_file_keys": ["document_file_0_0", "document_file_0_1"]}],
+            },
+            files={
+                "document_file_0_0": SimpleUploadedFile("frente.pdf", b"%PDF-1.4 a", content_type="application/pdf"),
+                "document_file_0_1": SimpleUploadedFile("verso.pdf", b"%PDF-1.4 b", content_type="application/pdf"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 201, response.data)
+        names = sorted(f.name for f in Document.objects.get(numero="F-2").files.all())
+        self.assertEqual(names, ["frente.pdf", "verso.pdf"])
 
     def test_register_is_blocked_without_the_register_paciente_action_permission(self):
         from django.contrib.auth.models import Permission
@@ -158,7 +201,7 @@ class PatientRegistrationTests(TestCase):
             *Permission.objects.filter(codename="register_paciente")
         )
 
-        response = _post(self.client_, {"person": {"name": "X", "surname": "Y"}})
+        response = _post(self.client_, {"documents": self._doc(), "person": {"name": "X", "surname": "Y"}})
 
         self.assertIn(response.status_code, (400, 403))
         self.assertFalse(Paciente.objects.filter(person__surname="Y").exists())
@@ -168,6 +211,7 @@ class PatientRegistrationTests(TestCase):
         """The pre-existing POST /pacientes/ (used before this flow
         existed) keeps working and now shares generate_nid()."""
         person = Person.objects.create(name="Legacy", surname="Create")
+        self._give_document(person)
 
         response = self.client_.post(
             "/api/saude/pacientes/", {"person": str(person.id)}, format="json"
@@ -180,7 +224,7 @@ class PatientRegistrationTests(TestCase):
         """PacienteSerializer.person_data used to be declared without
         source= and silently dropped from every response."""
         created = _post(self.client_, {
-            "person": {"name": "Nadia", "surname": "Bila", "email": "nadia.bila@example.com"},
+            "documents": self._doc(), "person": {"name": "Nadia", "surname": "Bila", "email": "nadia.bila@example.com"},
         })
         self.assertEqual(created.status_code, 201, created.data)
 
@@ -191,7 +235,7 @@ class PatientRegistrationTests(TestCase):
         self.assertEqual(response.data["person_data"]["name"], "Nadia")
 
     def test_patch_updates_patient_fields_without_touching_nid(self):
-        created = _post(self.client_, {"person": {"name": "Omar", "surname": "Zandamela"}})
+        created = _post(self.client_, {"documents": self._doc(), "person": {"name": "Omar", "surname": "Zandamela"}})
         nid = created.data["nid"]
 
         response = self.client_.patch(
@@ -212,7 +256,7 @@ class PatientRegistrationTests(TestCase):
         from django.db import IntegrityError, transaction
         from django_resaas.saas.models.branch import Branch
 
-        first = _post(self.client_, {"person": {"name": "A", "surname": "One"}})
+        first = _post(self.client_, {"documents": self._doc(), "person": {"name": "A", "surname": "One"}})
         self.assertEqual(first.status_code, 201, first.data)
         paciente = Paciente.objects.get(id=first.data["id"])
 
@@ -232,7 +276,7 @@ class PatientRegistrationTests(TestCase):
 
     def test_emergency_contact_prefers_the_flagged_one(self):
         response = _post(self.client_, {
-            "person": {"name": "Zita", "surname": "Mabjaia"},
+            "documents": self._doc(), "person": {"name": "Zita", "surname": "Mabjaia"},
             "contacts": [
                 {"name": "Neighbour", "phone": "111"},
                 {"name": "Mother", "phone": "222", "is_emergency": True},
@@ -243,6 +287,62 @@ class PatientRegistrationTests(TestCase):
         self.assertEqual(paciente.emergency_contact.phone, "222")
 
     def test_emergency_contact_is_none_without_contacts(self):
-        response = _post(self.client_, {"person": {"name": "Solo", "surname": "Person"}})
+        response = _post(self.client_, {"documents": self._doc(), "person": {"name": "Solo", "surname": "Person"}})
 
         self.assertIsNone(Paciente.objects.get(id=response.data["id"]).emergency_contact)
+
+
+class PatientIdentityDocumentTests(TestCase):
+    """A patient is saved only when its Person has an identity document (type
+    and number) of this Entity - the medical certificate prints it."""
+
+    setUp = PatientRegistrationTests.setUp
+    _doc = PatientRegistrationTests._doc
+    _give_document = PatientRegistrationTests._give_document
+
+    def test_register_without_a_document_is_refused_and_creates_nothing(self):
+        response = _post(self.client_, {"person": {"name": "Sem", "surname": "Documento"}})
+
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertIn("documents", response.data)
+        self.assertFalse(Person.objects.filter(surname="Documento").exists())
+        self.assertFalse(Paciente.objects.filter(person__surname="Documento").exists())
+
+    def test_a_document_without_number_does_not_count(self):
+        response = _post(self.client_, {
+            "person": {"name": "Sem", "surname": "Numero"},
+            "documents": [{"tipo": str(self.doc_type.id), "numero": ""}],
+        })
+
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertFalse(Paciente.objects.filter(person__surname="Numero").exists())
+
+    def test_a_reused_person_without_a_document_of_this_entity_is_refused(self):
+        other = bootstrap_tenant("patient-register-other", modules=("saude",))
+        person = Person.objects.create(name="Outra", surname="Entidade")
+        self._give_document(person, tenant=other)  # not this Entity's
+
+        response = _post(self.client_, {"person_id": str(person.id)})
+
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertFalse(Paciente.objects.filter(person=person).exists())
+
+    def test_generic_create_without_a_document_is_refused(self):
+        person = Person.objects.create(name="Generic", surname="NoDoc")
+
+        response = self.client_.post("/api/saude/pacientes/", {"person": str(person.id)}, format="json")
+
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertFalse(Paciente.objects.filter(person=person).exists())
+
+    def test_change_is_refused_once_the_person_has_no_document(self):
+        created = _post(self.client_, {"documents": self._doc(), "person": {"name": "Lia", "surname": "Macuacua"}})
+        self.assertEqual(created.status_code, 201, created.data)
+        Document.objects.filter(object_id=Paciente.objects.get(id=created.data["id"]).person_id).delete()
+
+        response = self.client_.patch(
+            f"/api/saude/pacientes/{created.data['id']}/", {"religion": "Catholic"}, format="json",
+        )
+
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertNotEqual(Paciente.objects.get(id=created.data["id"]).religion, "Catholic")

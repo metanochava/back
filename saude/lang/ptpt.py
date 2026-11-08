@@ -2226,4 +2226,7 @@ key_value = {
     'This exam is already in the favourites.': 'Este exame já está nos favoritos.',
     'Display order': 'Ordem de apresentação',
     'Lower numbers appear first': 'Os números menores aparecem primeiro',
+    'Medical Council no.': 'N.º da Ordem',
+    'Attending doctor': 'Médico Assistente',
+    'The patient needs an identity document with its type and number.': 'O paciente precisa de um documento de identificação com o tipo e o número.',
 }

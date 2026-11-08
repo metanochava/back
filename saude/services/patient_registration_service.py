@@ -34,6 +34,37 @@ class PatientRegistrationError(Exception):
         super().__init__("Patient registration failed.")
 
 
+IDENTITY_DOCUMENT_REQUIRED = "The patient needs an identity document with its type and number."
+
+
+def has_identity_document(person, entity_id):
+    """A Person's identity document of this Entity, with type and number: what
+    the medical certificate and the other health documents print
+    (medical_certificate_service). A patient is saved only with one."""
+    from django.contrib.contenttypes.models import ContentType
+    from django_resaas.saas.models.document import Document
+
+    if person is None or not entity_id:
+        return False
+    return (
+        Document.objects
+        .filter(
+            content_type=ContentType.objects.get_for_model(person.__class__),
+            object_id=person.id,
+            entity_id=entity_id,
+            tipo__isnull=False,
+        )
+        .exclude(numero__isnull=True)
+        .exclude(numero__exact="")
+        .exists()
+    )
+
+
+def require_identity_document(request, person):
+    if not has_identity_document(person, getattr(request, "entity_id", None)):
+        raise PatientRegistrationError({"documents": [Translate.tdc(request, IDENTITY_DOCUMENT_REQUIRED)]})
+
+
 class PatientAlreadyExists(Exception):
     """This Person already has a Paciente record in the target branch."""
 
@@ -90,6 +121,9 @@ def register_patient(
         create_contacts(request=request, person=person, contacts=contacts)
     except PersonRegistrationError as exc:
         raise PatientRegistrationError(exc.errors)
+
+    # the documents just created, or a reused Person's own of this Entity
+    require_identity_document(request, person)
 
     # Same reasoning as Employee: Paciente(person, branch) is already a
     # DB-level unique_together - this upfront check only exists for a

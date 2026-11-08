@@ -856,6 +856,7 @@ def _person_of_user(user):
 
 def pdf_context(request, resultado):
     from django_resaas.saas.core.utils.translate import Translate
+    from saude.services.document_signer import signer_role, with_category
 
     t = lambda text: Translate.tdc(request, text) if text else ""  # noqa: E731
     item = resultado.item_pedido
@@ -882,7 +883,8 @@ def pdf_context(request, resultado):
         "exam": item.exame.nome if item else resultado.nome,
         "requester": requester,
         "values": values,
-        "validated_by": _person_of_user(resultado.validado_por),
+        "validated_by": with_category(resultado, _person_of_user(resultado.validado_por), user=resultado.validado_por) if resultado.validado_por_id else None,
+        "signer_role": signer_role(request, resultado, fallback=t("Validated by"), user=resultado.validado_por) if resultado.validado_por_id else t("Validated by"),
         "labels": {key: t(text) for key, text in {
             "title": "Exam result",
             "name": "Patient name", "nid": "Patient NID", "contact": "Contact",

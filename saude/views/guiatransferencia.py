@@ -1,6 +1,8 @@
 
 from django_resaas.saas.core.base.views import BaseAPIView
 from saude.services.document_edit_policy import DocumentEditWindowMixin, author_name
+from saude.services.document_signer import signer_role, with_category
+from django_resaas.saas.core.utils.translate import Translate
 from django_resaas.saas.core.base.views import registerView
 from saude.services import consultation_service
 from saude.models.guiatransferencia import GuiaTransferencia
@@ -83,7 +85,8 @@ class GuiaTransferenciaAPIView(DocumentEditWindowMixin, BaseAPIView):
             qr_b64=qr_b64,
             barcode_b64=barcode_b64,
             guiatransferencia=guiatransferencia,
-            signer_name=author_name(guiatransferencia),
+            signer_name=with_category(guiatransferencia, author_name(guiatransferencia)),
+            signer_role=signer_role(request, guiatransferencia, fallback=Translate.tdc(request, "Doctor")),
             **pdf_properties("Transfer Referral", guiatransferencia),
             labels=consultation_service.patient_header_labels(request),
         )

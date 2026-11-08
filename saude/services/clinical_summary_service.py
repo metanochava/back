@@ -146,6 +146,9 @@ def draft(request, paciente_id, consulta_id=None):
 
 
 def pdf_context(request, summary):
+    from django_resaas.saas.core.utils.translate import Translate
+    from saude.services.document_signer import signer_role, with_category
+
     from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64
 
     entity = summary.entity
@@ -173,7 +176,8 @@ def pdf_context(request, summary):
             {"title": _t(request, titles[key]), "html": getattr(summary, key)}
             for key in SECTIONS if (getattr(summary, key) or "").strip()
         ],
-        "signer_name": author_name(summary),
+        "signer_name": with_category(summary, author_name(summary)),
+        "signer_role": signer_role(request, summary, fallback=Translate.tdc(request, "Doctor")),
         "labels": {
             **consultation_service.patient_header_labels(request),
             **{key: _t(request, text) for key, text in {

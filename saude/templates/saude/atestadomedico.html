@@ -217,7 +217,8 @@
   .atestado-text { font-family: "Times New Roman", Times, serif; font-size: 12px; text-align: justify; line-height: 1.45; }
   .cert-place { font-family: "Times New Roman", Times, serif; text-align: right; margin-top: 22px; padding-right: 10px; }
   .cert-sign { text-align: right; margin-top: 40px; }
-  .cert-sign-line { display: inline-block; min-width: 150px; border-top: 1px solid #1b7a1b; font-size: 10px; text-align: center; padding-top: 2px; }
+  .cert-sign-role { font-size: 8px; color: #0f766e; letter-spacing: .04em; text-transform: uppercase; }
+  .cert-sign-line { display: inline-block; min-width: 200px; border-top: 1px solid #1b7a1b; font-size: 10px; text-align: center; padding-top: 2px; }
   .cert-recognition { font-family: "Times New Roman", Times, serif; font-size: 12px; line-height: 1.45; }
   .cert-fill { width: 100%; border-collapse: collapse; }
   .cert-fill-label { width: 1%; white-space: nowrap; padding: 0 4px 0 0; }
@@ -232,41 +233,17 @@
 
 <body>
 
-<div class="header">
-
-  <table class="header-table">
-    <tr>
-      <td class="logo">
-        {% if logo_b64 %}
-          <img src="data:image/png;base64,{{ logo_b64 }}">
-        {% endif %}
-      </td>
-
-      <td class="title">
-        <h1>Atestado Médico</h1>
-        <div class="subtitle">
-           &nbsp;&nbsp;&nbsp;{{ entity.name|clinic_name }}
-        </div>
-      </td>
-
-      <td class="qr">
-        {% if qr_b64 %}
-          <img src="data:image/png;base64,{{ qr_b64 }}">
-        {% endif %}
-      </td>
-    </tr>
-  </table>
-
-</div>
+{% include "saude/_header.html" with header_title="Atestado Médico" indent=True %}
 
 <div class="content">
 
   <!-- body as in modelo_Prog_atestado_.pdf (header and footer unchanged) -->
-  <div class="cert-rule"></div>
+
 
   <div class="atestado-text">
-    Eu, <b><u style="text-transform: uppercase;">{{ cert.doctor_name }},</u></b>
-    inscrito na Ordem dos Médicos de Moçambique{% if cert.doctor_number %} com o número <b>{{ cert.doctor_number }}</b>{% endif %},
+    Eu, <b><u style="text-transform: uppercase;">{{ cert.doctor_name }}</u></b>,
+    {{ cert.g_doctor }}{% if cert.specialty %} especialista em <b>{{ cert.specialty }}</b>{% endif %},
+    {{ cert.g_registered }} na Ordem dos Médicos de Moçambique{% if cert.doctor_number %} com o número <b>{{ cert.doctor_number }}</b>{% endif %},
     prestando serviço nesta clínica, declaro por minha honra que
     <b>{{ cert.patient_name }}</b>{% if cert.document_number %}, titular do {{ cert.document_type|default:"documento" }} N° {{ cert.document_number }}{% if cert.document_issued %} emitido aos {{ cert.document_issued }}{% endif %}{% endif %},
     foi por mim hoje {{ cert.g_observed }} na <b>Consulta externa{% if cert.specialty %} de {{ cert.specialty }}{% endif %}</b>
@@ -279,14 +256,14 @@
   <div class="cert-place">Maputo aos <b>{{ cert.issued_on }}</b></div>
 
   <div class="cert-sign">
-    <span class="cert-sign-line">{% if signer_name %}<strong class="signer-name">{{ signer_name }}</strong>{% else %}&nbsp;{% endif %}</span>
+    <span class="cert-sign-line">{% if signer_name %}<strong class="signer-name">{{ signer_name }}</strong>{% else %}&nbsp;{% endif %}{% if signer_role %}<br><span class="cert-sign-role">{{ signer_role }}</span>{% endif %}</span>
   </div>
 
   <div class="cert-rule"></div>
 
   <div class="cert-recognition">
-    Reconheço a assinatura supra como sendo de entidade autorizada a emitir este
-    <table class="cert-fill"><tr><td class="cert-fill-label">atestado</td><td class="cert-fill-dots"></td></tr></table>
+    Reconheço a assinatura supra como sendo de entidade autorizada a emitir este atestado
+    <table class="cert-fill"><tr><td class="cert-fill-label"></td><td class="cert-fill-dots"></td></tr></table>
     <div class="cert-dots"></div>
   </div>
 
@@ -295,8 +272,8 @@
   </div>
 
   <div class="cert-admin">
-    O chefe de administrativo
-    <div class="cert-admin-line">____________________________________</div>
+    Administração
+    <div class="cert-admin-line">___________________________________</div>
   </div>
 
   <div class="cert-validity">
@@ -305,33 +282,7 @@
 
 </div>
 
-<div class="footer">
-
-  <div class="barcode-header">
-    {% if barcode_b64 %}
-      <img src="data:image/png;base64,{{ barcode_b64 }}">
-    {% endif %}
-  </div>
-
-  <table class="footer-table">
-    <tr>
-      <td class="footer-left">
-       &nbsp;&nbsp;{{ entity.name }}
-      </td>
-
-      <td class="footer-right">
-        Atestado médico
-      </td>
-    </tr>
-
-    <tr>
-      <td colspan="2" class="footer-center" style="width:100%; font-size: 10px;">
-        {{ entity.rodape|default:""|safe }}
-      </td>
-    </tr>
-  </table>
-
-</div>
+{% include "saude/_footer.html" with footer_label="Atestado médico" indent=True note_size=12 font_size=11 %}
 
 </body>
 </html>

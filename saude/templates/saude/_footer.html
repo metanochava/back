@@ -1,0 +1,28 @@
+{% comment %}
+Footer of a health PDF: the barcode, the Entity's name on the left, the
+document name on the right and the Entity's footer text (Entity.rodape)
+under them. The sizes and the position stay in each template's CSS
+(.footer, .footer-table, .barcode-header), as the pages differ.
+  footer_label   the document name on the right
+  indent         True puts 2 spaces before the Entity's name
+  font_size      font size in px of the line with the Entity's name and the
+                 document name (default: the template's .footer CSS)
+  note_size      font size in px of the Entity's footer text (default 10)
+Example: {% include "saude/_footer.html" with footer_label=labels.title font_size=9 note_size=8 %}
+{% endcomment %}
+<div class="footer">
+  <div class="barcode-header">
+    {% if barcode_b64 %}<img src="data:image/png;base64,{{ barcode_b64 }}">{% endif %}
+  </div>
+  <table class="footer-table"{% if font_size %} style="font-size:{{ font_size }}px;"{% endif %}>
+    <tr>
+      <td class="footer-left">{% if indent %}&nbsp;&nbsp;{% endif %}{{ entity.name }}</td>
+      <td class="footer-right">{{ footer_label }}</td>
+    </tr>
+    <tr>
+      <td colspan="2" class="footer-center" style="width:100%; font-size:{{ note_size|default:10 }}px;">
+        {{ entity.rodape|default:""|safe }}
+      </td>
+    </tr>
+  </table>
+</div>

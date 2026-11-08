@@ -222,50 +222,17 @@
   .seccao-texto ul { margin: 2px 0 4px 16px; padding: 0; }
   .box.seccoes { page-break-inside: auto; }
   .finalidade { font-size: 11px; color: #555; margin-top: 2px; }
+
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <table class="header-table">
-    <tr>
-      <td class="logo">
-        {% if logo_b64 %}<img src="data:image/png;base64,{{ logo_b64 }}">{% endif %}
-      </td>
-      <td class="title">
-        <h1>{{ labels.title }}</h1>
-        <div class="subtitle">{{ entity.name|clinic_name }}</div>
-      </td>
-      <td class="qr">
-        {% if qr_b64 %}<img src="data:image/png;base64,{{ qr_b64 }}">{% endif %}
-      </td>
-    </tr>
-  </table>
-</div>
+{% include "saude/_header.html" with header_title=labels.title %}
 
 <div class="content">
 
-  <div class="box patient-box">
-    <table class="dados">
-      <tr>
-        <td class="label">
-          {{ labels.name }}: <strong>{{ summary.consulta.paciente.person.full_name }}</strong>
-        </td>
-      </tr>
-      <tr>
-        <td class="label">
-          {{ labels.nid }}: <strong>{{ summary.consulta.paciente.nid }}</strong>
-        </td>
-        <td class="label">
-          {{ labels.contact }}: <strong>{{ summary.consulta.paciente.person.phone|default:"-" }}</strong>
-        </td>
-      </tr>
-    </table>
-    {% if summary.purpose %}
-      <div class="finalidade">{{ labels.purpose }}: <strong>{{ summary.purpose }}</strong></div>
-    {% endif %}
-  </div>
+  {% include "saude/_patient.html" with paciente=summary.consulta.paciente note_label=labels.purpose note=summary.purpose %}
 
   <div class="box seccoes">
     {% for section in sections %}
@@ -282,24 +249,9 @@
 
 </div>
 
-{% include "saude/_signature.html" with sign_date=summary.created_at|date:"d/m/Y" sign_name=signer_name sign_role=labels.doctor %}
+{% include "saude/_signature.html" with sign_date=summary.created_at|date:"d/m/Y" sign_name=signer_name sign_role=signer_role %}
 
-<div class="footer">
-  <div class="barcode-header">
-    {% if barcode_b64 %}<img src="data:image/png;base64,{{ barcode_b64 }}">{% endif %}
-  </div>
-  <table class="footer-table">
-    <tr>
-      <td class="footer-left">&nbsp;&nbsp;{{ entity.name }}</td>
-      <td class="footer-right">{{ labels.title }}</td>
-    </tr>
-    <tr>
-      <td colspan="2" class="footer-center" style="width:100%; font-size:12px;">
-        {{ entity.rodape|default:""|safe }}
-      </td>
-    </tr>
-  </table>
-</div>
+{% include "saude/_footer.html" with footer_label=labels.title indent=True note_size=12 font_size=10 %}
 
 </body>
 </html>
