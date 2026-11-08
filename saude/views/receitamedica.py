@@ -1,4 +1,6 @@
 from saude.services.document_edit_policy import author_name
+from saude.services.document_signer import signer_role, with_category
+from django_resaas.saas.core.utils.translate import Translate
 
 from django_resaas.saas.core.base.views import BaseAPIView
 from saude.services.document_edit_policy import DocumentEditWindowMixin
@@ -85,7 +87,8 @@ class ReceitaMedicaAPIView(DocumentEditWindowMixin, BaseAPIView):
         return PDF(
             "saude/receitamedica.html", request,
             entity=entity, logo_b64=logo_b64, qr_b64=qr_b64, barcode_b64=barcode_b64,
-            signer_name=author_name(receita),
+            signer_name=with_category(receita, author_name(receita)),
+            signer_role=signer_role(request, receita, fallback=Translate.tdc(request, "Doctor")),
             **prescription_service.pdf_context(request, receita),
             **pdf_properties("Prescription", receita),
         )

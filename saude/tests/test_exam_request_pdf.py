@@ -76,7 +76,8 @@ class ExamRequestPdfTests(TestCase):
         self.assertIn("Complete blood count", html)
         self.assertIn("Fomento, Matola", html)
         self.assertIn("HbA1c, TSH", html)
-        self.assertIn('class="signature-line"', html)
+        # the shared signature block (_signature.html)
+        self.assertIn('class="sign-block"', html)
 
     def test_the_pdf_is_generated(self):
         client = _client_with(self.tenant, ["view_pedidoexamemedico", "pdf_pedidoexamemedico"])

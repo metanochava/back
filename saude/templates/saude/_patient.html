@@ -1,0 +1,35 @@
+{% comment %}
+Patient box of a health PDF: the name on its own line, 1.3x the size of the
+other attributes, then NID and contact, then age and address when passed.
+The sizes are relative (em) to each template's body font, so the A5
+prescription and the A4 reports keep their scale; the box border and spacing
+come from each template's .box / .patient-box.
+  paciente   the Paciente (name from paciente.person)
+  labels     name, nid, contact (contact shown only when labelled), age, years, address
+  with_age_address  True adds the row "Age: <n> years | Address: ..." ("-" when missing)
+  age, address      the values of that row
+  note_label, note  optional line under the table (the clinical summary's purpose)
+{% endcomment %}
+<style>
+  .pt-table { width: 100%; border-collapse: collapse; }
+  .pt-table td { padding: 2px 0; vertical-align: top; width: 50%; }
+  .patient-name-value { font-size: 1.3em; }
+</style>
+<div class="box patient-box">
+  <table class="pt-table">
+    <tr>
+      <td colspan="2">{{ labels.name }}: <strong class="patient-name-value">{{ paciente.person.full_name|default:"-" }}</strong></td>
+    </tr>
+    <tr>
+      <td>{{ labels.nid }}: <strong>{{ paciente.nid|default:"-" }}</strong></td>
+      <td>{% if labels.contact %}{{ labels.contact }}: <strong>{{ paciente.person.phone|default:"-" }}</strong>{% endif %}</td>
+    </tr>
+    {% if with_age_address %}
+    <tr>
+      <td>{{ labels.age }}: <strong>{% if age is not None %}{{ age }} {{ labels.years }}{% else %}-{% endif %}</strong></td>
+      <td>{{ labels.address }}: <strong>{{ address|default:"-" }}</strong></td>
+    </tr>
+    {% endif %}
+  </table>
+  {% if note %}<div class="finalidade">{{ note_label }}: <strong>{{ note }}</strong></div>{% endif %}
+</div>

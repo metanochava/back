@@ -1,6 +1,8 @@
 
 from django_resaas.saas.core.base.views import BaseAPIView
 from saude.services.document_edit_policy import DocumentEditWindowMixin, author_name
+from saude.services.document_signer import signer_role, with_category
+from django_resaas.saas.core.utils.translate import Translate
 from django_resaas.saas.core.base.views import registerView
 from saude.services import consultation_service
 from saude.models.atestadomedico import AtestadoMedico
@@ -82,7 +84,8 @@ class AtestadoMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
             qr_b64=qr_b64,
             barcode_b64=barcode_b64,
             atestado=atestado,
-            signer_name=author_name(atestado),
+            signer_name=with_category(atestado, author_name(atestado)),
+            signer_role=signer_role(request, atestado, fallback=Translate.tdc(request, "Doctor")),
             cert=certificate_context(atestado),
             **pdf_properties("Medical Certificate", atestado),
         )

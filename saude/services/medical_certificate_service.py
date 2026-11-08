@@ -1,7 +1,8 @@
 """The data the medical certificate PDF (templates/saude/atestadomedico.html)
 prints besides the AtestadoMedico itself: the doctor's Medical Council
 number and specialty, the patient's identity document, Portuguese long dates
-and the gender agreement of the declaration (observado/observada...).
+and the gender agreement of the declaration (médico/médica for the doctor,
+observado/observada... for the patient).
 
 Everything is read from existing records; a missing value leaves its part of
 the sentence out instead of printing an empty placeholder.
@@ -75,6 +76,7 @@ def certificate_context(atestado):
     doctor = _doctor_profile(employee)
     document = _identity_document(person, entity_id)
     female = getattr(person, "gender", None) == "F"
+    doctor_female = getattr(getattr(employee, "person", None), "gender", None) == "F"
 
     return {
         "doctor_name": getattr(getattr(employee, "person", None), "full_name", "") or "",
@@ -87,7 +89,10 @@ def certificate_context(atestado):
         "until": long_date_pt(atestado.data_limite),
         "issued_on": long_date_pt(timezone.localdate(atestado.created_at) if atestado.created_at else None),
         "attend": (atestado.comparecer or "ao serviço").strip().lower(),
-        # gender agreement of the declaration
+        # gender agreement of the declaration: the doctor...
+        "g_doctor": "médica" if doctor_female else "médico",
+        "g_registered": "inscrita" if doctor_female else "inscrito",
+        # ...and the patient
         "g_observed": "observada" if female else "observado",
         "g_unable": "impossibilitada" if female else "impossibilitado",
         "g_patient": "da doente" if female else "do doente",

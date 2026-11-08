@@ -151,10 +151,6 @@
     padding-right: 4px;
   }
 
-  .patient-name {
-    font-weight: bold;
-    text-transform: uppercase;
-  }
 
   .clinical-text { font-size: 8px; }
 
@@ -269,49 +265,11 @@
 
 <body>
 
-<div class="header">
-  <table class="header-table">
-    <tr>
-      <td class="logo">
-        {% if logo_b64 %}
-          <img src="data:image/png;base64,{{ logo_b64 }}">
-        {% endif %}
-      </td>
-
-      <td class="title">
-        <h1>{{ labels.title }}</h1>
-        <div class="subtitle">{{ entity.name|clinic_name }}</div>
-      </td>
-
-      <td class="qr">
-        {% if qr_b64 %}
-          <img src="data:image/png;base64,{{ qr_b64 }}">
-        {% endif %}
-      </td>
-    </tr>
-  </table>
-</div>
+{% include "saude/_header.html" with header_title=labels.title %}
 
 <div class="content">
 
-  <div class="box patient-box">
-    <table class="patient-table">
-      <tr>
-        <td class="label">{{ labels.name }}:</td>
-        <td class="patient-name">{{ person.full_name|default:"-" }}</td>
-
-        <td class="label">{{ labels.age }}:</td>
-        <td><strong>{% if age is not None %}{{ age }} {{ labels.years }}{% else %}-{% endif %}</strong></td>
-      </tr>
-      <tr>
-        <td class="label">{{ labels.nid }}:</td>
-        <td><strong>{{ paciente.nid|default:"-" }}</strong></td>
-
-        <td class="label">{{ labels.address }}:</td>
-        <td><strong>{{ address|default:"-" }}</strong></td>
-      </tr>
-    </table>
-  </div>
+  {% include "saude/_patient.html" with paciente=paciente with_age_address=True %}
 
   <div class="box">
     <div class="box-title">{{ labels.clinical_information }}</div>
@@ -368,28 +326,9 @@
 
 </div>
 
-{% include "saude/_signature.html" with sign_date=pedido.data|date:"d/m/Y" sign_name=signer_name sign_role=labels.requesting_doctor %}
+{% include "saude/_signature.html" with sign_date=pedido.data|date:"d/m/Y" sign_name=signer_name sign_role=signer_role %}
 
-<div class="footer">
-  <div class="barcode-header">
-    {% if barcode_b64 %}
-      <img src="data:image/png;base64,{{ barcode_b64 }}">
-    {% endif %}
-  </div>
-
-  <table class="footer-table">
-    <tr>
-      <td class="footer-left">{{ entity.name }}</td>
-      <td class="footer-right">{{ labels.footer }}</td>
-    </tr>
-
-    <tr>
-      <td colspan="3" class="footer-center" style="width:100%; font-size: 10px;">
-        {{ entity.rodape|default:"" }}
-      </td>
-    </tr>
-  </table>
-</div>
+{% include "saude/_footer.html" with footer_label=labels.footer note_size=10 font_size=8 %}
 
 </body>
 </html>

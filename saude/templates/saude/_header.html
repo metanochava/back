@@ -1,0 +1,24 @@
+{% load clinic %}{% comment %}
+Header of a health PDF: logo on the left, the document title and
+"Clínica <name>" in the middle, the QR code on the right. The sizes stay in
+each template's CSS (.header, .logo, .title, .subtitle, .qr), because the
+pages differ (the A5 prescription, the A4 reports).
+  header_title  the document title
+  indent        True puts 3 spaces before the clinic name
+{% endcomment %}
+<div class="header">
+  <table class="header-table">
+    <tr>
+      <td class="logo">
+        {% if logo_b64 %}<img src="data:image/png;base64,{{ logo_b64 }}">{% endif %}
+      </td>
+      <td class="title">
+        <h1>{{ header_title }}</h1>
+        <div class="subtitle">{% if indent %}&nbsp;&nbsp;&nbsp;{% endif %}{{ entity.name|clinic_name }}</div>
+      </td>
+      <td class="qr">
+        {% if qr_b64 %}<img src="data:image/png;base64,{{ qr_b64 }}">{% endif %}
+      </td>
+    </tr>
+  </table>
+</div>

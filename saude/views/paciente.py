@@ -1,5 +1,6 @@
 import json
 import uuid
+from django_resaas.saas.core.services.person_registration_service import documents_with_files
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import status as http_status
@@ -36,6 +37,7 @@ from saude.serializers.patient_merge import PatientMergeSerializer
 from saude.services.consent_service import ConsentService
 from saude.services.patient_matching_service import PatientMatchingService
 from saude.services.patient_registration_service import (
+    require_identity_document,
     register_patient,
     generate_nid,
     PatientRegistrationError,
@@ -78,6 +80,7 @@ class PacienteAPIView(BaseAPIView):
 
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
+        self._check_identity_document(serializer.validated_data.get("person"))
 
         paciente = serializer.save(
             entity_id=request.entity_id,
@@ -91,6 +94,18 @@ class PacienteAPIView(BaseAPIView):
             data=self.get_serializer(paciente).data,
             status=201,
         )
+
+    # change_paciente: the patient's Person keeps an identity document
+    # (type + number) of this Entity, or the change is refused
+    def perform_update(self, serializer):
+        self._check_identity_document(serializer.instance.person)
+        super().perform_update(serializer)
+
+    def _check_identity_document(self, person):
+        try:
+            require_identity_document(self.request, person)
+        except PatientRegistrationError as exc:
+            raise DRFValidationError(exc.errors)
 
     # =========================
     # REGISTRATION (add_paciente)
@@ -132,13 +147,8 @@ class PacienteAPIView(BaseAPIView):
                 status=http_status.HTTP_403_FORBIDDEN,
             )
 
-        documents = []
-        for doc in payload.get("documents") or []:
-            file_key = doc.get("_file_key")
-            documents.append({
-                **doc,
-                "arquivo": request.FILES.get(file_key) if file_key else None,
-            })
+        # each document may carry several files (_file_keys)
+        documents = documents_with_files(request, payload.get("documents"))
 
         try:
             paciente = register_patient(

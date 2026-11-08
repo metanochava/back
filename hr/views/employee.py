@@ -1,6 +1,7 @@
 # hr/views/employee.py
 
 import json
+from django_resaas.saas.core.services.person_registration_service import documents_with_files
 
 from django.db import transaction
 from rest_framework.response import Response
@@ -131,13 +132,8 @@ class EmployeeAPIView(BaseAPIView):
                 details={"missing_permissions": missing},
             )
 
-        documents = []
-        for index, doc in enumerate(payload.get("documents") or []):
-            file_key = doc.get("_file_key")
-            documents.append({
-                **doc,
-                "arquivo": request.FILES.get(file_key) if file_key else None,
-            })
+        # each document may carry several files (_file_keys)
+        documents = documents_with_files(request, payload.get("documents"))
 
         try:
             employee = register_employee(

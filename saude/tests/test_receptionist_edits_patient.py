@@ -25,6 +25,12 @@ class ReceptionistEditsPatientTests(TestCase):
         self.doc_type = DocumentType.objects.create(name="BI")
 
     def test_the_patient_and_its_person_are_saved(self):
+        # a patient is saved only with an identity document of this Entity
+        Document.objects.create(
+            tipo=self.doc_type, numero="BI-RECEPTION-1",
+            content_type=ContentType.objects.get_for_model(Person), object_id=self.person.id,
+            entity=self.tenant["entity"], branch=self.tenant["branch"],
+        )
         person = self.client.patch(f"{API}persons/{self.person.id}/", {"surname": "Cossa"}, format="json")
         patient = self.client.patch(f"/api/saude/pacientes/{self.patient.id}/", {"religion": "Catholic"}, format="json")
 

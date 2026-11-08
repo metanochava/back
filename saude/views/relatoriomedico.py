@@ -1,6 +1,8 @@
 
 from django_resaas.saas.core.base.views import BaseAPIView
 from saude.services.document_edit_policy import DocumentEditWindowMixin, author_name
+from saude.services.document_signer import signer_role, with_category
+from django_resaas.saas.core.utils.translate import Translate
 from django_resaas.saas.core.base.views import registerView
 from saude.services import consultation_service
 from saude.models.relatoriomedico import RelatorioMedico
@@ -82,7 +84,8 @@ class RelatorioMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
             qr_b64=qr_b64,
             barcode_b64=barcode_b64,
             relatorio=relatorio,
-            signer_name=author_name(relatorio),
+            signer_name=with_category(relatorio, author_name(relatorio)),
+            signer_role=signer_role(request, relatorio, fallback=Translate.tdc(request, "Attending doctor")),
             **pdf_properties("Medical Report", relatorio),
             labels=consultation_service.patient_header_labels(request),
         )

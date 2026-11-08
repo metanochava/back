@@ -67,7 +67,9 @@ class MedicalCertificateTests(TestCase):
         self.assertIn("titular do BI N° 11010025348B emitido aos 11 de Junho de 2010", html)
         self.assertIn("Consulta externa de Medicina Interna", html)
         self.assertIn("até o dia <u>10 de Novembro de 2026</u>", html)
-        self.assertIn("O chefe de administrativo", html)
+        self.assertIn("Administração", html)
+        self.assertIn("médico especialista em <b>Medicina Interna</b>,", html)
+        self.assertIn("inscrito na Ordem dos Médicos de Moçambique", html)
 
     def test_missing_data_leaves_the_parts_out(self):
         cert = certificate_context(self.atestado)
@@ -77,6 +79,17 @@ class MedicalCertificateTests(TestCase):
         self.assertNotIn("com o número", html)
         self.assertNotIn("titular do", html)
         self.assertIn("<b>Consulta externa</b>", html)
+        # no specialty: only "médico", no empty "especialista em"
+        self.assertNotIn("especialista em", html)
+        self.assertRegex(html, r"</b>,\s*médico,\s*inscrito na Ordem")
+
+    def test_a_female_doctor(self):
+        doctor_person = self.doctor.person
+        doctor_person.gender = "F"
+        doctor_person.save()
+        cert = certificate_context(self.atestado)
+
+        self.assertEqual((cert["g_doctor"], cert["g_registered"]), ("médica", "inscrita"))
 
     def test_another_entitys_document_is_not_printed(self):
         other = bootstrap_tenant("med-cert-other", modules=("saude", "hr"))

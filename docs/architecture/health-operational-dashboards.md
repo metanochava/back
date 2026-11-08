@@ -638,10 +638,45 @@ name of **who created the document** - the same author as the edit rule above
 
 ### Health PDF header, signature block and medical certificate
 
-- **Header:** every saude PDF prints the Entity as the clinic:
+- **Header** (`templates/saude/_header.html`, one file for every saude PDF
+  except the patient card): logo, title and clinic in the middle, QR code.
+  A template includes it with
+  `{% include "saude/_header.html" with header_title=labels.title %}`;
+  `indent=True` puts three spaces before the clinic name (certificate,
+  referral). The sizes stay in each template's CSS (`.header`, `.logo`,
+  `.title`, `.subtitle`, `.qr`) because the pages differ (the A5
+  prescription, the A4 reports). The Entity is printed as the clinic:
   `{{ entity.name|clinic_name }}` (`saude/templatetags/clinic.py`) gives
   "Clínica Amal". A name that already starts with "Clínica"/"Clinica" stays
   as it is.
+- **Footer** (`templates/saude/_footer.html`, the same 9 PDFs): the barcode,
+  the Entity's name on the left, the document name on the right and the
+  Entity's footer text (`Entity.rodape`) under them.
+  `{% include "saude/_footer.html" with footer_label=labels.title %}`;
+  `indent=True` puts two spaces before the Entity's name; `font_size` (px)
+  sets the line with the Entity's name and the document name, and
+  `note_size` (px, default 10) the Entity's footer text. Every template writes
+  both sizes in its include line, so they are changed there. `Entity.rodape` is printed as
+  HTML (`|safe`) in every PDF. The position and the sizes stay in each
+  template's CSS (`.footer`, `.footer-table`, `.barcode-header`).
+- **Identity document required:** a patient is saved (`add_paciente` →
+  `pacientes/register/`, the generic `POST pacientes/`, and `change_paciente` →
+  `PUT/PATCH pacientes/{id}/`) only when its Person has, in this Entity, a
+  document with type and number (`patient_registration_service.
+  has_identity_document` / `require_identity_document`); otherwise a `400` on
+  `documents`. It is what the certificate and the other PDFs print. A reused
+  Person may already have one. `PacienteSEPage.vue` says so before sending
+  (and before any document is deleted on edit). Tests:
+  `saude/tests/test_patient_registration.py` (`PatientIdentityDocumentTests`).
+- **Patient box** (`templates/saude/_patient.html`, the same PDFs except the
+  certificate, whose patient is in the declaration):
+  `{% include "saude/_patient.html" with paciente=consulta.paciente %}`. The
+  name is on its own line (`.patient-name-value`, 1.3× the other attributes),
+  then NID and contact (shown when the PDF's `labels` has `contact`).
+  `with_age_address=True` adds age and address (exam request), and
+  `note_label`/`note` an extra line (the clinical summary's purpose). Sizes are
+  in `em`, relative to each template's body font; the box border and spacing
+  come from each template's `.box` / `.patient-box`.
 - **Signature block** (`templates/saude/_signature.html`, used by the
   prescription, referral, medical report, clinical summary, exam request and lab
   result): the date, three spaces in and in bold, on the left; the signature line is on the right with the name
@@ -650,6 +685,18 @@ name of **who created the document** - the same author as the edit rule above
   `margin-bottom` +50px, `.footer` `bottom` -50px (so the footer stays where it
   was), and the page counter (`@bottom-right`) is pinned at the bottom. The lab
   result is signed by `validated_by` with the validation date.
+- **Signer's name and role** (`saude/services/document_signer.py`, every
+  signed PDF including the certificate): the signer is the user who created
+  the document (`validado_por` for a lab result); its Employee is the one of
+  that person in the document's Entity (the document's Branch first), else the
+  consultation's doctor. `with_category` puts `Medico.categoria` before the
+  name ("Dr. João Mabunda"). `signer_role` (the line under the signature, the
+  template's `sign_role`) is the specialty and the Medical Council number:
+  "Medicina Interna · N.º da Ordem 374". Without a specialty the PDF's own role
+  is used ("Médico", "Médico Assistente", "Médico requisitante", "Validado
+  por"); without a number only that part is left out. The certificate prints
+  the role under the name (`.cert-sign-role`). Tests:
+  `saude/tests/test_document_signer_role.py`.
 - **Medical certificate** (`atestadomedico.html`): the body follows the
   clinic's model (`modelo_Prog_atestado_.pdf`), with the header and footer
   unchanged and the certificate's own signature layout. The data comes from
