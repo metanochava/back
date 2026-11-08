@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load clinic %}
 <html>
 <head>
 <meta charset="UTF-8">
@@ -150,7 +151,7 @@ body { margin: 0; font-family: "Helvetica Neue", Arial, Helvetica, sans-serif; c
     {% if logo_b64 %}<img src="data:image/png;base64,{{ logo_b64 }}">{% else %}<div class="cross">✚</div>{% endif %}
   </div>
 
-  <div class="org-name">{{ entity.name }}</div>
+  <div class="org-name">{{ entity.name|clinic_name }}</div>
   <div class="org-sub">{{ branch.name|default:labels.health_unit }}</div>
 
   <div class="card-title">{{ labels.title }}</div>

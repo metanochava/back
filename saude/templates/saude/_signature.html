@@ -1,0 +1,24 @@
+{% comment %}
+Signature of a health PDF, fixed right above the footer line of every page:
+the date on the left, the signature line on the right with the name and the
+role under it. The page reserves its height: @page margin-bottom and the
+footer's bottom offset both grow by 50px (the footer stays where it was).
+  sign_date, sign_name (strong.signer-name), sign_role
+{% endcomment %}
+<style>
+  .sign-block { position: fixed; left: 0; right: 0; bottom: -52px; width: 100%; border-collapse: collapse; }
+  .sign-block td { vertical-align: bottom; padding: 0; }
+  .sign-block .sign-date { text-align: left; font-size: 10px; color: #333; padding-bottom: 2px; }
+  .sign-block .sign-cell { width: 48%; text-align: center; }
+  .sign-block .sign-line { border-top: 1px solid #0f766e; margin-top: 22px; padding-top: 2px; font-size: 10px; color: #333; }
+  .sign-block .sign-role { font-size: 8px; color: #0f766e; letter-spacing: .04em; text-transform: uppercase; }
+</style>
+<table class="sign-block">
+  <tr>
+    <td class="sign-date">{{ sign_date|default:"" }}</td>
+    <td class="sign-cell">
+      <div class="sign-line">{% if sign_name %}<strong class="signer-name">{{ sign_name }}</strong>{% else %}&nbsp;{% endif %}</div>
+      <div class="sign-role">{{ sign_role|default:"" }}</div>
+    </td>
+  </tr>
+</table>

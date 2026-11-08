@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load clinic %}
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
@@ -210,6 +211,22 @@
   .footer-center {
     text-align: center;
   }
+
+  /* body of the certificate (modelo_Prog_atestado_.pdf) */
+  .cert-rule { border-top: 1px solid #1b7a1b; margin: 10px 0 12px; }
+  .atestado-text { font-family: "Times New Roman", Times, serif; font-size: 12px; text-align: justify; line-height: 1.45; }
+  .cert-place { font-family: "Times New Roman", Times, serif; text-align: right; margin-top: 22px; padding-right: 10px; }
+  .cert-sign { text-align: right; margin-top: 26px; }
+  .cert-sign-line { display: inline-block; min-width: 150px; border-bottom: 1px solid #1b7a1b; font-size: 10px; text-align: center; padding-bottom: 2px; }
+  .cert-recognition { font-family: "Times New Roman", Times, serif; font-size: 12px; line-height: 1.45; }
+  .cert-fill { width: 100%; border-collapse: collapse; }
+  .cert-fill-label { width: 1%; white-space: nowrap; padding: 0 4px 0 0; }
+  .cert-fill-dots, .cert-dots { border-bottom: 1.5px dotted #333; }
+  .cert-dots { height: 16px; }
+  .cert-date-blank { font-family: "Times New Roman", Times, serif; text-align: center; margin-top: 26px; }
+  .cert-admin { font-family: "Times New Roman", Times, serif; text-align: center; margin-top: 40px; }
+  .cert-admin-line { margin-top: 18px; }
+  .cert-validity { font-family: "Times New Roman", Times, serif; text-align: center; font-size: 10px; margin-top: 8px; }
 </style>
 </head>
 
@@ -228,7 +245,7 @@
       <td class="title">
         <h1>Atestado Médico</h1>
         <div class="subtitle">
-           &nbsp;&nbsp;&nbsp;{{ entity.name }}
+           &nbsp;&nbsp;&nbsp;{{ entity.name|clinic_name }}
         </div>
       </td>
 
@@ -244,93 +261,46 @@
 
 <div class="content">
 
-  <div class="box declaracao">
+  <!-- body as in modelo_Prog_atestado_.pdf (header and footer unchanged) -->
+  <div class="cert-rule"></div>
 
-    <div class="atestado-text">
-
-      Eu,
-      <b>
-        <u style="text-transform: uppercase;">
-          {{ atestado.consulta.employee.person.full_name }}
-        </u>
-      </b>,
-      inscrito na Ordem dos Médicos de Moçambique, prestando serviço nesta clínica,
-      declaro por minha honra que
-
-      <b>
-        {{ atestado.consulta.paciente.person.full_name }}
-      </b>,
-
-      foi por mim hoje observado e constatei que estará provavelmente impossibilitado
-      de comparecer
-
-      <b>
-        {{ atestado.comparecer }}
-      </b>
-
-      até ao dia
-
-      <u>
-        {{ atestado.data_limite|date:"d/m/Y" }}
-      </u>.
-
-      <br><br>
-
-      A pedido expresso do doente, declaro que ele sofre de:
-
-      <br><br>
-
-      <b class="diagnostico">
-        {{ atestado.diagnostico|safe }}
-      </b>
-
-    </div>
-
-    <div class="assinatura">
-
-      Maputo, aos {{ atestado.created_at|date:"d/m/Y" }}
-
-      <br>
-      <br>
-
-      <span class="linha-assinatura">
-        {% if signer_name %}<strong class="signer-name">{{ signer_name }}</strong><br>{% endif %}Médico
-      </span>
-
-    </div>
-
+  <div class="atestado-text">
+    Eu, <b><u style="text-transform: uppercase;">{{ cert.doctor_name }},</u></b>
+    inscrito na Ordem dos Médicos de Moçambique{% if cert.doctor_number %} com o número <b>{{ cert.doctor_number }}</b>{% endif %},
+    prestando serviço nesta clínica, declaro por minha honra que
+    <b>{{ cert.patient_name }}</b>{% if cert.document_number %}, titular do {{ cert.document_type|default:"documento" }} N° {{ cert.document_number }}{% if cert.document_issued %} emitido aos {{ cert.document_issued }}{% endif %}{% endif %},
+    foi por mim hoje {{ cert.g_observed }} na <b>Consulta externa{% if cert.specialty %} de {{ cert.specialty }}{% endif %}</b>
+    e constatei que estará provavelmente {{ cert.g_unable }} de comparecer {{ cert.attend }}
+    até o dia <u>{{ cert.until }}</u>.
+    A pedido expresso {{ cert.g_patient }} declaro que {{ cert.g_pronoun }} sofre de
+    {{ atestado.diagnostico|safe }}
   </div>
 
-  <div class="box reconhecimento">
+  <div class="cert-place">Maputo aos {{ cert.issued_on }}</div>
 
-    Reconheço a assinatura supra como sendo de entidade autorizada a emitir este atestado.
-
-    <br><br>
-
-    ....................................................................................
-
-    <br>
-
-    ....................................................................................
-
-    <br><br>
-
-    Maputo, aos ........ de ................................ de 20......
-
+  <div class="cert-sign">
+    <span class="cert-sign-line">{% if signer_name %}<strong class="signer-name">{{ signer_name }}</strong>{% endif %}</span>
   </div>
 
-  <div class="box reconhecimento">
+  <div class="cert-rule"></div>
 
-    O Chefe Administrativo
+  <div class="cert-recognition">
+    Reconheço a assinatura supra como sendo de entidade autorizada a emitir este
+    <table class="cert-fill"><tr><td class="cert-fill-label">atestado</td><td class="cert-fill-dots"></td></tr></table>
+    <div class="cert-dots"></div>
+  </div>
 
-    <br><br><br>
+  <div class="cert-date-blank">
+    Maputo aos ........... de ........................................ de 20..........
+  </div>
 
-    ____________________________________
+  <div class="cert-admin">
+    O chefe de administrativo
+    <div class="cert-admin-line">____________________________________</div>
+  </div>
 
-    <br><br>
-
-    Este atestado é somente válido quando autenticado pelo carimbo desta clínica.
-
+  <div class="cert-validity">
+    Este atestado é somente válido quando autenticado pelo carimbo desta clínica
   </div>
 
 </div>

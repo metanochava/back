@@ -636,6 +636,42 @@ name of **who created the document** - the same author as the edit rule above
   when long, leaving page 1 empty.
 - Tests: `saude/tests/test_document_signer.py`.
 
+### Health PDF header, signature block and medical certificate
+
+- **Header:** every saude PDF prints the Entity as the clinic:
+  `{{ entity.name|clinic_name }}` (`saude/templatetags/clinic.py`) gives
+  "Clínica Amal". A name that already starts with "Clínica"/"Clinica" stays
+  as it is.
+- **Signature block** (`templates/saude/_signature.html`, used by the referral,
+  medical report, clinical summary, exam request and lab result): the date is
+  on the left, and the signature line is on the right with the name
+  (`strong.signer-name`) and the role under it. The block is fixed right above
+  the footer line of every page. Each template reserves its height: `@page`
+  `margin-bottom` +50px, `.footer` `bottom` -50px (so the footer stays where it
+  was), and the page counter (`@bottom-right`) is pinned at the bottom. The lab
+  result is signed by `validated_by` with the validation date.
+- **Medical certificate** (`atestadomedico.html`): the body follows the
+  clinic's model (`modelo_Prog_atestado_.pdf`), with the header and footer
+  unchanged and the certificate's own signature layout. The data comes from
+  `saude/services/medical_certificate_service.certificate_context`:
+  - the doctor's Medical Council number (`Medico.numero_ordem`);
+  - the specialty (`EmployeeSpecialty` of the consultation's doctor, not the
+    generic GERAL);
+  - the patient's first identity document of this Entity (type, number, issue
+    date);
+  - long Portuguese dates ("08 de Novembro de 2026");
+  - gender agreement (observado/observada, ele/ela).
+
+  A missing value leaves its part of the sentence out. The document's place of
+  issue is not stored (`Document` has no such field), so it is not printed.
+  The city is still the fixed "Maputo".
+- Tests: `saude/tests/test_medical_certificate.py`.
+- **Right menu (dev/front `HistoryList.vue`):** a document added, edited or
+  deleted through the page's store (`save()` -> `create()`/`update()`,
+  `removeById()`, or a store's own `changed(row)` after a custom save, as in
+  `receitamedicaStore`) reloads the menu from the newest page, so the new
+  record is at the top right away. Test: `HistoryList.spec.js`.
+
 ### Exam request PDF
 
 `GET /api/saude/pedidoexamemedicos/{id}/pdf/` (`pdf_pedidoexamemedico`) keeps

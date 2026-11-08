@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load clinic %}
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
@@ -7,11 +8,13 @@
   @page {
     size: A5 portrait;
     margin-top: 100px;
-    margin-bottom: 80px;
+    margin-bottom: 130px;
     margin-left: 30px;
     margin-right: 18px;
 
     @bottom-right {
+      vertical-align: bottom;
+      padding-bottom: 34px;
       content: counter(page) " - " counter(pages);
       font-size: 10px;
       color: #0f766e;
@@ -174,7 +177,7 @@
 
   .footer {
     position: fixed;
-    bottom: -38px;
+    bottom: -88px;
     left: 0;
     right: 0;
     min-height: 28px;
@@ -230,7 +233,7 @@
       <td class="title">
         <h1>Guia de Transferência</h1>
         <div class="subtitle">
-           &nbsp;&nbsp;&nbsp;{{ entity.name }}
+           &nbsp;&nbsp;&nbsp;{{ entity.name|clinic_name }}
         </div>
       </td>
 
@@ -289,21 +292,13 @@
 
     </div>
 
-    <div class="assinatura">
 
-      Maputo, aos {{ guiatransferencia.created_at|date:"d/m/Y" }}
-
-      <br><br>
-
-      <span class="linha-assinatura">
-        {% if signer_name %}<strong class="signer-name">{{ signer_name }}</strong><br>{% endif %}Médico
-      </span>
-
-    </div>
 
   </div>
 
 </div>
+
+{% include "saude/_signature.html" with sign_date=guiatransferencia.created_at|date:"d/m/Y" sign_name=signer_name sign_role="Médico" %}
 
 <div class="footer">
 

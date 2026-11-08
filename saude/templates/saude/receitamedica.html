@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load clinic %}
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
@@ -272,7 +273,7 @@
       <td class="title">
         <h1>{{ labels.title }}</h1>
         <div class="subtitle">
-          {{ entity.name }}
+          {{ entity.name|clinic_name }}
         </div>
       </td>
 
