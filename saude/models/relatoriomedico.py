@@ -15,6 +15,10 @@ class RelatorioMedico(BaseModel):
         blank=True
     )
 
+    # what the report is for (e.g. "Junta médica", "Seguradora"), printed
+    # under the patient on the PDF - like ClinicalSummary.purpose
+    purpose = models.CharField(max_length=200, null=True, blank=True)
+
     class Meta:
         verbose_name = "Relatório Médico"
         verbose_name_plural = "Relatórios Médicos"
@@ -25,7 +29,8 @@ class RelatorioMedico(BaseModel):
         search_fields = [
             "consulta__paciente__person__full_name",
             "consulta__employee__person__full_name",
-            "resumo"
+            "resumo",
+            "purpose",
         ]
 
         crud = True

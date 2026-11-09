@@ -39,28 +39,30 @@ class SignerRoleTests(TestCase):
         EmployeeSpecialty.objects.create(employee=self.doctor, specialty=specialty, **_audit(self.tenant))
 
         self.assertEqual(signer_role(self.request, self.document, fallback="Médico"),
-                         "Medicina Interna · N.º da Ordem 374")
+                         "MEDICINA INTERNA · NºOrMM 374")
 
     def test_number_only_keeps_the_pdfs_role(self):
         Medico.objects.create(employee=self.doctor, numero_ordem="374", **_audit(self.tenant))
 
-        self.assertEqual(signer_role(self.request, self.document, fallback="Médico"), "Médico · N.º da Ordem 374")
+        self.assertEqual(signer_role(self.request, self.document, fallback="Médico"), "MÉDICO · NºOrMM 374")
 
     def test_neither_prints_the_pdfs_role(self):
-        self.assertEqual(signer_role(self.request, self.document, fallback="Médico"), "Médico")
+        self.assertEqual(signer_role(self.request, self.document, fallback="Médico"), "MÉDICO")
 
     def test_the_role_is_printed_under_the_signature(self):
         html = render_to_string("saude/_signature.html", {
-            "sign_date": "08/11/2026", "sign_name": "Dr. João", "sign_role": "Medicina Interna · N.º da Ordem 374",
+            "sign_date": "08 de Novembro de 2026", "sign_name": "Dr. João", "sign_role": "MEDICINA INTERNA · NºOrMM 374",
         })
-        self.assertIn('<div class="sign-role">Medicina Interna · N.º da Ordem 374</div>', html)
+        self.assertIn('<div class="sign-role">MEDICINA INTERNA · NºOrMM 374</div>', html)
+        # the date and the underscore signature line share one row
+        self.assertRegex(html, r'<td class="sign-date">.*08 de Novembro de 2026.*</td>\s*<td class="sign-cell"><div class="sign-rule">_{10,}</div></td>')
 
     def test_the_certificate_prints_it_under_the_name(self):
         html = render_to_string("saude/atestadomedico.html", {
             "atestado": self.document, "cert": {}, "entity": {"name": "Amal"}, "labels": {},
-            "signer_name": "Dr. João", "signer_role": "Medicina Interna · N.º da Ordem 374",
+            "signer_name": "Dr. João", "signer_role": "MEDICINA INTERNA · NºOrMM 374",
         })
-        self.assertIn('<span class="cert-sign-role">Medicina Interna · N.º da Ordem 374</span>', html)
+        self.assertIn('<span class="cert-sign-role">MEDICINA INTERNA · NºOrMM 374</span>', html)
 
 
     def test_the_name_is_preceded_by_the_doctors_category(self):

@@ -54,7 +54,7 @@ def _specialty(employee, entity_id):
 def _identity_document(person, entity_id):
     if not person:
         return None
-    return (
+    documents = (
         Document.objects
         .filter(
             content_type=ContentType.objects.get_for_model(person.__class__),
@@ -63,8 +63,15 @@ def _identity_document(person, entity_id):
         )
         .select_related("tipo")
         .order_by("created_at")
-        .first()
     )
+    # the person's identity document type (Person.identity_document_type)
+    # first; otherwise the first document
+    identity_type_id = getattr(person, "identity_document_type_id", None)
+    if identity_type_id:
+        document = documents.filter(tipo_id=identity_type_id).first()
+        if document:
+            return document
+    return documents.first()
 
 
 def certificate_context(atestado):
@@ -86,6 +93,7 @@ def certificate_context(atestado):
         "document_type": getattr(getattr(document, "tipo", None), "name", "") if document else "",
         "document_number": getattr(document, "numero", "") if document else "",
         "document_issued": long_date_pt(getattr(document, "data_emissao", None)) if document else "",
+        "document_issued_by": ((getattr(document, "issued_by", None) or "").strip()) if document else "",
         "until": long_date_pt(atestado.data_limite),
         "issued_on": long_date_pt(timezone.localdate(atestado.created_at) if atestado.created_at else None),
         "attend": (atestado.comparecer or "ao serviço").strip().lower(),

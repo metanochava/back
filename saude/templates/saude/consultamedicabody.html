@@ -1,4 +1,4 @@
-{# Consultation body: the same content and order as the consultation form  #}
+{% load clinic %}{# Consultation body: the same content and order as the consultation form  #}
 {# (dev/front ConsultaSEPage.vue). Texts come translated in `labels`        #}
 {# (consultation_service.pdf_context); vital-sign status and calculations  #}
 {# use the same adult references as the form (vital_signs_service).        #}
@@ -36,7 +36,7 @@
 
 <div class="c-meta">
   {{ labels.professional }}: <b>{{ professional }}</b>{% if professional_position %} · {{ professional_position }}{% endif %}
-  · {{ consulta.created_at|date:"d/m/Y H:i" }}
+  · {{ consulta.created_at|long_date:"time" }}
   {% if appointment_time %} · {{ labels.appointment }} {{ appointment_time }}{% endif %}
 </div>
 
@@ -45,7 +45,7 @@
   <div class="c-title">{{ labels.latest_vitals }}</div>
   {% if vitals %}
     <div class="c-sub">
-      {{ vitals.taken_at|date:"d/m/Y H:i" }}{% if vitals.recorded_by %} · {{ labels.recorded_by }} {{ vitals.recorded_by }}{% endif %}
+      {{ vitals.taken_at|long_date:"time" }}{% if vitals.recorded_by %} · {{ labels.recorded_by }} {{ vitals.recorded_by }}{% endif %}
     </div>
     <table class="v-grid">
       <tr>

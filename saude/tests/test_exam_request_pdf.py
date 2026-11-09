@@ -79,6 +79,37 @@ class ExamRequestPdfTests(TestCase):
         # the shared signature block (_signature.html)
         self.assertIn('class="sign-block"', html)
 
+    def test_only_an_urgent_exam_shows_its_priority_as_a_word(self):
+        item = ItemPedidoExameMedico.objects.get(pedido=self.pedido)
+        self.assertNotIn('class="exam-priority', render_to_string("saude/pedidoexamemedico.html", self._context()))
+
+        item.prioridade = "urgente"
+        item.save()
+        html = render_to_string("saude/pedidoexamemedico.html", self._context())
+
+        self.assertIn('<span class="exam-priority exam-priority--urgente">Urgente</span>', html)
+
+    def test_the_exams_are_grouped_by_their_medical_exam_type(self):
+        lab = ItemPedidoExameMedico.objects.get(pedido=self.pedido).exame.classe_exame_medico.tipo_exame_medico
+        lab.ordem = 1
+        lab.save()
+        imaging = _exame(self.tenant, nome="Chest X-ray")
+        imaging_type = imaging.classe_exame_medico.tipo_exame_medico
+        imaging_type.nome, imaging_type.ordem = "Imagiologia", 2
+        imaging_type.save()
+        ItemPedidoExameMedico.objects.create(pedido=self.pedido, exame=imaging, **_audit(self.tenant))
+
+        context = self._context()
+        html = render_to_string("saude/pedidoexamemedico.html", context)
+
+        self.assertEqual([(g["title"], [i.exame.nome for i in g["items"]]) for g in context["exam_groups"]],
+                         [(lab.nome, ["Complete blood count"]), ("Imagiologia", ["Chest X-ray"])])
+        self.assertIn(f'<div class="box-title">{lab.nome}</div>', html)
+        # one card: the next type is a title inside it, not a new box
+        self.assertIn('<div class="box-title exam-group-next">Imagiologia</div>', html)
+        self.assertEqual(html.count('class="box box--list"'), 1)
+        self.assertNotIn('<div class="box-title">Exames</div>', html)
+
     def test_the_pdf_is_generated(self):
         client = _client_with(self.tenant, ["view_pedidoexamemedico", "pdf_pedidoexamemedico"])
 

@@ -214,20 +214,23 @@
 
   /* body of the certificate (modelo_Prog_atestado_.pdf) */
   .cert-rule { border-top: 1px solid #1b7a1b; margin: 10px 0 12px; }
-  .atestado-text { font-family: "Times New Roman", Times, serif; font-size: 12px; text-align: justify; line-height: 1.45; }
-  .cert-place { font-family: "Times New Roman", Times, serif; text-align: right; margin-top: 22px; padding-right: 10px; }
+  .atestado-text { font-family: "Times New Roman", Times, serif; font-size: 14px; text-align: justify; line-height: 1.45; }
+  .cert-place { font-family: "Times New Roman", Times, serif; font-size: 14px; text-align: right; margin-top: 22px; padding-right: 10px; }
   .cert-sign { text-align: right; margin-top: 40px; }
-  .cert-sign-role { font-size: 8px; color: #0f766e; letter-spacing: .04em; text-transform: uppercase; }
-  .cert-sign-line { display: inline-block; min-width: 200px; border-top: 1px solid #1b7a1b; font-size: 10px; text-align: center; padding-top: 2px; }
-  .cert-recognition { font-family: "Times New Roman", Times, serif; font-size: 12px; line-height: 1.45; }
+  .cert-sign-role { font-size: 9px; color: #0f766e; letter-spacing: .04em; }
+  .cert-sign-line { display: inline-block; min-width: 200px; border-top: 1px solid #1b7a1b; font-size: 12px; text-align: center; padding-top: 2px; }
+  .cert-recognition { font-family: "Times New Roman", Times, serif; font-size: 14px; line-height: 1.6; }
   .cert-fill { width: 100%; border-collapse: collapse; }
-  .cert-fill-label { width: 1%; white-space: nowrap; padding: 0 4px 0 0; }
+  .cert-fill-label { width: 1%; white-space: nowrap; padding: 0 0 0 0; }
   .cert-fill-dots, .cert-dots { border-bottom: 1.5px dotted #333; }
-  .cert-dots { height: 16px; }
-  .cert-date-blank { font-family: "Times New Roman", Times, serif; text-align: center; margin-top: 26px; }
-  .cert-admin { font-family: "Times New Roman", Times, serif; text-align: center; margin-top: 40px; }
+  /* dots that fill the rest of the line up to the right margin, whatever the font size */
+  .cert-lead::after { content: leader('.'); }
+  .cert-date-blank .cert-fill td { padding: 0; }
+
+  .cert-date-blank { font-family: "Times New Roman", Times, serif; font-size: 14px; text-align: center; margin-top: 26px; }
+  .cert-admin { font-family: "Times New Roman", Times, serif; font-size: 14px; text-align: center; margin-top: 40px; }
   .cert-admin-line { margin-top: 18px; }
-  .cert-validity { font-family: "Times New Roman", Times, serif; text-align: center; font-size: 10px; margin-top: 8px; }
+  .cert-validity { font-family: "Times New Roman", Times, serif; text-align: center; font-size: 12px; margin-top: 8px; }
 </style>
 </head>
 
@@ -241,11 +244,15 @@
 
 
   <div class="atestado-text">
+    </br>
     Eu, <b><u style="text-transform: uppercase;">{{ cert.doctor_name }}</u></b>,
     {{ cert.g_doctor }}{% if cert.specialty %} especialista em <b>{{ cert.specialty }}</b>{% endif %},
     {{ cert.g_registered }} na Ordem dos Médicos de Moçambique{% if cert.doctor_number %} com o número <b>{{ cert.doctor_number }}</b>{% endif %},
     prestando serviço nesta clínica, declaro por minha honra que
-    <b>{{ cert.patient_name }}</b>{% if cert.document_number %}, titular do {{ cert.document_type|default:"documento" }} N° {{ cert.document_number }}{% if cert.document_issued %} emitido aos {{ cert.document_issued }}{% endif %}{% endif %},
+    <b>{{ cert.patient_name }}</b>, titular do {% if cert.document_type %}<b>{{ cert.document_type }}</b>{% else %}......................{% endif %}
+    N.º {% if cert.document_number %}<b>{{ cert.document_number }}</b>{% else %}......................{% endif %},
+    emitido aos {% if cert.document_issued %}{{ cert.document_issued }}{% else %}......................{% endif %}
+    em {% if cert.document_issued_by %}{{ cert.document_issued_by }}{% else %}......................{% endif %},
     foi por mim hoje {{ cert.g_observed }} na <b>Consulta externa{% if cert.specialty %} de {{ cert.specialty }}{% endif %}</b>
     e constatei que estará provavelmente {{ cert.g_unable }} de comparecer {{ cert.attend }}
     até o dia <u>{{ cert.until }}</u>.
@@ -262,13 +269,22 @@
   <div class="cert-rule"></div>
 
   <div class="cert-recognition">
-    Reconheço a assinatura supra como sendo de entidade autorizada a emitir este atestado
-    <table class="cert-fill"><tr><td class="cert-fill-label"></td><td class="cert-fill-dots"></td></tr></table>
-    <div class="cert-dots"></div>
+    <span class="cert-lead">Reconheço a assinatura supra como sendo de entidade autorizada a emitir este atestado </span>
+    <div class="cert-lead"></div>
+    <div class="cert-lead"></div>
   </div>
 
   <div class="cert-date-blank">
-    Maputo aos ........... de ........................................ de 20..........
+    <table class="cert-fill">
+      <tr>
+        <td class="cert-fill-label">Maputo aos&nbsp;</td>
+        <td class="cert-fill-dots" style="width: 18%"></td>
+        <td class="cert-fill-label">&nbsp;de&nbsp;</td>
+        <td class="cert-fill-dots"></td>
+        <td class="cert-fill-label">&nbsp;de 20</td>
+        <td class="cert-fill-dots" style="width: 14%"></td>
+      </tr>
+    </table>
   </div>
 
   <div class="cert-admin">

@@ -249,7 +249,7 @@
 
 </div>
 
-{% include "saude/_signature.html" with sign_date=summary.created_at|date:"d/m/Y" sign_name=signer_name sign_role=signer_role %}
+{% include "saude/_signature.html" with sign_date=summary.created_at|long_date sign_name=signer_name sign_role=signer_role %}
 
 {% include "saude/_footer.html" with footer_label=labels.title indent=True note_size=12 font_size=10 %}
 

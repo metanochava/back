@@ -40,7 +40,9 @@ IDENTITY_DOCUMENT_REQUIRED = "The patient needs an identity document with its ty
 def has_identity_document(person, entity_id):
     """A Person's identity document of this Entity, with type and number: what
     the medical certificate and the other health documents print
-    (medical_certificate_service). A patient is saved only with one."""
+    (medical_certificate_service). When the Person has an identity document
+    type (Person.identity_document_type), it must be of that type. A patient
+    is saved only with one."""
     from django.contrib.contenttypes.models import ContentType
     from django_resaas.saas.models.document import Document
 
@@ -56,6 +58,9 @@ def has_identity_document(person, entity_id):
         )
         .exclude(numero__isnull=True)
         .exclude(numero__exact="")
+        # the person's chosen identity document type, when there is one
+        .filter(**({"tipo_id": person.identity_document_type_id}
+                   if getattr(person, "identity_document_type_id", None) else {}))
         .exists()
     )
 

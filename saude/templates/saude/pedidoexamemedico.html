@@ -6,15 +6,15 @@
 <!-- Exam request. Same pattern as the other saude PDFs (A6, fixed header with
      logo / title / QR, teal box titles, rotated barcode and the Entity's
      footer); the content is organised like the clinic's paper request:
-     patient (name, address, age), clinical information, the exams as
-     "CODE -- NAME" in two columns, other exams, the doctor's name, and the
+     patient (name, address, age), clinical information, the exams under
+     their medical exam type, each as "CODE -- NAME" in two columns, other exams, the doctor's name, and the
      date beside the signature line. Texts come translated in `labels`
      (exam_request_service.pdf_context). -->
 <style>
   @page {
     size: A6 portrait;
     margin-top: 92px;
-    margin-bottom: 128px;
+    margin-bottom: 130px;
     margin-left: 28px;
     margin-right: 18px;
 
@@ -198,6 +198,8 @@
   }
 
   .exam-list .empty { column-span: all; }
+  /* the next medical exam type inside the same card */
+  .exam-group-next { margin-top: 6px; }
 
   /* the date on the left; on the right the doctor's name over the signature line */
   .closing {
@@ -230,7 +232,7 @@
 
   .footer {
     position: fixed;
-    bottom: -88px;
+    bottom: -100px;
     left: 0;
     right: 0;
     min-height: 28px;
@@ -283,16 +285,19 @@
     </div>
   </div>
 
+  <!-- the exams in one card, separated by their medical exam type
+       (exam_request_service.pdf_context) -->
   <div class="box box--list">
-    <div class="box-title">{{ labels.exams }}</div>
+    {% for group in exam_groups %}
+    <div class="box-title{% if not forloop.first %} exam-group-next{% endif %}">{{ group.title }}</div>
 
     <div class="exam-list">
-      {% for item in items %}
+      {% for item in group.items %}
         <div class="exam-item">
           {% if item.exame.codigo %}<span class="exam-code">{{ item.exame.codigo }} --</span>{% endif %}
           {{ item.exame.nome }}
-          {% if item.prioridade %}
-            <span class="exam-priority exam-priority--{{ item.prioridade }}">{{ item.priority_short }}</span>
+          {% if item.priority_label %}
+            <span class="exam-priority exam-priority--{{ item.prioridade }}">{{ item.priority_label }}</span>
           {% endif %}
 
           {% if item.instrucoes %}
@@ -302,10 +307,12 @@
             <div class="exam-detail"><strong>{{ labels.observation }}:</strong> {{ item.observacao|safe }}</div>
           {% endif %}
         </div>
-      {% empty %}
-        <div class="empty">{{ labels.no_exams }}</div>
       {% endfor %}
     </div>
+    {% empty %}
+    <div class="box-title">{{ labels.exams }}</div>
+    <div class="exam-list"><div class="empty">{{ labels.no_exams }}</div></div>
+    {% endfor %}
   </div>
 
   {% if pedido.outros_exames %}
@@ -326,9 +333,9 @@
 
 </div>
 
-{% include "saude/_signature.html" with sign_date=pedido.data|date:"d/m/Y" sign_name=signer_name sign_role=signer_role %}
+{% include "saude/_signature.html" with sign_date=pedido.data|long_date sign_name=signer_name sign_role=signer_role %}
 
-{% include "saude/_footer.html" with footer_label=labels.footer note_size=10 font_size=8 %}
+{% include "saude/_footer.html" with footer_label=labels.footer note_size=8 font_size=8 %}
 
 </body>
 </html>

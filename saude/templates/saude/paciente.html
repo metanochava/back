@@ -171,7 +171,7 @@ body { margin: 0; font-family: "Helvetica Neue", Arial, Helvetica, sans-serif; c
       <tr>
         <td class="label">{{ labels.date_of_birth }}</td>
         <td class="value">
-          {{ person.date_of_birth|date:"d/m/Y"|default:"-" }}{% if person.age is not None %} · {{ person.age }} {{ labels.years }}{% endif %}
+          {{ person.date_of_birth|long_date|default:"-" }}{% if person.age is not None %} · {{ person.age }} {{ labels.years }}{% endif %}
         </td>
       </tr>
       <tr>
@@ -255,7 +255,7 @@ body { margin: 0; font-family: "Helvetica Neue", Arial, Helvetica, sans-serif; c
 
   <div class="back-footer">
     <div class="footer-left">{{ labels.personal }}</div>
-    <div class="footer-right">{{ labels.issued }}: {{ data_emissao|date:"d/m/Y" }}</div>
+    <div class="footer-right">{{ labels.issued }}: {{ data_emissao|long_date }}</div>
   </div>
 </div>
 

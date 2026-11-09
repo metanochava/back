@@ -1,7 +1,8 @@
 """The line under the signature of a health PDF (`sign_role` of
 templates/saude/_signature.html, and the certificate's signature): the
 signing doctor's specialty and Medical Council number, e.g.
-"Medicina Interna · N.º da Ordem 374".
+"MEDICINA INTERNA · NºOrMM 374". The specialty is upper-cased here and
+not by CSS, so the Medical Council label keeps its own casing (NºOrMM).
 
 The signer is the user who created the document (validado_por for a lab
 result). Its Employee is the one of that person in the document's Entity
@@ -40,7 +41,7 @@ def signer_role(request, document, fallback="", user=None):
     doctor = _doctor_profile(employee) if employee else None
     number = (getattr(doctor, "numero_ordem", None) or "").strip()
 
-    parts = [specialty or fallback or ""]
+    parts = [(specialty or fallback or "").upper()]
     if number:
         parts.append(f"{Translate.tdc(request, 'Medical Council no.')} {number}")
     return " · ".join(part for part in parts if part)

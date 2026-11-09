@@ -167,6 +167,25 @@ class PrescriptionPdfTests(TestCase):
         self.assertEqual(context["labels"]["quantity"], "Quantidade")
         self.assertEqual([i.medicamento.descricao for i in context["items"]], ["PARACETAMOL"])
 
+    def _html(self):
+        from django.template.loader import render_to_string
+        from django.test import RequestFactory
+        from saude.services import prescription_service
+
+        context = prescription_service.pdf_context(RequestFactory().get("/"), self.receita)
+        return render_to_string("saude/receitamedica.html", context)
+
+    def test_the_notes_have_the_medication_tables_header(self):
+        html = self._html()
+
+        self.assertIn("<tr><th>Notes</th></tr>", html)
+        self.assertIn("<p>Depois das refeições</p>", html)
+
+    def test_without_notes_there_is_no_notes_section(self):
+        ItemReceita.objects.filter(receita=self.receita).update(observacao="<p></p>")
+
+        self.assertNotIn(">Notes<", self._html())
+
 
 class OtherVisitDocumentsTests(TestCase):
     """Certificate, referral and report follow the prescription's rule

@@ -15,6 +15,7 @@ from django.utils.html import escape
 
 from saude.services import consultation_service, lab_result_service
 from saude.services.document_edit_policy import author_name
+from saude.services.medical_certificate_service import long_date_pt
 
 SECTIONS = ("history", "findings", "diagnoses", "investigations", "treatment", "clinical_course", "recommendations")
 
@@ -75,7 +76,7 @@ def latest_vital_signs(request, patient, entity_id):
             parts.append(f"{_t(request, label)} {value} {unit}")
     if not parts:
         return ""
-    when = v.data.strftime("%d/%m/%Y") if v.data else ""
+    when = long_date_pt(v.data) if v.data else ""
     return f"<p>{escape(' · '.join(parts))}{f' ({when})' if when else ''}</p>"
 
 

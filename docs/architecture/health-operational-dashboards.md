@@ -666,7 +666,13 @@ name of **who created the document** - the same author as the edit rule above
   has_identity_document` / `require_identity_document`); otherwise a `400` on
   `documents`. It is what the certificate and the other PDFs print. A reused
   Person may already have one. `PacienteSEPage.vue` says so before sending
-  (and before any document is deleted on edit). Tests:
+  (and before any document is deleted on edit). Its Documents section shows the
+  rule (`<s-person-intake identity-document-required>`) and opens with one row
+  to fill when the patient has no document (`usePersonIntake.ensureDocumentRow`,
+  on add and on edit); a blank row is not unsaved data. The personal data has
+  "Identity document" (`Person.identity_document_type`): choosing it fills the
+  first document's type. When it is set, the required document must be of that
+  type, and the certificate prints that document (else the first one). Tests:
   `saude/tests/test_patient_registration.py` (`PatientIdentityDocumentTests`).
 - **Patient box** (`templates/saude/_patient.html`, the same PDFs except the
   certificate, whose patient is in the declaration):

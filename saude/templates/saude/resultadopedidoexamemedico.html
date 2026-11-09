@@ -409,8 +409,8 @@
     </div>
     <div class="exam-meta">
       {% if requester %}{{ labels.requested_by }}: {{ requester }} · {% endif %}
-      {% if resultado.data_colheita %}{{ labels.collected }}: {{ resultado.data_colheita|date:"d/m/Y H:i" }} · {% endif %}
-      {% if resultado.data_resultado %}{{ labels.result_date }}: {{ resultado.data_resultado|date:"d/m/Y H:i" }} · {% endif %}
+      {% if resultado.data_colheita %}{{ labels.collected }}: {{ resultado.data_colheita|long_date:"time" }} · {% endif %}
+      {% if resultado.data_resultado %}{{ labels.result_date }}: {{ resultado.data_resultado|long_date:"time" }} · {% endif %}
       {{ labels.revision }} {{ resultado.numero_revisao|default:1 }}
     </div>
     {% if resultado.numero_revisao and resultado.numero_revisao > 1 %}<div class="amended">{{ labels.amended }}</div>{% endif %}
@@ -452,7 +452,7 @@
 
 </div>
 
-{% include "saude/_signature.html" with sign_date=resultado.data_validacao|date:"d/m/Y" sign_name=validated_by sign_role=signer_role %}
+{% include "saude/_signature.html" with sign_date=resultado.data_validacao|long_date sign_name=validated_by sign_role=signer_role %}
 
 {% include "saude/_footer.html" with footer_label=labels.title note_size=10 font_size=8 %}
 

@@ -87,5 +87,6 @@ class RelatorioMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
             signer_name=with_category(relatorio, author_name(relatorio)),
             signer_role=signer_role(request, relatorio, fallback=Translate.tdc(request, "Attending doctor")),
             **pdf_properties("Medical Report", relatorio),
-            labels=consultation_service.patient_header_labels(request),
+            labels={**consultation_service.patient_header_labels(request),
+                    "purpose": Translate.tdc(request, "Purpose")},
         )
