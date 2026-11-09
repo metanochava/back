@@ -80,12 +80,21 @@ def pdf_context(request, receita):
 
     t = lambda text: Translate.tdc(request, text) if text else ""  # noqa: E731
 
+    from django.utils.html import strip_tags
+
+    items = list(
+        ItemReceita.objects.filter(receita=receita).select_related("medicamento").order_by("created_at")
+    )
     return {
         "receita": receita,
         "paciente": receita.consulta.paciente,
-        "items": list(
-            ItemReceita.objects.filter(receita=receita).select_related("medicamento").order_by("created_at")
-        ),
+        "items": items,
+        # the items' observations with text (an empty editor leaves "<p></p>"):
+        # without any, the PDF has no Notes section
+        "notes": [
+            item.observacao for item in items
+            if strip_tags(item.observacao or "").replace("&nbsp;", "").strip()
+        ],
         "labels": {key: t(text) for key, text in {
             "title": "Medical prescription",
             "name": "Patient name", "nid": "Patient NID", "contact": "Contact",

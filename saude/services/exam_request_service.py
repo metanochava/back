@@ -456,15 +456,29 @@ def pdf_context(request, pedido):
             "exame__nome",
         )
     )
-    # the priority goes on the PDF as its first three letters (Nor / Urg)
+    # only an urgent exam carries its priority on the PDF, as the word
+    # ("Urgente"); a normal one needs no mark
     for item in items:
-        item.priority_short = t(item.get_prioridade_display())[:3]
+        item.priority_label = t(item.get_prioridade_display()) if item.prioridade == "urgente" else ""
+
+    # the exams under their medical exam type (TipoExameMedico, in its
+    # order): one titled section each; an exam without a type goes under
+    # "Exams"
+    exam_groups = []
+    for item in items:
+        classe = getattr(item.exame, "classe_exame_medico", None) if item.exame else None
+        tipo = getattr(classe, "tipo_exame_medico", None) if classe else None
+        key = tipo.id if tipo else None
+        if not exam_groups or exam_groups[-1]["key"] != key:
+            exam_groups.append({"key": key, "title": tipo.nome if tipo else t("Exams"), "items": []})
+        exam_groups[-1]["items"].append(item)
 
     return {
         "pedido": pedido,
         "paciente": paciente,
         "person": person,
         "items": items,
+        "exam_groups": exam_groups,
         "address": patient_address(person),
         "age": person.age if person else None,
         "labels": {key: t(text) for key, text in {

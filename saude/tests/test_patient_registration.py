@@ -346,3 +346,31 @@ class PatientIdentityDocumentTests(TestCase):
 
         self.assertEqual(response.status_code, 400, response.data)
         self.assertNotEqual(Paciente.objects.get(id=created.data["id"]).religion, "Catholic")
+
+
+class PatientIdentityDocumentTypeTests(TestCase):
+    """When the Person has an identity document type (Person.
+    identity_document_type), its identity document must be of that type."""
+
+    setUp = PatientRegistrationTests.setUp
+
+    def test_a_document_of_another_type_does_not_count(self):
+        bi = DocumentType.objects.create(name="BI", detalhes="Bilhete de Identidade")
+
+        response = _post(self.client_, {
+            "person": {"name": "Tipo", "surname": "Errado", "identity_document_type": str(bi.id)},
+            "documents": [{"tipo": str(self.doc_type.id), "numero": "OTHER-TYPE-1"}],
+        })
+
+        self.assertEqual(response.status_code, 400, response.data)
+        self.assertFalse(Paciente.objects.filter(person__surname="Errado").exists())
+
+    def test_a_document_of_the_identity_type_is_accepted(self):
+        bi = DocumentType.objects.create(name="BI", detalhes="Bilhete de Identidade")
+
+        response = _post(self.client_, {
+            "person": {"name": "Tipo", "surname": "Certo", "identity_document_type": str(bi.id)},
+            "documents": [{"tipo": str(bi.id), "numero": "BI-OK-1"}],
+        })
+
+        self.assertEqual(response.status_code, 201, response.data)

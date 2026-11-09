@@ -64,20 +64,24 @@ class MedicalCertificateTests(TestCase):
 
         html = render_to_string("saude/atestadomedico.html", {"atestado": self.atestado, "cert": cert})
         self.assertIn("com o número <b>374</b>", html)
-        self.assertIn("titular do BI N° 11010025348B emitido aos 11 de Junho de 2010", html)
+        self.assertRegex(html, r"titular do <b>BI</b>\s*N\.º <b>11010025348B</b>,\s*emitido aos 11 de Junho de 2010\s*por \.{10,},")
+        Document.objects.filter(numero="11010025348B").update(issued_by="Arquivo de Identificação Civil de Maputo")
+        html = render_to_string("saude/atestadomedico.html", {"atestado": self.atestado, "cert": certificate_context(self.atestado)})
+        self.assertRegex(html, r"emitido aos 11 de Junho de 2010\s*por Arquivo de Identificação Civil de Maputo,")
         self.assertIn("Consulta externa de Medicina Interna", html)
         self.assertIn("até o dia <u>10 de Novembro de 2026</u>", html)
         self.assertIn("Administração", html)
         self.assertIn("médico especialista em <b>Medicina Interna</b>,", html)
         self.assertIn("inscrito na Ordem dos Médicos de Moçambique", html)
 
-    def test_missing_data_leaves_the_parts_out(self):
+    def test_missing_data_leaves_the_parts_out_or_blank(self):
         cert = certificate_context(self.atestado)
         html = render_to_string("saude/atestadomedico.html", {"atestado": self.atestado, "cert": cert})
 
         self.assertEqual(cert["g_observed"], "observado")
         self.assertNotIn("com o número", html)
-        self.assertNotIn("titular do", html)
+        # no identity document: its type, number and issue are blanks to fill by hand
+        self.assertRegex(html, r"titular do \.{10,}\s*N\.º \.{10,},\s*emitido aos \.{10,}\s*por \.{10,},")
         self.assertIn("<b>Consulta externa</b>", html)
         # no specialty: only "médico", no empty "especialista em"
         self.assertNotIn("especialista em", html)
@@ -90,6 +94,21 @@ class MedicalCertificateTests(TestCase):
         cert = certificate_context(self.atestado)
 
         self.assertEqual((cert["g_doctor"], cert["g_registered"]), ("médica", "inscrita"))
+
+    def test_the_persons_identity_document_type_is_printed_first(self):
+        person = self.patient.person
+        ct = ContentType.objects.get_for_model(person.__class__)
+        nuit = DocumentType.objects.create(name="NUIT", detalhes="x")
+        bi = DocumentType.objects.create(name="BI", detalhes="x")
+        Document.objects.create(tipo=nuit, numero="NUIT-1", content_type=ct, object_id=person.id,
+                                entity=self.tenant["entity"], branch=self.tenant["branch"])
+        Document.objects.create(tipo=bi, numero="BI-1", content_type=ct, object_id=person.id,
+                                entity=self.tenant["entity"], branch=self.tenant["branch"])
+
+        self.assertEqual(certificate_context(self.atestado)["document_number"], "NUIT-1")  # the first
+        person.identity_document_type = bi
+        person.save()
+        self.assertEqual(certificate_context(self.atestado)["document_number"], "BI-1")
 
     def test_another_entitys_document_is_not_printed(self):
         other = bootstrap_tenant("med-cert-other", modules=("saude", "hr"))

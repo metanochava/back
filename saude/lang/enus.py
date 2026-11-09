@@ -1125,4 +1125,5 @@ key_value = {
     'Requesting doctor': 'Requesting doctor',
     'No exam requested.': 'No exam requested.',
     'No clinical information recorded.': 'No clinical information recorded.',
+    'Medical Council no.': 'OrMM No.',
 }

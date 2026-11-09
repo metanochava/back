@@ -76,3 +76,18 @@ class ExamRequestPagingTests(SimpleTestCase):
 
         self.assertIn('class="box box--list"', html)
         self.assertIn(".box--list { page-break-inside: auto; }", html)
+
+
+class MedicalReportPurposeTests(SimpleTestCase):
+
+    def _html(self, purpose):
+        relatorio = SimpleNamespace(purpose=purpose, consulta=None, created_at=None, resumo="")
+        return render_to_string("saude/relatoriomedico.html", {
+            "relatorio": relatorio, "labels": {"purpose": "Finalidade"},
+        })
+
+    def test_the_purpose_is_printed_under_the_patient(self):
+        self.assertIn('<div class="finalidade">Finalidade: <strong>Junta médica</strong></div>', self._html("Junta médica"))
+
+    def test_without_a_purpose_there_is_no_line(self):
+        self.assertNotIn('class="finalidade"', self._html(""))

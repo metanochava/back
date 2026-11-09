@@ -162,10 +162,16 @@ libs:
 # SERVICE
 # =========================================================
 
-reload:
+reloadp:
 	systemctl daemon-reload
 	systemctl restart gunicorn_pro_back
 	systemctl status gunicorn_pro_back --no-pager
+
+
+reloadd:
+	systemctl daemon-reload
+	systemctl restart gunicorn_dev_back
+	systemctl status gunicorn_dev_back --no-pager
 
 
 # =========================================================

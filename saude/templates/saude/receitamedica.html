@@ -206,9 +206,11 @@
     color: #111827;
   }
 
+  /* the dosage: a little under the name's visual size (the name is bold
+     upper case, so its 8px reads bigger than this lower case grey text) */
   .item-dose {
     color: #6b7280;
-    font-size: 9px;
+    font-size: 9.5px;
     margin-left: 18px;
   }
 
@@ -224,7 +226,7 @@
 
   .footer {
     position: fixed;
-    bottom: -88px;
+    bottom: -100px;
     left: 0;
     right: 0;
     min-height: 28px;
@@ -295,21 +297,25 @@
     </table>
   </div>
 
+  {% if notes %}
   <div class="box">
-    <div class="box-title">{{ labels.notes }}</div>
-
-    {% for item in items %}
-      {% if item.observacao %}
-        <div class="line">
-          {{ item.observacao|safe }}
-        </div>
-      {% endif %}
-    {% endfor %}
+    <!-- same header as the medication table (.items th) -->
+    <table class="items">
+      <thead>
+        <tr><th>{{ labels.notes }}</th></tr>
+      </thead>
+      <tbody>
+        {% for note in notes %}
+        <tr><td>{{ note|safe }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+  {% endif %}
 
 </div>
 
-{% include "saude/_signature.html" with sign_date=receita.created_at|date:"d/m/Y" sign_name=signer_name sign_role=signer_role %}
+{% include "saude/_signature.html" with sign_date=receita.created_at|long_date sign_name=signer_name sign_role=signer_role %}
 
 {% include "saude/_footer.html" with footer_label=labels.title note_size=8 font_size=8 %}
 

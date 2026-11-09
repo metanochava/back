@@ -214,6 +214,7 @@
   .campo { margin-top: 8px; padding: 6px 8px; border-radius: 4px; border-left: 3px solid #99f6e4; }
   .campo-titulo { font-size: 10px; font-weight: bold; color: #0f766e; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
 
+  .finalidade { font-size: 11px; color: #555; margin-top: 2px; }
 </style>
 </head>
 
@@ -223,7 +224,7 @@
 
 <div class="content">
 
-  {% include "saude/_patient.html" with paciente=relatorio.consulta.paciente %}
+  {% include "saude/_patient.html" with paciente=relatorio.consulta.paciente note_label=labels.purpose note=relatorio.purpose %}
 
   <div class="box declaracao">
 
@@ -258,7 +259,7 @@
 
 </div>
 
-{% include "saude/_signature.html" with sign_date=relatorio.created_at|date:"d/m/Y" sign_name=signer_name sign_role=signer_role %}
+{% include "saude/_signature.html" with sign_date=relatorio.created_at|long_date sign_name=signer_name sign_role=signer_role %}
 
 {% include "saude/_footer.html" with footer_label="Relatório Médico" indent=True note_size=12 font_size=10 %}
 
