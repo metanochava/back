@@ -64,11 +64,11 @@ class MedicalCertificateTests(TestCase):
 
         html = render_to_string("saude/atestadomedico.html", {"atestado": self.atestado, "cert": cert})
         self.assertIn("com o número <b>374</b>", html)
-        self.assertRegex(html, r"titular do <b>BI</b>\s*N\.º <b>11010025348B</b>,\s*emitido aos 11 de Junho de 2010\s*por \.{10,},")
+        self.assertRegex(html, r"titular do <b>BI</b>\s*N\.º <b>11010025348B</b>,\s*emitido aos 11 de Junho de 2010\s*em \.{10,},")
         Document.objects.filter(numero="11010025348B").update(issued_by="Arquivo de Identificação Civil de Maputo")
         html = render_to_string("saude/atestadomedico.html", {"atestado": self.atestado, "cert": certificate_context(self.atestado)})
-        self.assertRegex(html, r"emitido aos 11 de Junho de 2010\s*por Arquivo de Identificação Civil de Maputo,")
-        self.assertIn("Consulta externa de Medicina Interna", html)
+        self.assertRegex(html, r"emitido aos 11 de Junho de 2010\s*em Arquivo de Identificação Civil de Maputo,")
+        self.assertRegex(html, r"na Consulta\s+de Medicina Interna")
         self.assertIn("até o dia <u>10 de Novembro de 2026</u>", html)
         self.assertIn("Administração", html)
         self.assertIn("médico especialista em <b>Medicina Interna</b>,", html)
@@ -81,11 +81,24 @@ class MedicalCertificateTests(TestCase):
         self.assertEqual(cert["g_observed"], "observado")
         self.assertNotIn("com o número", html)
         # no identity document: its type, number and issue are blanks to fill by hand
-        self.assertRegex(html, r"titular do \.{10,}\s*N\.º \.{10,},\s*emitido aos \.{10,}\s*por \.{10,},")
-        self.assertIn("<b>Consulta externa</b>", html)
+        self.assertRegex(html, r"titular do \.{10,}\s*N\.º \.{10,},\s*emitido aos \.{10,}\s*em \.{10,},")
+        self.assertRegex(html, r"na Consulta\s*\n\s*e constatei")
         # no specialty: only "médico", no empty "especialista em"
         self.assertNotIn("especialista em", html)
         self.assertRegex(html, r"</b>,\s*médico,\s*inscrito na Ordem")
+
+    def test_the_specialty_is_the_one_the_consultation_was_booked_for(self):
+        from saude.models.agenda import Agenda
+        self._complete()
+        cardiology = Specialty.objects.create(title="Cardiologia", code="CAR", **_audit(self.tenant))
+        EmployeeSpecialty.objects.create(employee=self.doctor, specialty=cardiology, **_audit(self.tenant))
+        Agenda.objects.create(paciente=self.patient, medico=self.doctor, consulta=self.consulta,
+                              especialidade=cardiology, data=date(2026, 11, 9), hora_inicio="09:00",
+                              **_audit(self.tenant))
+
+        cert = certificate_context(self.atestado)
+
+        self.assertEqual(cert["specialty"], "Cardiologia")
 
     def test_a_female_doctor(self):
         doctor_person = self.doctor.person

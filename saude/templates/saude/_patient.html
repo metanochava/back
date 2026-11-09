@@ -15,7 +15,8 @@ come from each template's .box / .patient-box.
   /* the name on its own line, then the other attributes flow two per row:
      a missing one (no contact label, no age/address) leaves no empty cell */
   .pt-name { padding: 2px 0; }
-  .pt-field { float: left; width: 50%; padding: 2px 0; }
+  /* 49.9%: two halves rounded up overflow the box by 1px and the second drops */
+  .pt-field { float: left; width: 49.9%; padding: 2px 0; }
   .patient-name-value { font-size: 1.3em; }
 </style>
 <div class="box patient-box">

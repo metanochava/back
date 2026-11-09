@@ -8,6 +8,10 @@ class Specialty(BaseModel):
     title = models.CharField(max_length=150)  # 🔥 melhor que name
     code = models.CharField(max_length=50, null=True, blank=True)
     description = models.TextField(null=True, blank=True)
+    # what the health PDFs print under the signing doctor's name for this
+    # specialty (e.g. "Médico Internista" for Medicina Interna); the title
+    # when empty - saude/services/document_signer.signer_role
+    signature = models.CharField(max_length=150, null=True, blank=True)
 
     # =========================
     # 🔐 META

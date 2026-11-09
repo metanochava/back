@@ -499,4 +499,11 @@ key_value = {
     "Add employee": "Adicionar funcionário",
     "Pick the person who is this employee.": "Escolha a pessoa que é este funcionário.",
     "The termination date cannot be earlier than the hire date.": "A data de cessação não pode ser anterior à data de admissão.",
+    "Signature": "Assinatura",
+    "Specialties": "Especialidades",
+    "Add specialty": "Adicionar especialidade",
+    "Add the specialty to this employee": "Adicionar a especialidade a este funcionário",
+    "Could not add the specialty.": "Não foi possível adicionar a especialidade.",
+    "Could not remove the specialty.": "Não foi possível remover a especialidade.",
+    "No specialty recorded": "Nenhuma especialidade registada",
 }

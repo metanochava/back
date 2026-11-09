@@ -4,6 +4,11 @@ signing doctor's specialty and Medical Council number, e.g.
 "MEDICINA INTERNA · NºOrMM 374". The specialty is upper-cased here and
 not by CSS, so the Medical Council label keeps its own casing (NºOrMM).
 
+The specialty is the consultation's one specialty - the one it was booked
+for (Agenda.especialidade), else the doctor's first - printed as its
+signature text (Specialty.signature, e.g. "Médico Internista"), else its
+title.
+
 The signer is the user who created the document (validado_por for a lab
 result). Its Employee is the one of that person in the document's Entity
 (the document's Branch first); a document without one falls back to the
@@ -14,7 +19,7 @@ exists the PDF's own role ("Médico", "Validado por"...) is printed.
 The signer's name is preceded by the doctor's category (Medico.categoria),
 e.g. "Dr. João Mabunda" (with_category).
 """
-from saude.services.medical_certificate_service import _doctor_profile, _specialty
+from saude.services.medical_certificate_service import _doctor_profile, consultation_specialty
 
 
 def signer_employee(document, user=None):
@@ -37,11 +42,15 @@ def signer_role(request, document, fallback="", user=None):
     from django_resaas.saas.core.utils.translate import Translate
 
     employee = signer_employee(document, user=user)
-    specialty = _specialty(employee, getattr(document, "entity_id", None)) if employee else None
+    consulta = getattr(document, "consulta", None)
+    # the consultation's ONE specialty (the one booked), printed as its
+    # signature text (Specialty.signature), else its title
+    specialty = consultation_specialty(consulta, employee, getattr(document, "entity_id", None))
+    text = ((getattr(specialty, "signature", None) or "").strip() or getattr(specialty, "title", None)) if specialty else None
     doctor = _doctor_profile(employee) if employee else None
     number = (getattr(doctor, "numero_ordem", None) or "").strip()
 
-    parts = [(specialty or fallback or "").upper()]
+    parts = [(text or fallback or "").upper()]
     if number:
         parts.append(f"{Translate.tdc(request, 'Medical Council no.')} {number}")
     return " · ".join(part for part in parts if part)

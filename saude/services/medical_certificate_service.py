@@ -33,7 +33,29 @@ def _doctor_profile(employee):
     return Medico.objects.filter(employee=employee).first()
 
 
-def _specialty(employee, entity_id):
+def _printable(specialty):
+    # the generic "no specialty" entry (code GERAL) is not a specialty to print
+    if specialty is None or not getattr(specialty, "title", None):
+        return None
+    if (getattr(specialty, "code", None) or "").upper() == "GERAL":
+        return None
+    return specialty
+
+
+def consultation_specialty(consulta, employee=None, entity_id=None):
+    """The ONE specialty of a consultation: the one it was booked for
+    (Agenda.especialidade); without a booking (or a GERAL one), the doctor's
+    first specialty in the Entity. A Specialty, or None."""
+    from django.core.exceptions import ObjectDoesNotExist
+
+    if consulta is not None:
+        try:
+            agenda = consulta.agenda
+        except (ObjectDoesNotExist, AttributeError):
+            agenda = None
+        booked = _printable(getattr(agenda, "especialidade", None)) if agenda is not None else None
+        if booked:
+            return booked
     if not employee:
         return None
     from hr.models.employee_specialty import EmployeeSpecialty
@@ -44,11 +66,7 @@ def _specialty(employee, entity_id):
         .order_by("created_at")
         .first()
     )
-    title = getattr(getattr(row, "specialty", None), "title", None)
-    # the generic "no specialty" entry (code GERAL) is not a specialty to print
-    if not title or getattr(row.specialty, "code", None) == "GERAL":
-        return None
-    return title
+    return _printable(getattr(row, "specialty", None))
 
 
 def _identity_document(person, entity_id):
@@ -88,7 +106,7 @@ def certificate_context(atestado):
     return {
         "doctor_name": getattr(getattr(employee, "person", None), "full_name", "") or "",
         "doctor_number": (getattr(doctor, "numero_ordem", None) or "").strip(),
-        "specialty": _specialty(employee, entity_id),
+        "specialty": getattr(consultation_specialty(consulta, employee, entity_id), "title", None),
         "patient_name": getattr(person, "full_name", "") or "",
         "document_type": getattr(getattr(document, "tipo", None), "name", "") if document else "",
         "document_number": getattr(document, "numero", "") if document else "",
