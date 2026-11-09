@@ -15,7 +15,7 @@
     @bottom-right {
       content: counter(page) " - " counter(pages);
       font-size: 10px;
-      color: #0f766e;
+      color: #b0d1ceff;
       font-family: Arial, sans-serif;
       font-weight: bold;
       margin-right: 5px;
@@ -71,7 +71,7 @@
 
   .title h1 {
     margin: 0;
-    color: #0f766e;
+    color: #14847bff;
     font-size: 16px;
     letter-spacing: .03em;
   }
@@ -253,7 +253,7 @@
     N.º {% if cert.document_number %}<b>{{ cert.document_number }}</b>{% else %}......................{% endif %},
     emitido aos {% if cert.document_issued %}{{ cert.document_issued }}{% else %}......................{% endif %}
     em {% if cert.document_issued_by %}{{ cert.document_issued_by }}{% else %}......................{% endif %},
-    foi por mim hoje {{ cert.g_observed }} na <b>Consulta externa{% if cert.specialty %} de {{ cert.specialty }}{% endif %}</b>
+    foi por mim hoje {{ cert.g_observed }} na Consulta {% if cert.specialty %} de {{ cert.specialty }}{% endif %}
     e constatei que estará provavelmente {{ cert.g_unable }} de comparecer {{ cert.attend }}
     até o dia <u>{{ cert.until }}</u>.
     A pedido expresso {{ cert.g_patient }} declaro que {{ cert.g_pronoun }} sofre de

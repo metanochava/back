@@ -108,7 +108,7 @@ class ClinicalSummaryTests(TestCase):
         self.assertIn("História do caso", html)
         self.assertIn("Voltar em 2 semanas", html)
         self.assertIn("Insurer", html)
-        self.assertEqual(html.count('class="seccao"'), 2)
+        self.assertEqual(html.count('class="campo seccao"'), 2)
         self.assertIn('class="signer-name"', html)
 
     def test_another_entity_never_sees_it(self):

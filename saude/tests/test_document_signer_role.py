@@ -41,6 +41,37 @@ class SignerRoleTests(TestCase):
         self.assertEqual(signer_role(self.request, self.document, fallback="Médico"),
                          "MEDICINA INTERNA · NºOrMM 374")
 
+    def _book(self, specialty):
+        from saude.models.agenda import Agenda
+        return Agenda.objects.create(paciente=self.patient, medico=self.doctor, consulta=self.consulta,
+                                     especialidade=specialty, data=date(2026, 11, 9), hora_inicio="09:00",
+                                     **_audit(self.tenant))
+
+    def test_the_one_specialty_the_consultation_was_booked_for(self):
+        Medico.objects.create(employee=self.doctor, numero_ordem="374", **_audit(self.tenant))
+        internal = Specialty.objects.create(title="Medicina Interna", code="MI", **_audit(self.tenant))
+        cardiology = Specialty.objects.create(title="Cardiologia", code="CAR", **_audit(self.tenant))
+        for specialty in (internal, cardiology):
+            EmployeeSpecialty.objects.create(employee=self.doctor, specialty=specialty, **_audit(self.tenant))
+        self._book(cardiology)
+
+        self.assertEqual(signer_role(self.request, self.document, fallback="Médico"), "CARDIOLOGIA · NºOrMM 374")
+
+    def test_the_specialtys_signature_text_when_it_has_one(self):
+        cardiology = Specialty.objects.create(title="Cardiologia", code="CAR", signature="Médico Cardiologista",
+                                              **_audit(self.tenant))
+        self._book(cardiology)
+
+        self.assertEqual(signer_role(self.request, self.document, fallback="Médico"), "MÉDICO CARDIOLOGISTA")
+
+    def test_a_general_booking_falls_back_to_the_doctors_specialty(self):
+        general = Specialty.objects.create(title="Consulta Geral", code="GERAL", **_audit(self.tenant))
+        internal = Specialty.objects.create(title="Medicina Interna", code="MI", **_audit(self.tenant))
+        EmployeeSpecialty.objects.create(employee=self.doctor, specialty=internal, **_audit(self.tenant))
+        self._book(general)
+
+        self.assertEqual(signer_role(self.request, self.document, fallback="Médico"), "MEDICINA INTERNA")
+
     def test_number_only_keeps_the_pdfs_role(self):
         Medico.objects.create(employee=self.doctor, numero_ordem="374", **_audit(self.tenant))
 

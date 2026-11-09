@@ -281,11 +281,22 @@ def confirm(appointment_request, paciente_id, user, now=None):
             raise ConflictError("This time is no longer available. Please choose another one.",
                                 code="slot_unavailable")
 
+        # the specialty the visitor chose (kept as its title on the request):
+        # the doctor's own Specialty of that title becomes the booking's one
+        booked_specialty = None
+        if appointment_request.specialty:
+            row = (EmployeeSpecialty.objects
+                   .filter(employee_id=appointment_request.medico_id,
+                           specialty__title=appointment_request.specialty)
+                   .select_related("specialty").first())
+            booked_specialty = row.specialty if row else None
+
         agenda = Agenda.objects.create(
             entity_id=appointment_request.entity_id,
             branch_id=appointment_request.branch_id,
             paciente=paciente,
             medico_id=appointment_request.medico_id,
+            especialidade=booked_specialty,
             data=appointment_request.data,
             hora_inicio=appointment_request.hora_inicio,
             hora_fim=appointment_request.hora_fim,

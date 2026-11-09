@@ -260,6 +260,9 @@ def record_result(request, item, values, *, observacao=None, laudo=None):
             branch_id=request.branch_id,
             created_by=request.user,
             updated_by=request.user,
+            # TimeModel.state defaults to 'Inactive': the right-menu history
+            # lists only Active documents
+            state="Active",
         )
     else:
         result.data_resultado = now
@@ -479,6 +482,7 @@ def amend_result(request, result, reason):
         branch_id=result.branch_id,
         created_by=request.user,
         updated_by=request.user,
+        state="Active",
     )
 
     if result.file:

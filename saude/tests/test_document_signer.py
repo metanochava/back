@@ -87,7 +87,8 @@ class MedicalReportPurposeTests(SimpleTestCase):
         })
 
     def test_the_purpose_is_printed_under_the_patient(self):
-        self.assertIn('<div class="finalidade">Finalidade: <strong>Junta médica</strong></div>', self._html("Junta médica"))
+        html = self._html("Junta médica")
+        self.assertRegex(html, r'<div class="campo destino finalidade">\s*<div class="campo-titulo">Finalidade</div>\s*<div class="valor">Junta médica</div>')
 
     def test_without_a_purpose_there_is_no_line(self):
-        self.assertNotIn('class="finalidade"', self._html(""))
+        self.assertNotIn('finalidade">', self._html(""))

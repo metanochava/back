@@ -22,6 +22,17 @@ class Agenda(BaseModel):
         related_name="agendas"
     )
 
+    # the ONE specialty the consultation was booked for (step 1 of the
+    # booking dialog): the signature line and the certificate of the
+    # consultation take it, not the doctor's other specialties
+    especialidade = models.ForeignKey(
+        "hr.Specialty",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="agendas"
+    )
+
     consultorio = models.ForeignKey(
         "saude.Consultorio",
         null=True,

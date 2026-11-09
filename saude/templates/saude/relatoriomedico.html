@@ -1,5 +1,5 @@
-{% load clinic %}
 <!DOCTYPE html>
+{% load clinic %}
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
@@ -125,12 +125,14 @@
   .box-title {
     font-weight: bold;
     color: #0f766e;
+    border-left: 3px solid #0f766e;
+    padding-left: 5px;
     margin-bottom: 4px;
     text-transform: uppercase;
     font-size: 14px;
   }
 
-  .relatorio-text {
+  .guia-text {
     font-family: "Times New Roman", Times, serif;
     font-size: 12px;
     text-align: justify;
@@ -150,6 +152,7 @@
   }
 
   .label {
+    {% comment %} font-weight: bold; {% endcomment %}
     width: 34%;
   }
 
@@ -174,7 +177,7 @@
 
   .footer {
     position: fixed;
-    bottom: -88px;
+    bottom: -102px;
     left: 0;
     right: 0;
     min-height: 28px;
@@ -207,44 +210,37 @@
     text-align: center;
   }
 
-  /* same look as the prescription, certificate and referral */
-  .box-title { font-weight: bold; color: #0f766e; border-left: 3px solid #0f766e; padding-left: 5px;
-               margin-bottom: 4px; text-transform: uppercase; font-size: 13px; }
-  .box.declaracao { border-left: 3px solid #0f766e; }
+  /* each clinical part of the referral: a soft block with its title */
   .campo { margin-top: 8px; padding: 6px 8px; border-radius: 4px; border-left: 3px solid #99f6e4; }
   .campo-titulo { font-size: 10px; font-weight: bold; color: #0f766e; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+  .campo.destino { border-left-color: #0f766e; }
+  .campo.destino .valor { font-weight: bold; font-size: 12px; color: #111827; }
 
-  .finalidade { font-size: 11px; color: #555; margin-top: 2px; }
+  /* the medical report uses the referral's layout and sizes
+     (guiatransferencia.html): its page, header, patient box, blocks,
+     signature and footer */
 </style>
 </head>
 
 <body>
 
-{% include "saude/_header.html" with header_title="Relatório Médico" %}
+{% include "saude/_header.html" with header_title="Relatório Médico" indent=True %}
 
 <div class="content">
 
-  {% include "saude/_patient.html" with paciente=relatorio.consulta.paciente note_label=labels.purpose note=relatorio.purpose %}
+  {% include "saude/_patient.html" with paciente=relatorio.consulta.paciente %}
 
-  <div class="box declaracao">
+  <div class="box">
 
-    <div class="relatorio-text">
+    <div class="guia-text">
 
-      Eu,
-
-      <b>
-        <u style="text-transform: uppercase;">
-          {{ relatorio.consulta.employee.person.full_name }}
-        </u>
-      </b>,
-
-      médico desta unidade sanitária, elaboro o presente relatório clínico referente ao paciente
-
-      <b>
-        {{ relatorio.consulta.paciente.person.full_name }}
-      </b>.
-
-      <br><br>
+      <!-- what the report is for: in the report itself, not in the patient box -->
+      {% if relatorio.purpose %}
+      <div class="campo destino finalidade">
+        <div class="campo-titulo">{{ labels.purpose }}</div>
+        <div class="valor">{{ relatorio.purpose }}</div>
+      </div>
+      {% endif %}
 
       <div class="campo">
         <div class="campo-titulo">Resumo clínico</div>
@@ -253,16 +249,13 @@
 
     </div>
 
-
-
   </div>
 
 </div>
 
 {% include "saude/_signature.html" with sign_date=relatorio.created_at|long_date sign_name=signer_name sign_role=signer_role %}
 
-{% include "saude/_footer.html" with footer_label="Relatório Médico" indent=True note_size=12 font_size=10 %}
+{% include "saude/_footer.html" with footer_label="Relatório Médico" indent=True note_size=10 font_size=10 %}
 
 </body>
 </html>
-
