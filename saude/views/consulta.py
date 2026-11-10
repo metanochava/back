@@ -19,11 +19,13 @@ from saude.services.exam_request_service import require_professional, resolve_pa
 from saude.services import consultation_service, prescription_service
 from django_resaas.saas.core.decorators.action import resaas_action
 from saude.services.pdf_properties import pdf_properties
+from saude.views.patient_filter import PatientFilterMixin
 
 
 @registerView("consultas")
 # edited only by its author, within 24 h (document_edit_policy)
-class ConsultaAPIView(DocumentEditWindowMixin, BaseAPIView):
+class ConsultaAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPIView):
+    patient_lookup = "paciente"
 
     queryset = Consulta.objects.all()
     serializer_class = ConsultaSerializer

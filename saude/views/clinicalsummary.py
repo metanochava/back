@@ -11,11 +11,12 @@ from saude.serializers.clinicalsummary import ClinicalSummarySerializer
 from saude.services import clinical_summary_service, consultation_service
 from saude.services.document_edit_policy import DocumentEditWindowMixin
 from saude.services.pdf_properties import pdf_properties
+from saude.views.patient_filter import PatientFilterMixin
 
 
 @registerView("clinicalsummaries")
 # edited only by its author, within 24 h (document_edit_policy)
-class ClinicalSummaryAPIView(DocumentEditWindowMixin, BaseAPIView):
+class ClinicalSummaryAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPIView):
     queryset = ClinicalSummary.objects.select_related(
         "consulta__paciente__person", "consulta__employee__person", "entity", "branch", "created_by",
     )

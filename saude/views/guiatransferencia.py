@@ -14,6 +14,7 @@ from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_byt
 import barcode
 import qrcode
 from saude.services.pdf_properties import pdf_properties
+from saude.views.patient_filter import PatientFilterMixin
 
 
 
@@ -21,7 +22,7 @@ from saude.services.pdf_properties import pdf_properties
 
 @registerView('guiatransferencias')
 # edited only by its author, within 24 h (document_edit_policy)
-class GuiaTransferenciaAPIView(DocumentEditWindowMixin, BaseAPIView):
+class GuiaTransferenciaAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPIView):
     queryset = GuiaTransferencia.objects.all()   
     serializer_class = GuiaTransferenciaSerializer
 

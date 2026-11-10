@@ -14,7 +14,7 @@ from django_resaas.saas.core.base.views import BaseAPIView, registerView
 from hr.models.employee import Employee
 
 from saude.models.agenda import Agenda
-from saude.services import appointment_flow
+from saude.services import appointment_flow, booking_service
 from saude.serializers.agenda import AgendaSerializer
 
 DEFAULT_DURATION = timedelta(minutes=30)
@@ -88,6 +88,14 @@ class AgendaAPIView(BaseAPIView):
     queryset = Agenda.objects.all()
     serializer_class = AgendaSerializer
 
+    # the booking dialog reads and books for a branch of this Entity, which
+    # may be another one than the current (booking_service.resolve_branch:
+    # same Entity only, other branch only with book_other_branch_agenda)
+    cross_branch_actions = ["booking_options", "booking_slots", "book_other_branch"]
+
+    # set by book_other_branch for the appointment it creates
+    _target_branch = None
+
     @transaction.atomic
     def perform_create(self, serializer):
         validated = serializer.validated_data
@@ -126,7 +134,21 @@ class AgendaAPIView(BaseAPIView):
             except DjangoValidationError as exc:
                 raise DRFValidationError(exc.messages)
 
+        # within the branch's opening hours, when it has some (a walk-in is
+        # here now: not checked)
+        branch = self._target_branch or booking_service.resolve_branch(self.request, None)
+        if not immediate and validated.get("data") and validated.get("hora_inicio"):
+            booking_service.assert_open(
+                branch, validated["data"], validated["hora_inicio"],
+                _effective_end(validated["hora_inicio"], validated.get("hora_fim")),
+            )
+
         super().perform_create(serializer)
+
+        # booked for another branch of the Entity (book_other_branch)
+        if self._target_branch is not None and serializer.instance.branch_id != self._target_branch.id:
+            serializer.instance.branch_id = self._target_branch.id
+            serializer.instance.save(update_fields=["branch"])
 
         # a walk-in created directly as "em_espera" is checked in now
         self._stamp(serializer.instance, previous_estado=None)
@@ -189,6 +211,39 @@ class AgendaAPIView(BaseAPIView):
     def _locked(self):
         agenda = self.get_object()
         return Agenda.objects.select_for_update().get(pk=agenda.pk)
+
+    # ---------------- BOOKING FOR A BRANCH ----------------
+    # The booking dialog: the branches one may book in, that branch's
+    # doctors (with their specialties), and the free times of a doctor on a
+    # day (booking_service). Reads for booking: add_agenda.
+
+    @resaas_action(detail=False, methods=["get"], permission="add_agenda", visible=False)
+    def booking_options(self, request):
+        branch = booking_service.resolve_branch(request, request.query_params.get("branch"))
+        return Response({
+            "branches": booking_service.bookable_branches(request),
+            "branch": str(branch.id),
+            "doctors": booking_service.branch_doctors(request, branch),
+        })
+
+    @resaas_action(detail=False, methods=["get"], permission="add_agenda", visible=False)
+    def booking_slots(self, request):
+        branch = booking_service.resolve_branch(request, request.query_params.get("branch"))
+        day = booking_service.parse_day(request.query_params.get("data"))
+        return Response(booking_service.free_time(request, branch, request.query_params.get("medico"), day,
+                                                  exclude_id=request.query_params.get("exclude")))
+
+    @resaas_action(detail=False, methods=["post"], label="Book in another branch", icon="add_location_alt", visible=False)
+    @transaction.atomic
+    def book_other_branch(self, request):
+        """An appointment for another branch of this Entity (body: the usual
+        appointment + "branch"). Permission: book_other_branch_agenda."""
+        self._target_branch = booking_service.resolve_branch(request, request.data.get("branch"))
+        data = {key: value for key, value in request.data.items() if key != "branch"}
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(self.get_serializer(serializer.instance).data, status=201)
 
     @resaas_action(detail=True, methods=["post"], label="Check in", icon="login")
     @transaction.atomic

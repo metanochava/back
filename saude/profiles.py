@@ -186,6 +186,9 @@ FRONT_OFFICE_PROFILES = [
             "view_examemedico", "view_tipoexamemedico",
             "check_in_pedidoexamemedico",
             "check_in_agenda", "check_out_agenda",
+            # book a consultation for another branch of the clinic (the
+            # booking dialog's Branch step; AgendaAPIView.book_other_branch)
+            "book_other_branch_agenda",
             # exam catalogue of the exam request (saude/catalogoexames/)
             "list_tipoexamemedico",
             # and its quick list of exams (read only)

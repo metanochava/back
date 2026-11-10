@@ -15,13 +15,14 @@ import barcode
 import qrcode
 from saude.services.pdf_properties import pdf_properties
 from saude.services.medical_certificate_service import certificate_context
+from saude.views.patient_filter import PatientFilterMixin
 
 
 
 
 @registerView('atestadomedicos')
 # edited only by its author, within 24 h (document_edit_policy)
-class AtestadoMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
+class AtestadoMedicoAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPIView):
     queryset = AtestadoMedico.objects.all()   
     serializer_class = AtestadoMedicoSerializer
 

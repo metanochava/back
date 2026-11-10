@@ -506,4 +506,10 @@ key_value = {
     "Could not add the specialty.": "Não foi possível adicionar a especialidade.",
     "Could not remove the specialty.": "Não foi possível remover a especialidade.",
     "No specialty recorded": "Nenhuma especialidade registada",
+    "New specialty": "Nova especialidade",
+    "Printed under the signer's name on the documents they sign, e.g. Senior Accountant": "Impresso por baixo do nome de quem assina nos documentos, ex.: Contabilista Sénior",
+    "Close without saving": "Fechar sem gravar",
+    "Save the specialty and give it to this employee": "Gravar a especialidade e atribuí-la a este funcionário",
+    "Create a new specialty": "Criar uma nova especialidade",
+    "Password and sign-in security of this user": "Senha e segurança de acesso deste utilizador",
 }
