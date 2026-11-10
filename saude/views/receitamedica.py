@@ -17,6 +17,7 @@ import qrcode
 
 from saude.services import prescription_service
 from saude.services.pdf_properties import pdf_properties
+from saude.views.patient_filter import PatientFilterMixin
 
 
 
@@ -25,7 +26,7 @@ from saude.services.pdf_properties import pdf_properties
  
 @registerView('receitamedicas')
 # edited only by its author, within 24 h (document_edit_policy)
-class ReceitaMedicaAPIView(DocumentEditWindowMixin, BaseAPIView):
+class ReceitaMedicaAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPIView):
     queryset = ReceitaMedica.objects.all()   
     serializer_class = ReceitaMedicaSerializer
     

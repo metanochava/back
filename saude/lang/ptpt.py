@@ -2229,4 +2229,11 @@ key_value = {
     'Medical Council no.': 'NºOrMM',
     'Attending doctor': 'Médico Assistente',
     'The patient needs an identity document with its type and number.': 'O paciente precisa de um documento de identificação com o tipo e o número.',
+    "Choose a branch of this clinic.": "Escolha uma unidade desta clínica.",
+    "You are not allowed to book in another branch.": "Não tem permissão para marcar noutra unidade.",
+    "The branch is closed at this time.": "A unidade está fechada a esta hora.",
+    "Choose a valid date.": "Escolha uma data válida.",
+    "Choose a doctor.": "Escolha um médico.",
+    "Book in another branch": "Marcar noutra unidade",
+    "Doctor has no schedule configured for this day — using the branch's opening hours.": "O médico não tem horário configurado para este dia — a usar o horário de abertura da unidade.",
 }
