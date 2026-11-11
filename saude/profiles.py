@@ -400,6 +400,8 @@ MANAGEMENT_PROFILES = [
             "add_medico", "change_medico", "add_horariomedico", "change_horariomedico", "list_examemedico", "add_examemedico", "change_examemedico", "list_medicamento", "view_medicamento", "add_medicamento", "change_medicamento",
             # health dashboards (general and the statistics ones)
             "view_saude_dashboard", "view_dashboard_saude_medicacao", "view_dashboard_saude_documentos_medicos", "view_dashboard_saude_exames", "view_dashboard_saude_historico_clinico",
+            # the doctors' ratings (hr EmployeeRating): read and moderate their comments
+            "list_employeerating", "view_employeerating", "moderate_employeerating",
         ],
     },
 ]
@@ -424,6 +426,7 @@ PATIENT_PROFILES = [
             "view_own_trends",
             "view_own_prescriptions",
             "view_own_vitals",
+            "rate_own_appointments",
         ],
     },
 ]

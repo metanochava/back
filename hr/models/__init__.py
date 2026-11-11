@@ -8,6 +8,7 @@ from .contract import Contract
 
 from .specialty import Specialty
 from .employee_specialty import EmployeeSpecialty
+from .employee_rating import EmployeeRating, EmployeeRatingCommentStatus
 
 from .shift import Shift
 from .employee_shift import EmployeeShift

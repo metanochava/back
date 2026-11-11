@@ -13,6 +13,7 @@ from .contract import ContractAPIView
 
 from .specialty import SpecialtyAPIView
 from .employee_specialty import EmployeeSpecialtyAPIView
+from .employee_rating import EmployeeRatingAPIView
 
 from .shift import ShiftAPIView
 from .employee_shift import EmployeeShiftAPIView

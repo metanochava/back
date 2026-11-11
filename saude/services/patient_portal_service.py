@@ -236,21 +236,28 @@ def appointments(paciente, limit=20):
     base = Agenda.objects.filter(paciente=paciente, entity_id=paciente.entity_id).select_related("medico__person")
     labels = dict(Agenda._meta.get_field("estado").choices)
 
+    from saude.services import doctor_rating_service
+
+    upcoming = list(base.filter(data__gte=today).exclude(estado__in=("cancelada", "concluida", "faltou")).order_by("data", "hora_inicio")[:limit])
+    previous = list(base.filter(Q(data__lt=today) | Q(estado__in=("concluida", "faltou"))).order_by("-data", "-hora_inicio")[:limit])
+    rated = doctor_rating_service.ratings_of(a.id for a in previous)
+
     def row(a):
         return {
             "id": str(a.id),
             "date": a.data.isoformat(),
             "time": a.hora_inicio.strftime("%H:%M"),
             "doctor": _person_name(a.medico),
+            "doctor_id": str(a.medico_id) if a.medico_id else None,
             "status": labels.get(a.estado, a.estado),
+            # a completed appointment with a doctor may be rated once
+            "rateable": a.estado == doctor_rating_service.RATEABLE_STATE and a.medico_id is not None and str(a.id) not in rated,
+            "rating": rated.get(str(a.id)),
         }
 
-    upcoming = base.filter(data__gte=today).exclude(estado__in=("cancelada", "concluida", "faltou")).order_by("data", "hora_inicio")
-    previous = base.filter(Q(data__lt=today) | Q(estado__in=("concluida", "faltou"))).order_by("-data", "-hora_inicio")
-
     return {
-        "upcoming": [row(a) for a in upcoming[:limit]],
-        "previous": [row(a) for a in previous[:limit]],
+        "upcoming": [row(a) for a in upcoming],
+        "previous": [row(a) for a in previous],
     }
 
 

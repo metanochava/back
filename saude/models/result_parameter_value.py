@@ -1,9 +1,13 @@
 from django.db import models
 
 from django_resaas.saas.core.base.models import BaseModel
+from saude.models.clinical_document_state import active_state_field
 
 
 class ResultParameterValue(BaseModel):
+
+    # a patient document: Active from creation (saude/models/clinical_document_state.py)
+    state = active_state_field()
     """One structured value of a result (ResultadoExameMedico) for one
     parameter. It keeps a SNAPSHOT of the definition used when it was
     recorded (code, name, unit, reference, flag), so the historical record

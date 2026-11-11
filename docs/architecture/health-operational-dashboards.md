@@ -303,7 +303,7 @@ body is ignored, so patient A cannot even ask for patient B's data (tested with
 |---|---|
 | `status` | `{portal, patient}`, always `200` (the welcome page uses it) |
 | `summary` | name, next appointment, pending exams, results released in the last 30 days, prescriptions count |
-| `appointments` | upcoming and previous (date, time, doctor, status) |
+| `appointments` | upcoming and previous (date, time, doctor, status; `rateable`, `rating`) |
 | `exams` | own exam items with a patient-facing status; "Result available" once released |
 | `results` | **released** results only (latest *released* revision), with values of `patient_visible` parameters (value, unit, reference, flag), the free-form `value` (`valor_resultado`, for results without structured values) and the report |
 | `trends` | numeric, **graphable**, patient-visible parameters with released values; `?parameter=<code>&from=&to=` gives the series (released only) |
@@ -318,6 +318,47 @@ Only a newer **released** revision supersedes (lab phase 14): while an amendment
 is being corrected (revision N+1 not yet released) the patient keeps seeing
 revision N, in `results` and in `trends`; once N+1 is released it replaces N.
 The doctor's consultation panel (`lab_summary`) follows the same rule.
+
+### Rating the doctor (`POST /api/saude/me/rate/`)
+
+`{appointment, stars, comment?}`, permission `rate_own_appointments` (Patient
+profile). Only the caller's own appointment, only `concluida` with a doctor,
+once (`saude/services/doctor_rating_service.py`, source `saude.agenda` of hr's
+`EmployeeRating`). `appointments` rows carry `rateable` and `rating`. Tests:
+`saude/tests/test_doctor_rating.py`.
+
+### The doctor dialog and the public site
+
+One dialog (`dev/front/src/pages/saude/components/DoctorProfileDialog.vue`) for
+the app (the doctor's photo in the right menu) and for the site ("Our doctors",
+the booking form). Its body is only public data: name, photo, category, Medical
+Council number, specialties, bio, languages, branches and the ratings
+(`DoctorRatingCard.vue`: average, distribution, approved comments; the viewer
+switches **This clinic / All clinics**).
+
+- App: `GET /api/saude/doctorprofile/<employee id>/[?scope=entity|global]`,
+  **PROTECTED** by membership only (any member of the Entity, signed context,
+  saude active) - no HR or doctor permission, so a missing permission no longer
+  breaks the dialog. Employee of another Entity: `404`. Moderators also get the
+  pending comments. HR data (`view_employee`) and signature/stamp
+  (`list_medico`) are added by the dialog only for who has them.
+- Site: `saude/publicbooking/doctors/` rows carry `bio`, `languages` and
+  `rating {average, count}`; `GET saude/publicbooking/rating/?doctor=&scope=`
+  gives the summary with approved comments. **PUBLIC**, throttled, Entity from
+  the Origin.
+
+### Patient documents are Active from creation
+
+TimeModel's `state` defaults to `Inactive`, and the right-menu history
+(`HistoryList`, `state=Active`) and other lists only show Active rows: new
+consultations and prescriptions vanished from the menu. Every saude model that
+reaches the `Paciente` declares `state = active_state_field()`
+(`saude/models/clinical_document_state.py`), whatever creates it (form, view
+action, service). Migrations `0020`/`0021` activated the existing Inactive rows
+that were not deleted (result folders aside). `Paciente` itself is left out:
+there `Inactive` means merged into another record. Guard:
+`saude/tests/test_patient_documents_active.py`. Clicking the right-menu title
+reloads the list from the newest record.
 
 ### Patient dashboard (`saude_patient`)
 

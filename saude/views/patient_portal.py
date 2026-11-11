@@ -48,6 +48,7 @@ class PatientPortalViewSet(ActionPermissionMixin, ExplicitAccessMixin, viewsets.
         "trends": "view_own_trends",
         "prescriptions": "view_own_prescriptions",
         "vitals": "view_own_vitals",
+        "rate": "rate_own_appointments",
     }
 
     def initial(self, request, *args, **kwargs):
@@ -82,6 +83,19 @@ class PatientPortalViewSet(ActionPermissionMixin, ExplicitAccessMixin, viewsets.
             "portal": paciente is not None,
             "patient": paciente.person.full_name if paciente else None,
         })
+
+    @action(detail=False, methods=["post"])
+    def rate(self, request):
+        """POST me/rate/ {appointment, stars, comment?} - rates the doctor of
+        one of the caller's own completed appointments (once)."""
+        from saude.services import doctor_rating_service
+
+        rating = doctor_rating_service.rate_appointment(
+            portal.require_self(request), request.data.get("appointment"),
+            request.data.get("stars"), request.data.get("comment"),
+        )
+        return Response({"appointment": str(rating.source_id), "stars": rating.stars,
+                         "comment_status": rating.comment_status}, status=201)
 
     @action(detail=False, methods=["get"])
     def summary(self, request):
