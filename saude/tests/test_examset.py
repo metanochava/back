@@ -95,3 +95,16 @@ class ExamSetTests(TestCase):
 
     def test_without_permission_nothing_is_listed(self):
         self.assertEqual(_client(self.tenant, []).get(URL).status_code, 403)
+
+    def test_the_owner_edits_name_and_exams_another_user_cannot(self):
+        set_id = self._create(self.doctor, "Routine", [self.cbc]).data["id"]
+
+        response = self.doctor.patch(f"{URL}{set_id}/", {"name": "Routine v2",
+                                     "exams": [str(self.cbc.id), str(self.glucose.id)]}, format="json")
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual((response.data["name"], set(response.data["exams"])),
+                         ("Routine v2", {str(self.cbc.id), str(self.glucose.id)}))
+        self.assertEqual(response.data["scope"], "mine")
+
+        self.assertEqual(self.colleague.patch(f"{URL}{set_id}/", {"name": "Hijack"}, format="json").status_code, 404)
+        self.assertEqual(self.doctor.patch(f"{URL}{set_id}/", {"exams": []}, format="json").status_code, 400)
