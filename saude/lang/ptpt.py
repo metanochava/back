@@ -2236,4 +2236,6 @@ key_value = {
     "Choose a doctor.": "Escolha um médico.",
     "Book in another branch": "Marcar noutra unidade",
     "Doctor has no schedule configured for this day — using the branch's opening hours.": "O médico não tem horário configurado para este dia — a usar o horário de abertura da unidade.",
+    "About this doctor": "Sobre este médico",
+    "Book a consultation with this doctor": "Marcar uma consulta com este médico",
 }

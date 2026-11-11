@@ -19,4 +19,4 @@ class ClinicalSummarySerializer(BaseSerializer):
 
     def get_medico(self, obj):
         employee = obj.consulta.employee
-        return {"name": employee.person.full_name} if employee else None
+        return {"name": employee.person.full_name, "employee": str(employee.id)} if employee else None

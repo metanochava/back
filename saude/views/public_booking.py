@@ -22,8 +22,9 @@ class PublicBookingViewSet(ResaasResponseMixin, viewsets.ViewSet):
     names, specialties, photos and free/booked times; a booking is an
     AppointmentRequest that staff confirm (AppointmentRequestAPIView).
 
-        GET  saude/publicbooking/doctors/
-        GET  saude/publicbooking/availability/?doctor=<id>&date=YYYY-MM-DD
+        GET  saude/publicbooking/branches/
+        GET  saude/publicbooking/doctors/[?branch=<id>]
+        GET  saude/publicbooking/availability/?doctor=<id>&date=YYYY-MM-DD[&branch=<id>]
         POST saude/publicbooking/requests/
     """
 
@@ -46,13 +47,20 @@ class PublicBookingViewSet(ResaasResponseMixin, viewsets.ViewSet):
         return entity
 
     @action(detail=False, methods=["get"])
+    def branches(self, request):
+        return Response(public_booking_service.public_branches(self._entity(request)))
+
+    @action(detail=False, methods=["get"])
     def doctors(self, request):
-        return Response(public_booking_service.public_doctors(self._entity(request), request))
+        return Response(public_booking_service.public_doctors(
+            self._entity(request), request, branch_id=request.query_params.get("branch")
+        ))
 
     @action(detail=False, methods=["get"])
     def availability(self, request):
         return Response(public_booking_service.available_slots(
-            self._entity(request), request.query_params.get("doctor"), request.query_params.get("date")
+            self._entity(request), request.query_params.get("doctor"), request.query_params.get("date"),
+            branch_id=request.query_params.get("branch"),
         ))
 
     @action(detail=False, methods=["post"])
