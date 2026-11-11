@@ -31,7 +31,9 @@ class GuiaTransferenciaSerializer(BaseSerializer):
             ).data
 
 
-            return {'name' : obj.consulta.employee.person.full_name, 'profile': user_data['profile']}
+            return {'name' : obj.consulta.employee.person.full_name, 'profile': user_data['profile'],
+                    # the right menu's doctor dialog loads the doctor by it
+                    'employee': str(obj.consulta.employee_id)}
 
         else:
             return None

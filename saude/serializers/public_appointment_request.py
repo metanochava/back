@@ -2,11 +2,15 @@ from rest_framework import serializers
 
 
 class PublicAppointmentRequestSerializer(serializers.Serializer):
-    """What a visitor sends from the public site. Entity, Branch, status and
-    the end time are never fields: they come from the Origin and the
-    doctor's schedule (public_booking_service)."""
+    """What a visitor sends from the public site. Entity, status and the end
+    time are never fields: they come from the Origin and the doctor's
+    schedule (public_booking_service). The branch may be chosen, among the
+    Origin's Entity's branches only."""
 
     doctor = serializers.CharField()
+    # the branch chosen on the site (optional; one of the clinic's - checked
+    # by public_booking_service against the Origin's Entity)
+    branch = serializers.CharField(required=False, allow_blank=True)
     date = serializers.DateField()
     time = serializers.RegexField(r"^\d{2}:\d{2}$")
     name = serializers.CharField(max_length=150, trim_whitespace=True)
