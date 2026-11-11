@@ -2286,4 +2286,5 @@ key_value = {
     "Only who manages the clinic's exam sets may change them.": "Só quem gere os conjuntos de exames da clínica os pode alterar.",
     "Can manage the clinic's exam sets": "Pode gerir os conjuntos de exames da clínica",
     'Owner': "Dono",
+    "Add exams to the request first, then save them as a set": "Adicione primeiro exames ao pedido e depois grave-os como conjunto",
 }
