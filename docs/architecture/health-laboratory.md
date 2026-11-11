@@ -772,3 +772,23 @@ the priority of all of them. They are sent per item
 `instrucoes`, `observacao`) - before, the form holding them was never on the
 page, so every exam went as Normal. While searching the catalogue, every type
 and class found opens and the matching text is highlighted (`s-highlight`).
+
+### Exam sets (`examsets/`)
+
+Named sets of exams on the exam request page (`ExamSetsPanel.vue`, first in
+the catalogue column): clicking a set adds all its exams to the request
+(those already there are skipped; nothing is saved until the request is).
+"Save as exam set" (right column) saves the exams added so far as a set.
+
+- Model `saude.ExamSet` (`name`, `exams` M2M `ExameMedico`, `owner`). Entity
+  wide, like the catalogue (cross-branch). `owner` empty = **the clinic's**
+  set, seen by everyone; `owner` = a user = a **personal** set, seen only by
+  that user (another user's is `404`). The owner comes from `scope`
+  (`mine|entity`) on create, never from the client. Names are unique per
+  owner (case-insensitive), exams must be of the Entity's catalogue.
+- `GET/POST examsets/`, `PATCH/DELETE examsets/{id}/`: `list/add/change/delete_examset`;
+  creating, changing or removing a clinic set also needs `manage_entity_examset`
+  (`403` otherwise). Not paginated.
+- Profiles: Doctor and Health Administrator get the CRUD, Receptionist
+  `list_examset`, Health Administrator `manage_entity_examset`.
+- Tests: `saude/tests/test_examset.py`, `dev/front/.../ExamSetsPanel.spec.js`.
