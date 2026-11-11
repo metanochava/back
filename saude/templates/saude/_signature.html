@@ -1,3 +1,4 @@
+{% load clinic %}
 {% comment %}
 Signature of a health PDF, fixed right above the footer line of every page:
 the date on the left on the same line as the signature line, drawn with
@@ -19,7 +20,7 @@ footer's bottom offset both grow by 50px (the footer stays where it was).
 <table class="sign-block">
   <tr class="sign-space"><td></td><td></td></tr>
   <tr>
-    <td class="sign-date">{% if sign_date %}&nbsp;&nbsp;<b>{{ sign_date }}</b>{% endif %}</td>
+    <td class="sign-date">{% if print_date %}&nbsp;&nbsp;<b>{{ print_date|long_date }}</b>{% elif sign_date %}&nbsp;&nbsp;<b>{{ sign_date }}</b>{% endif %}</td>
     <td class="sign-cell"><div class="sign-rule">______________________________</div></td>
   </tr>
   <tr>

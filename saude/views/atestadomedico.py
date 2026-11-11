@@ -1,4 +1,5 @@
 
+from saude.services import reprint
 from django_resaas.saas.core.base.views import BaseAPIView
 from saude.services.document_edit_policy import DocumentEditWindowMixin, author_name
 from saude.services.document_signer import signer_role, with_category
@@ -79,7 +80,7 @@ class AtestadoMedicoAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPI
         qr_b64 = make_qr_b64(f"{atestado.id}")
         barcode_b64 = make_barcode_b64(f"{atestado.id}")
         
-        return PDF("saude/atestadomedico.html", request, 
+        return PDF("saude/atestadomedico.html", request, print_date=reprint.print_date(request), 
             entity=entity,
             logo_b64=logo_b64,
             qr_b64=qr_b64,

@@ -181,6 +181,29 @@ class PrescriptionPdfTests(TestCase):
         self.assertIn("<tr><th>Notes</th></tr>", html)
         self.assertIn("<p>Depois das refeições</p>", html)
 
+    def test_a_reprint_prints_the_date_asked_next_to_the_signature_and_saves_nothing(self):
+        from datetime import date
+
+        html = self._html_with(print_date=date(2026, 11, 20))
+        self.assertIn("20 de Novembro de 2026", html)
+
+        client = _client_with(self.tenant, DOCTOR + ["pdf_receitamedica"])
+        before = ReceitaMedica.objects.filter(id=self.receita.id).values("data", "hora", "updated_at").get()
+        response = client.get(f"{URL}{self.receita.id}/pdf/", {"date": "2026-11-20"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content[:4], b"%PDF")
+        self.assertEqual(ReceitaMedica.objects.filter(id=self.receita.id).values("data", "hora", "updated_at").get(), before)
+
+        self.assertEqual(client.get(f"{URL}{self.receita.id}/pdf/", {"date": "not-a-date"}).status_code, 400)
+
+    def _html_with(self, **extra):
+        from django.template.loader import render_to_string
+        from django.test import RequestFactory
+        from saude.services import prescription_service
+
+        context = prescription_service.pdf_context(RequestFactory().get("/"), self.receita)
+        return render_to_string("saude/receitamedica.html", {**context, **extra})
+
     def test_without_notes_there_is_no_notes_section(self):
         ItemReceita.objects.filter(receita=self.receita).update(observacao="<p></p>")
 

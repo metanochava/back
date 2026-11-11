@@ -1,3 +1,4 @@
+from saude.services import reprint
 import uuid
 
 from django_resaas.saas.core.base.views import BaseAPIView
@@ -106,7 +107,7 @@ class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
         # patient, exams, address, age and the translated texts: exam_request_service.pdf_context
         return PDF(
             "saude/pedidoexamemedico.html",
-            request,
+            request, print_date=reprint.print_date(request),
             entity=entity,
             logo_b64=logo_b64,
             qr_b64=make_qr_b64(str(pedido.id)),

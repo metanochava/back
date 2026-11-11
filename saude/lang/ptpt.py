@@ -2297,4 +2297,11 @@ key_value = {
     "Add to this set the exams already in the request": "Adicionar a este conjunto os exames que já estão no pedido",
     "Exam no longer in the catalogue": "Exame que já não está no catálogo",
     "Save the changes to this set": "Gravar as alterações a este conjunto",
+    "Date next to the signature": "Data ao lado da assinatura",
+    "The document is printed again with this date; nothing is changed.": "O documento é impresso de novo com esta data; nada é alterado.",
+    "Close without printing": "Fechar sem imprimir",
+    "Print the document with this date": "Imprimir o documento com esta data",
+    "Could not print the document.": "Não foi possível imprimir o documento.",
+    "Times inside the doctor's schedule and the branch's opening hours.": "Horas dentro do horário do médico e do horário de abertura da unidade.",
+    "The branch is closed on this day.": "A unidade está fechada neste dia.",
 }

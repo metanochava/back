@@ -36,7 +36,7 @@
 
 <div class="c-meta">
   {{ labels.professional }}: <b>{{ professional }}</b>{% if professional_position %} · {{ professional_position }}{% endif %}
-  · {{ consulta.created_at|long_date:"time" }}
+  · {% if print_date %}{{ print_date|long_date }}{% else %}{{ consulta.created_at|long_date:"time" }}{% endif %}
   {% if appointment_time %} · {{ labels.appointment }} {{ appointment_time }}{% endif %}
 </div>
 

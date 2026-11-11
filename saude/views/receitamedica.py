@@ -1,3 +1,4 @@
+from saude.services import reprint
 from saude.services.document_edit_policy import author_name
 from saude.services.document_signer import signer_role, with_category
 from django_resaas.saas.core.utils.translate import Translate
@@ -86,7 +87,7 @@ class ReceitaMedicaAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPIV
         barcode_b64 = make_barcode_b64(str(receita.id).split("-")[0].upper())
 
         return PDF(
-            "saude/receitamedica.html", request,
+            "saude/receitamedica.html", request, print_date=reprint.print_date(request),
             entity=entity, logo_b64=logo_b64, qr_b64=qr_b64, barcode_b64=barcode_b64,
             signer_name=with_category(receita, author_name(receita)),
             signer_role=signer_role(request, receita, fallback=Translate.tdc(request, "Doctor")),
