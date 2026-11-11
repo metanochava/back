@@ -59,6 +59,8 @@ DASHBOARD_PERMISSIONS = [
     ("view_own_trends", "Can view own health trends in the patient portal"),
     ("view_own_prescriptions", "Can view own prescriptions in the patient portal"),
     ("view_own_vitals", "Can view own vital signs in the patient portal"),
+    # exam sets of the whole Entity (saude/views/examset.py): create, change, remove
+    ("manage_entity_examset", "Can manage the clinic's exam sets"),
     ("rate_own_appointments", "Can rate the doctor of own completed appointments in the patient portal"),
 ]
 

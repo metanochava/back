@@ -50,6 +50,8 @@ CLINICAL_PROFILES = [
             "view_examemedico", "view_tipoexamemedico", "view_classeexamemedico",
             # the Entity's quick list of exams on the exam request (shared)
             "list_favouriteexam", "add_favouriteexam", "delete_favouriteexam",
+            # exam sets (saude/views/examset.py): own ones; the Entity's need manage_entity_examset
+            "list_examset", "add_examset", "change_examset", "delete_examset",
             "view_resultadoexamemedico", "lab_evolution_paciente",
             "view_dashboard_saude_doctor",
             # PDF of the documents the doctor already sees (same content, another
@@ -193,6 +195,7 @@ FRONT_OFFICE_PROFILES = [
             "list_tipoexamemedico",
             # and its quick list of exams (read only)
             "list_favouriteexam",
+            "list_examset",
             # lookups of the booking dialog (specialty -> doctor -> room/schedule)
             "list_specialty", "view_specialty",
             "list_medico", "view_medico",
@@ -392,6 +395,9 @@ MANAGEMENT_PROFILES = [
             "list_classeexamemedico", "add_classeexamemedico", "change_classeexamemedico",
             # the quick list of exams of the exam request
             "list_favouriteexam", "add_favouriteexam", "delete_favouriteexam",
+            # exam sets (saude/views/examset.py): own ones; the Entity's need manage_entity_examset
+            "list_examset", "add_examset", "change_examset", "delete_examset",
+            "manage_entity_examset",
             "view_resultadoexamemedico",
             "view_dashboard_saude_clinica",
             # Clinical Summary lists (read)
