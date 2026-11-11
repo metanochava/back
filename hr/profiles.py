@@ -43,6 +43,7 @@ HR_PROFILES = [
             *_CRUD("disciplinarycase"), "start_review_disciplinarycase", "resolve_disciplinarycase",
             *_CRUD("resignation"), "accept_resignation",
             *_CRUD("termination"), *_CRUD("transfer"), *_CRUD("promotion"),
+            "list_employeerating", "view_employeerating", "moderate_employeerating",
         ],
     },
     {
@@ -111,6 +112,8 @@ HR_PROFILES = [
             "view_transfer", "list_transfer",
             "view_promotion", "list_promotion",
             "view_employee",
+            # ratings of the employees: read and moderate their comments
+            "list_employeerating", "view_employeerating", "moderate_employeerating",
         ],
     },
     {
@@ -136,6 +139,7 @@ HR_PROFILES += [
         "permissions": [
             "view_employee", "add_employee", "change_employee", "list_employee",
             "view_department", "add_department", "change_department", "list_department",
+            "list_employeerating", "view_employeerating", "moderate_employeerating",
         ],
     },
     {

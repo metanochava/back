@@ -1,8 +1,12 @@
 from django.db import models
 from django_resaas.saas.core.base.models import BaseModel
+from saude.models.clinical_document_state import active_state_field
 
 
 class ClinicalSummary(BaseModel):
+
+    # Active from creation (the right-menu history lists only Active ones)
+    state = active_state_field()
     """Clinical summary (resumo clínico): a structured, signed account of a
     patient's case - history, findings, diagnoses, investigations, treatment,
     clinical course and recommendations - issued at a consultation (for a

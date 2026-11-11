@@ -26,6 +26,19 @@ Other modules of this application depend on it (e.g. `saude.Medico.employee`).
 -   `Employee`, `Department`, `JobPosition` - core organizational structure. `Employee` links to
     `Person` (from `django_resaas`), an optional `manager` (self-referential), and a `position`.
 -   `Specialty`, `EmployeeSpecialty` - skills/specialties an employee can hold.
+-   `Employee` public profile: `public_bio`, `public_languages` (what the clinic's site and the
+    doctor dialog of colleagues without HR permissions may show) and `share_ratings_globally`.
+-   `EmployeeRating` - 1-5 stars and an optional comment given to an employee. Generic: the
+    module that owns the rated service checks who may rate and calls
+    `hr/services/employee_rating_service.rate()` with its source (`source_type` + `source_id`,
+    unique: one rating per source, a repeat is `409 already_rated`); hr never imports that
+    module. The stars count at once; a comment is `pending` until someone with
+    `moderate_employeerating` approves or rejects it (`POST hr/employeeratings/{id}/moderate/`,
+    `{status}`; the list is read only, no create). `summary(employee, scope)` gives average,
+    count, distribution and this Entity's approved comments (never the rater): scope `entity`
+    is the employee's Entity; `global` adds the same `Person`'s employee rows in other Entities
+    that keep `share_ratings_globally`. Moderation is granted to Human Resources Manager,
+    Employee Relations Officer and Admin (and Health Administrator by saude).
 -   `Shift`, `EmployeeShift`, `ShiftSchedule`, `Attendance` - work-schedule and clock-in/out
     tracking. `Attendance` stores `check_in`/`check_out`, `source` (Manual/Web/Mobile/Biometric/
     RFID/API/External Device - only Manual/Web are actually produced today, the rest exist so the

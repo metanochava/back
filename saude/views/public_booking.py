@@ -24,6 +24,7 @@ class PublicBookingViewSet(ResaasResponseMixin, viewsets.ViewSet):
 
         GET  saude/publicbooking/branches/
         GET  saude/publicbooking/doctors/[?branch=<id>]
+        GET  saude/publicbooking/rating/?doctor=<id>[&scope=entity|global]
         GET  saude/publicbooking/availability/?doctor=<id>&date=YYYY-MM-DD[&branch=<id>]
         POST saude/publicbooking/requests/
     """
@@ -54,6 +55,12 @@ class PublicBookingViewSet(ResaasResponseMixin, viewsets.ViewSet):
     def doctors(self, request):
         return Response(public_booking_service.public_doctors(
             self._entity(request), request, branch_id=request.query_params.get("branch")
+        ))
+
+    @action(detail=False, methods=["get"])
+    def rating(self, request):
+        return Response(public_booking_service.public_doctor_rating(
+            self._entity(request), request.query_params.get("doctor"), request.query_params.get("scope"),
         ))
 
     @action(detail=False, methods=["get"])

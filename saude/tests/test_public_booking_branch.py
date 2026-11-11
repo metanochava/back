@@ -67,3 +67,19 @@ class PublicBookingBranchTests(PublicBookingTestCase):
     def test_a_branch_of_another_clinic_is_not_found(self):
         response = self._get("doctors/", branch="00000000-0000-0000-0000-000000000000")
         self.assertEqual(response.status_code, 404)
+
+    def test_the_site_shows_the_doctor_rating_and_public_profile(self):
+        from hr.services import employee_rating_service
+
+        self.doctor.public_bio = "Family medicine."
+        self.doctor.save()
+        employee_rating_service.rate(employee=self.doctor, stars=4, comment="Kind", source_type="test",
+                                     source_id=self.doctor.id)
+
+        doctor = self._get("doctors/").json()[0]
+        self.assertEqual(doctor["bio"], "Family medicine.")
+        self.assertEqual(doctor["rating"], {"average": 4.0, "count": 1})
+
+        rating = self._get("rating/", doctor=str(self.doctor.id)).json()
+        self.assertEqual((rating["average"], rating["comments"]), (4.0, []))   # comment not approved yet
+        self.assertNotIn("pending", rating)

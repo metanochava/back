@@ -3,9 +3,13 @@ from django.db import models
 from django.db.models import Q
 
 from django_resaas.saas.core.base.models import BaseModel
+from saude.models.clinical_document_state import active_state_field
 
 
 class AppointmentRequest(BaseModel):
+
+    # a patient document: Active from creation (saude/models/clinical_document_state.py)
+    state = active_state_field()
     """An appointment asked for on the clinic's public site.
 
     A visitor is not a patient, and Agenda needs one, so the booking is a

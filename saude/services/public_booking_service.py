@@ -137,25 +137,43 @@ def _photo_url(person, request):
     return FullPath.url(request, person.photo.url, temporary=False)
 
 
+def public_doctor_row(e, request=None, rating=None):
+    """What anyone may see of a doctor (the site and the doctor dialog of the
+    app): name, photo, category, Medical Council number, specialties, bio,
+    languages, branches and the rating (average/count). Never the signature,
+    the stamp, contacts or HR data."""
+    return {
+        "id": str(e.id),
+        "name": e.person.full_name,
+        "category": (getattr(getattr(e, "medico", None), "categoria", None) or "").strip(),
+        # the Medical Council number (printed on the documents they sign)
+        "order_number": (getattr(getattr(e, "medico", None), "numero_ordem", None) or "").strip(),
+        "specialties": _specialties(e),
+        "photo": _photo_url(e.person, request),
+        "branches": _doctor_branches(e),
+        "bio": (e.public_bio or "").strip(),
+        "languages": (e.public_languages or "").strip(),
+        "rating": rating or {"average": None, "count": 0},
+    }
+
+
 def public_doctors(entity, request=None, branch_id=None):
-    """What the site shows of a doctor (the profile dialog of "Our doctors"
-    and of the booking form): name, photo, category, specialties and the
-    branches they can be booked in."""
+    """The site's doctors (the profile dialog of "Our doctors" and of the
+    booking form), with the branches they can be booked in."""
+    from hr.services import employee_rating_service
+
     _branch(entity, branch_id)
-    return [
-        {
-            "id": str(e.id),
-            "name": e.person.full_name,
-            "category": (getattr(e.medico, "categoria", None) or "").strip(),
-            # the Medical Council number (printed on the documents they sign);
-            # never the signature, stamp or HR data
-            "order_number": (getattr(e.medico, "numero_ordem", None) or "").strip(),
-            "specialties": _specialties(e),
-            "photo": _photo_url(e.person, request),
-            "branches": _doctor_branches(e),
-        }
-        for e in _doctor_queryset(entity, branch_id).order_by("person__full_name")
-    ]
+    doctors = list(_doctor_queryset(entity, branch_id).order_by("person__full_name"))
+    ratings = employee_rating_service.averages(e.id for e in doctors)
+    return [public_doctor_row(e, request, ratings.get(str(e.id))) for e in doctors]
+
+
+def public_doctor_rating(entity, doctor_id, scope="entity"):
+    """The rating of one of the site's doctors: average, count, distribution
+    and the approved comments (this Entity's), for the chosen scope."""
+    from hr.services import employee_rating_service
+
+    return employee_rating_service.summary(_doctor(entity, doctor_id), scope)
 
 
 def _specialty_title(doctor, specialty_id):

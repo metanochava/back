@@ -82,6 +82,18 @@ class Employee(BaseModel):
     work_phone = models.CharField(max_length=30, null=True, blank=True)
 
     # ==========================================
+    # PUBLIC PROFILE
+    # ==========================================
+    # What may be shown to anyone (the clinic's public site, the doctor
+    # dialog of colleagues without HR permissions): never the HR data above.
+    public_bio = models.TextField(null=True, blank=True)
+    # "Portuguese, English" - free text, shown as written
+    public_languages = models.CharField(max_length=200, null=True, blank=True)
+    # the employee's ratings in this Entity count in the SaaS-wide average
+    # of the same Person (EmployeeRating, hr/services/employee_rating_service.py)
+    share_ratings_globally = models.BooleanField(default=True)
+
+    # ==========================================
     # DATES
     # ==========================================
 

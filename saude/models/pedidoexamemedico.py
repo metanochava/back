@@ -1,9 +1,13 @@
 from django.db import models
 from django_resaas.saas.core.base.models import BaseModel
+from saude.models.clinical_document_state import active_state_field
 from django_resaas.saas.core.utils import upload_path
 
 
 class PedidoExameMedico(BaseModel):
+
+    # Active from creation (the right-menu history lists only Active ones)
+    state = active_state_field()
 
     ORIGIN_CONSULTATION = "consultation"
     ORIGIN_DIRECT = "direct"
