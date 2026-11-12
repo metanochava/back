@@ -169,6 +169,19 @@ API: `/api/inventory/stockreservations/` - `GET`, `POST` (a manual reservation:
 
 Migration: `inventory.0003_stock_reservations`.
 
+## Consumption by a document
+
+`services.commit_consumption_movements(document_type, document_id, items,
+entity_id, branch_id, user, warehouse_id=None)` (2026-11-12): goods used up
+by a service performed - the reagents of an exam, the linen of a hotel room,
+the ingredients of a dish. The caller names its document; inventory never
+knows what it is. Services and templates are skipped (they hold no stock),
+another Entity's products are refused, the warehouse defaults to the first
+active one of the Branch that can serve every line, missing stock raises
+(nothing moves), and a document that already has movements returns `[]` (no
+second consumption). Health uses it for exam materials - see
+[health-billing.md](../architecture/health-billing.md).
+
 ## Tests
 
 `inventory/tests`: ledger invariant, concurrency, tenant isolation, dashboard,

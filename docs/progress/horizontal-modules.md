@@ -131,6 +131,34 @@ resolved form).
 | School with configurable forms | django_resaas `forms/tests/test_api.py` (school.enrolment: platform → entity → branch), `test_examples.py` |
 | Pharmacy with the global catalogue and local offers | `farmacia/tests/test_marketplace.py` |
 
+### Phase 9 - Documentation and final report (2026-11-12)
+
+Documentation: [catalog.md](../modules/catalog.md) (new),
+[health-billing.md](../architecture/health-billing.md) (new),
+[sales.md](../modules/sales.md) and [inventory.md](../modules/inventory.md)
+updated, django_resaas `docs/architecture/form-engine.md` (new, with the
+clinic / hotel / school examples).
+
+**Final state (dev, local commits, nothing pushed or deployed):**
+
+| | Implemented | Partial / pending |
+|---|---|---|
+| Catalog | own module, same tables and ids, services, menu, profiles, activated with its consumers | pharmacy's global medicine catalogue still separate (to unify into catalog as the platform's reference catalogue) |
+| Inventory | consumes the catalog; generic consumption by document | - |
+| Sales | sells catalogued goods and services without inventory; customer for a person | POS base price ignores the customer's price list (known before) |
+| Health | consultation and exam charging, exam materials, medication presentations, billing page, charge shown after check-out | procedures not charged; undoing a check-out keeps the draft sale; admission consolidation |
+| Form Engine | DSL, definitions, four modes, layers with versions, server validation, drafts, renderer, component registry, Forms page | domain screens still use their own forms (adopt per screen); frontend lint of the library files not run |
+| Events | sales events unchanged | domain-event outbox between modules |
+
+Tests (real runs): regression of catalog/inventory/sales/farmacia/purchases/
+accounting 507 passed (one stale pharmacy test fixed); phases 4-5 40/40;
+health billing 11/11; integration clinic 1/1; Form Engine backend 30/30,
+REST guard 37/37, frontend 14/14 + earlier specs.
+
+Production: needs releases of both libraries, pushes (no credentials on the
+server for dev/front and quasar_resaas) and inventory's state migration
+written by hand (see catalog.md) - only on the owner's request.
+
 Proposal kept from phase 1:
 
 Catalog as its own horizontal module (`back/catalog`), reversing the
