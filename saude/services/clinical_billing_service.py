@@ -89,6 +89,13 @@ def medication_presentations(entity_id, medicamento_id):
 
 # ---------------------------------------------------------------- charging
 
+def charge_of(source_type, source_id):
+    """{"sale_id"} of the charge made for an act, or None (for the clinical
+    screens: "charged - open the sale")."""
+    charge = ClinicalCharge.objects.filter(source_type=source_type, source_id=source_id).only("sale_id").first()
+    return {"sale_id": str(charge.sale_id)} if charge else None
+
+
 def _charge(*, source_type, source_id, paciente, rules, branch_id, user, note):
     """A draft sale of the rules' items for the patient, once per act. None
     when nothing is charged (no rules / billing off / already charged)."""

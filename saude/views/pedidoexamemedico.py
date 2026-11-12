@@ -87,7 +87,9 @@ class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
         # the requested exams are charged (a draft sale) once, when they have
         # billing rules and sales is active
         clinical_billing_service.charge_exam_request(pedido, request.user)
-        return all(request, data=self.get_serializer(pedido).data)
+        data = dict(self.get_serializer(pedido).data)
+        data["charge"] = clinical_billing_service.charge_of(clinical_billing_service.SOURCE_EXAM_REQUEST, pedido.id)
+        return all(request, data=data)
 
    
     @action(

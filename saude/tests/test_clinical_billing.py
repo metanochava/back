@@ -75,6 +75,8 @@ class ClinicalBillingTests(TestCase):
         response = client.post(f"/api/saude/agendas/{agenda.id}/check_out/")
         self.assertIn(response.status_code, (200, 202), response.content)
         self.assertEqual(ClinicalCharge.objects.get(source_id=agenda.id).paciente_id, self.maria.id)
+        # the screen learns the sale it can open
+        self.assertEqual(response.data["charge"], {"sale_id": str(ClinicalCharge.objects.get().sale_id)})
 
     def test_an_exam_request_is_charged_for_each_exam(self):
         exam = _exame(self.tenant, "Blood count")

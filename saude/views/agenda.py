@@ -258,7 +258,9 @@ class AgendaAPIView(BaseAPIView):
         # the consultation is charged (a draft sale) when it has billing rules
         # and sales is active - once; never blocks the check-out
         clinical_billing_service.charge_consultation(agenda, request.user)
-        return Response(self.get_serializer(agenda).data)
+        data = dict(self.get_serializer(agenda).data)
+        data["charge"] = clinical_billing_service.charge_of(clinical_billing_service.SOURCE_AGENDA, agenda.id)
+        return Response(data)
 
     # Undo a reception step done by mistake: the same permission as the step
     # (whoever may check in may undo a check-in), state checked by the service.
