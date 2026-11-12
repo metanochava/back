@@ -38,3 +38,148 @@ framework fixes go to `django_resaas`.
 - `ThemeSurface.background_image` and the bootstrap e-mail logo return an
   unsigned media URL (no request to sign with); they answer `401` once `/media/`
   goes through Django. No data uses them today.
+
+## Catalog, Inventory, Sales, Health and Form Engine (initiative of 2026-11-11)
+
+### Phase 0 - audit (2026-11-11)
+
+Initial state: django_resaas 0.0.684 (develop, clean), quasar_resaas 0.0.1492
+(main), back 1.0.112 (develop), front 0.0.92 (main). The local changes in
+quasar_resaas, back and front are earlier uncommitted work (reprint, change_
+right menus, route scroll in every layout, booking times) - not part of this
+initiative.
+
+| Area | What exists | Gap |
+|---|---|---|
+| Catalogue | (before phase 2) In `inventory`: `Product` (`product_type` goods/service, `variant_of` + `variant_attributes`, `codigo`, `unidade`, `preco_base`), `ProductCategory`, `ProductMedia`, `PriceList`, `PriceListItem`, `get_price()` | Lives inside inventory (decision of 2026-10-11): without inventory there is no catalogue of services - "Catalog + Sales without Inventory" and "hotel without Health" have only free sale lines. No barcode/SKU separate from `codigo`, no units of measure model |
+| Inventory | `Warehouse`, `StockItem`, `StockMovement`, `Batch`, `BatchStock`, `StockReservation`, `InventoryCount(Line)`, `InventorySettings`; FEFO/FIFO, reservations, counts, reversals, no negative stock; services only (`services.py`, 1107 lines) | Consumes its own `Product`; would consume the catalog's |
+| Sales | `Sale`, `SaleItem` (loose `product_id` + name/code snapshot), `Payment`, `Customer` (`price_list_id`), `Tax`; inventory optional (`inventory()` / `stock_enabled()`), free lines for services; events `sales.sale.confirmed/cancelled`, `sales.payment.received` | `create_sale()` refuses any `product_id` without inventory ("The inventory module is required to sell products") - a catalogued service cannot be sold without inventory |
+| Pharmacy | `MedicineCatalogItem` / `MedicineCatalogMedia` (platform catalogue), `PharmacyOffer` (loose `product_id`), dispensation through `inventory.services.commit_dispensation_movements` | Global ↔ local link to review once the catalog is its own module |
+| Health | Clinical models only | No link at all to sales or inventory (no charging of consultations/exams, no material consumption) |
+| References | `product_id` in sales, purchases, farmacia (`produto_id`, `product_id`) are loose UUIDs, never FKs; horizontal modules import no vertical one | - |
+| Form engine | Schema 1.0 automatic forms (`AutoForm`, `FormTwo`, `FormComponent`, `ActionForm`, `FormSection`, `FieldComponent`, `utils/schema.js` `guessComponent`, `utils/autoForm.js` rules); dashboards already have a component registry (`components/dashboard/registry.js`) | No declarative definitions, no condition DSL, no component registry for forms, no PLATFORM → ENTITY TYPE → ENTITY → BRANCH configuration, no backend form definition model |
+| Events | `EventDispatcher` (`saas/core/events`), lifecycle events, notifications outbox | No outbox for domain events between modules |
+
+Tests today: 181 in inventory + sales + farmacia.
+
+### Phase 1 - decided 2026-11-11
+
+The owner chose: catalog as its own module; order Catalog → Sales → Health
+(the Form Engine after); the earlier uncommitted work committed separately
+(done, local only).
+
+### Phase 2 - Catalog (2026-11-11/12, dev)
+
+Done in dev, see [catalog.md](../modules/catalog.md): `back/catalog` with the
+five models (same tables and ids), `catalog.services`, menu, profiles,
+translations, compatibility names and routes in inventory; frontend on
+`/api/catalog/`. Dev DB backed up (`backups/dev-20261111-2359-before-catalog.dump`)
+and migrated: 40 products kept, ContentTypes and permissions in catalog,
+catalog active for 7 Entities. Production: inventory's state migration must
+be written by hand (see catalog.md).
+
+### Phase 4 - Sales on the catalog (2026-11-12, dev)
+
+`sales` reads items, names, codes and prices from `catalog.services` (no
+longer through inventory); `create_sale()` and sale lines need the catalog
+active, not inventory; stock still only through inventory, for goods, with a
+warehouse. Activating a consumer module activates the catalog. POS hides the
+warehouse without access to it. See [sales.md](../modules/sales.md).
+
+### Phase 5 - Health integration (2026-11-12, dev)
+
+`saude` models `ClinicalBillingRule` (consultation by specialty or any,
+exam, medicine -> its commercial presentations; catalogued item ids),
+`ExamMaterialRule`, `ClinicalCharge` and `MaterialConsumption` (one per act),
+service `saude/services/clinical_billing_service.py`, API
+`clinicalbillingrules`, `exammaterialrules`, `clinicalcharges`,
+`materialconsumptions`, migration `saude 0023`. Consultation charged at
+check-out, exam request at check-in (draft sales), exam materials consumed
+when performed (start of processing, or the result recorded). Without rules
+or modules nothing is charged / consumed; missing stock is recorded
+`failed`, never blocks. New generic services: `sales.customer_for_person`,
+`create_sale(customer_id=)`, `inventory.commit_consumption_movements`.
+Pending: procedures (free-text name, no catalogue), the rules' screens,
+cancelling the draft sale when a check-out is undone.
+
+### Phase 6 - Form Engine (2026-11-12, libraries, dev)
+
+django_resaas `saas/core/forms` (DSL, definitions, merge, resolver, registry
+of `<app>/forms.py`, submission validation), models `FormDefinition` /
+`FormDraft` (migration `0020_form_definitions`), API `formdefinitions`,
+`forms/resolve|validate|draft`; quasar_resaas `<s-dynamic-form>`,
+`DynamicField`, the component registry, `utils/formConditions.js` /
+`formDefinition.js`. Docs: django_resaas
+`docs/architecture/form-engine.md` (examples: clinic, hotel, school).
+
+### Phase 7 - Frontend (2026-11-12, dev)
+
+Health billing page (Saude → Billing: rules, exam materials, charges,
+consumptions), the POS warehouse only with stock access, the "consultation
+charged - open the sale" notice after a check-out (check-out and exam
+check-in return `charge.sale_id`), the Form Engine's Forms page (django_resaas
+Engine menu: layers, versions, JSON editor with live preview, publish,
+resolved form).
+
+### Phase 8 - Integration scenarios (2026-11-12, dev)
+
+| Scenario | Tests |
+|---|---|
+| Clinic with the three modules | `saude/tests/test_integration_clinic.py` (API end to end: charges, reagent consumed once, sale paid in two parts, stock, another clinic sees nothing) |
+| Office with Catalog + Sales, no Inventory | `sales/tests/test_catalog_sales.py::OfficeWithoutInventoryTests` |
+| Hotel without Health | `sales/tests/test_catalog_sales.py::HotelWithoutHealthTests`, django_resaas `forms/tests/test_examples.py` (check-in) |
+| School with configurable forms | django_resaas `forms/tests/test_api.py` (school.enrolment: platform → entity → branch), `test_examples.py` |
+| Pharmacy with the global catalogue and local offers | `farmacia/tests/test_marketplace.py` |
+
+### Phase 9 - Documentation and final report (2026-11-12)
+
+Documentation: [catalog.md](../modules/catalog.md) (new),
+[health-billing.md](../architecture/health-billing.md) (new),
+[sales.md](../modules/sales.md) and [inventory.md](../modules/inventory.md)
+updated, django_resaas `docs/architecture/form-engine.md` (new, with the
+clinic / hotel / school examples).
+
+**Final state (dev, local commits, nothing pushed or deployed):**
+
+| | Implemented | Partial / pending |
+|---|---|---|
+| Catalog | own module, same tables and ids, services, menu, profiles, activated with its consumers | pharmacy's global medicine catalogue still separate (to unify into catalog as the platform's reference catalogue) |
+| Inventory | consumes the catalog; generic consumption by document | - |
+| Sales | sells catalogued goods and services without inventory; customer for a person | POS base price ignores the customer's price list (known before) |
+| Health | consultation and exam charging, exam materials, medication presentations, billing page, charge shown after check-out | procedures not charged; undoing a check-out keeps the draft sale; admission consolidation |
+| Form Engine | DSL, definitions, four modes, layers with versions, server validation, drafts, renderer, component registry, Forms page | domain screens still use their own forms (adopt per screen); frontend lint of the library files not run |
+| Events | sales events unchanged | domain-event outbox between modules |
+
+Tests (real runs): regression of catalog/inventory/sales/farmacia/purchases/
+accounting 507 passed (one stale pharmacy test fixed); phases 4-5 40/40;
+health billing 11/11; integration clinic 1/1; Form Engine backend 30/30,
+REST guard 37/37, frontend 14/14 + earlier specs.
+
+Production: needs releases of both libraries, pushes (no credentials on the
+server for dev/front and quasar_resaas) and inventory's state migration
+written by hand (see catalog.md) - only on the owner's request.
+
+Proposal kept from phase 1:
+
+Catalog as its own horizontal module (`back/catalog`), reversing the
+2026-10-11 decision because it is what makes Catalog + Sales work without
+Inventory. Safe because no other module holds a foreign key to `Product`:
+
+- `catalog` takes `Product`, `ProductCategory`, `ProductMedia`, `PriceList`,
+  `PriceListItem` with `SeparateDatabaseAndState` migrations: same tables
+  (`db_table` kept), same ids, no data copied; inventory's own FKs point to
+  `catalog.Product`.
+- `catalog.services` (public): product snapshot, price, "is it stocked".
+  inventory and sales use it; inventory keeps its current functions as
+  compatibility wrappers while anything calls them.
+- sales accepts a catalog `product_id` without inventory; stock moves only
+  for stocked goods when inventory is active.
+- Health: links clinical services to catalog items (a mapping model in
+  saude, loose ids), charging through sales services when the act is
+  performed; dispensation and material consumption through inventory
+  services. No clinical model moves.
+- Form Engine in the libraries (transversal): a backend form definition
+  model with versioning and PLATFORM → ENTITY TYPE → ENTITY → BRANCH
+  precedence, a limited JSON condition DSL (no eval), and a frontend
+  renderer + component registry over the existing s-* fields, keeping
+  Schema 1.0.

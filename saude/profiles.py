@@ -191,6 +191,8 @@ FRONT_OFFICE_PROFILES = [
             # book a consultation for another branch of the clinic (the
             # booking dialog's Branch step; AgendaAPIView.book_other_branch)
             "book_other_branch_agenda",
+            # the charges made by check-outs and exam check-ins (paid in sales)
+            "list_clinicalcharge", "view_clinicalcharge",
             # exam catalogue of the exam request (saude/catalogoexames/)
             "list_tipoexamemedico",
             # and its quick list of exams (read only)
@@ -408,6 +410,12 @@ MANAGEMENT_PROFILES = [
             "view_saude_dashboard", "view_dashboard_saude_medicacao", "view_dashboard_saude_documentos_medicos", "view_dashboard_saude_exames", "view_dashboard_saude_historico_clinico",
             # the doctors' ratings (hr EmployeeRating): read and moderate their comments
             "list_employeerating", "view_employeerating", "moderate_employeerating",
+            # what clinical acts charge and consume (saude/views/clinical_billing.py)
+            "list_clinicalbillingrule", "view_clinicalbillingrule", "add_clinicalbillingrule",
+            "change_clinicalbillingrule", "delete_clinicalbillingrule",
+            "list_exammaterialrule", "view_exammaterialrule", "add_exammaterialrule",
+            "change_exammaterialrule", "delete_exammaterialrule",
+            "list_clinicalcharge", "view_clinicalcharge", "list_materialconsumption", "view_materialconsumption",
         ],
     },
 ]

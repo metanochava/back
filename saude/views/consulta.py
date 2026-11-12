@@ -1,3 +1,4 @@
+from saude.services import reprint
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -89,7 +90,7 @@ class ConsultaAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPIView):
 
         return PDF(
             "saude/consultamedica.html",
-            request,
+            request, print_date=reprint.print_date(request),
             entity=entity,
             logo_b64=logo_b64,
             qr_b64=qr_b64,

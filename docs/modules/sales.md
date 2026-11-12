@@ -26,28 +26,40 @@ Events emitted (for other modules, e.g. accounting - sales never knows who
 listens): `sales.sale.confirmed` and `sales.sale.cancelled` (`context.amount` =
 total), `sales.payment.received` (`amount`, `sale_id`, `method`).
 
-## Inventory is optional
+## Catalog and Inventory are optional
 
-`sales` uses `inventory.services` only when the `inventory` app is installed
-**and** the module is active for the Entity (`sales.services.inventory()` /
+What is sold comes from **catalog** (goods and services); stock from
+**inventory**. `sales` uses each one's public services only when the app is
+installed **and** the module is active for the Entity, never their models
+(`sales.services.catalog()` / `catalog_enabled()`, `inventory()` /
 `stock_enabled()`):
 
 | Situation | Behaviour |
 |---|---|
-| inventory active, sale has a warehouse | confirming moves stock out for the **product lines** (`stock_tracked=true`); cancelling returns it |
-| no warehouse, or inventory inactive | the sale works, no stock moves (`stock_tracked=false`) |
-| inventory not installed | as above; a `product_id` or `warehouse_id` cannot be validated, so they are refused (`400`) |
+| catalog active | a line can be one of the Entity's catalogued goods or services (`product_id`): its `product_nome` / `product_codigo` are a snapshot from the catalog, whatever the client sent, and its price (when not sent) the customer's price list, else the base price |
+| catalog inactive | only free lines (`product_nome` as description); a `product_id` is `400` and `create_sale()` refuses |
+| inventory active, sale has a warehouse | confirming moves stock out for the **goods** lines (`stock_tracked=true`); a service never holds stock; cancelling returns it |
+| no warehouse, or inventory inactive / not installed | the sale works, no stock moves (`stock_tracked=false`); a `warehouse_id` cannot be validated without inventory, so it is `400` |
 
-A line is either an inventory product (`product_id`; its `product_nome` /
-`product_codigo` are a snapshot taken from inventory, whatever the client sent)
-or a **free line** with only `product_nome` as its description (a service). A
-line with neither is `400`. Free lines never move stock.
+Activating inventory, sales, purchases or farmacia for an Entity activates the
+catalog too (`catalog/signals.py`, `settings.CATALOG_CONSUMER_MODULES`). A
+doctor's office or a hotel sells catalogued services (and goods without stock
+control) with Catalog + Sales only. The point of sale shows the warehouse only
+to who may list warehouses.
 
-Tenant scope: `product_id` must be one of the Entity's products and
+The line keeps its snapshot (name, code, quantity, price, tax rate) whatever
+happens to the catalogued item afterwards. A line with neither `product_id`
+nor `product_nome` is `400`.
+
+Tenant scope: `product_id` must be one of the Entity's catalogued items and
 `warehouse_id` one of its warehouses (`400` otherwise). The inventory functions
 `commit_sale_movements` / `revert_sale_movements` (and the pharmacy's
 `commit_dispensation_movements`) look the warehouse and products up inside the
 Entity again and refuse another Entity's ids.
+
+Tests: `sales/tests/test_catalog_sales.py` (office without inventory, hotel
+without Health, mixed sale with stock, partial payments, snapshot, catalog
+inactive), `test_taxes_and_optional_inventory.py`.
 
 ## Prices
 

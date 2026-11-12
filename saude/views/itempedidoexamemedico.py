@@ -16,7 +16,7 @@ import qrcode
 from rest_framework.response import Response
 
 from django_resaas.saas.core.decorators.action import resaas_action
-from saude.services import exam_request_service, lab_result_service
+from saude.services import clinical_billing_service, exam_request_service, lab_result_service
 
 
 @registerView('itempedidoexamemedicos')
@@ -86,6 +86,9 @@ class ItemPedidoExameMedicoAPIView(BaseAPIView):
             request, item, request.data.get("values"),
             observacao=request.data.get("observacao"), laudo=request.data.get("laudo"),
         )
+        # an exam without a processing step is performed when its result is
+        # recorded (idempotent with start_processing)
+        clinical_billing_service.consume_exam_materials(item, request.user)
         return Response(lab_result_service.form_schema(item))
 
     # same capability as record_result: entering a result, another form of it
@@ -104,6 +107,7 @@ class ItemPedidoExameMedicoAPIView(BaseAPIView):
             # the patient's results folder the file goes into ("" = root)
             folder=request.data.get("pai"),
         )
+        clinical_billing_service.consume_exam_materials(item, request.user)
         # read again with the view's prefetch: refresh_from_db() would keep
         # the stale prefetched results (lab phase 17)
         item = self.get_queryset().get(pk=item.pk)
@@ -130,6 +134,8 @@ class ItemPedidoExameMedicoAPIView(BaseAPIView):
     @resaas_action(detail=True, methods=["post"], label="Start processing", icon="biotech", autorequest=True)
     def start_processing(self, request, *args, **kwargs):
         item = exam_request_service.start_processing(request, self.get_object())
+        # performed: its materials leave the stock (once; never blocks)
+        clinical_billing_service.consume_exam_materials(item, request.user)
         return Response(self.get_serializer(item).data)
 
     # cancel_itempedidoexamemedico: {"reason"} - any state before completed

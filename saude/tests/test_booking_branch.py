@@ -60,7 +60,7 @@ class BookingBranchTests(TestCase):
         refused = self._client().get(f"{URL}booking_options/", {"branch": str(self.there.id)})
         self.assertEqual(refused.status_code, 403)
 
-    def test_free_times_follow_doctor_then_branch_then_default(self):
+    def test_free_times_are_the_doctor_schedule_and_the_branch_hours(self):
         client = self._client()
         params = {"medico": str(self.doctor.id), "data": self.monday.isoformat()}
 
@@ -74,10 +74,30 @@ class BookingBranchTests(TestCase):
         closed_day = client.get(f"{URL}booking_slots/", {**params, "data": _next(6).isoformat()}).data
         self.assertEqual((closed_day["source"], closed_day["intervals"]), ("branch", []))
 
-        HorarioMedico.objects.create(employee=self.doctor, dia_semana=0, hora_inicio=time(10), hora_fim=time(11),
+        # the doctor 11:00-15:00, the branch 08:00-12:00 and 14:00-17:00: only both
+        HorarioMedico.objects.create(employee=self.doctor, dia_semana=0, hora_inicio=time(11), hora_fim=time(15),
                                      **_audit(self.tenant))
         data = client.get(f"{URL}booking_slots/", params).data
-        self.assertEqual((data["source"], data["intervals"]), ("doctor", [["10:00", "11:00"]]))
+        self.assertEqual((data["source"], data["intervals"]),
+                         ("doctor_and_branch", [["11:00", "12:00"], ["14:00", "15:00"]]))
+        self.assertEqual((data["doctor"], data["branch"]),
+                         ([["11:00", "15:00"]], [["08:00", "12:00"], ["14:00", "17:00"]]))
+
+        # a closed day of the branch: nothing, even with the doctor's schedule
+        HorarioMedico.objects.create(employee=self.doctor, dia_semana=6, hora_inicio=time(9), hora_fim=time(12),
+                                     **_audit(self.tenant))
+        sunday = client.get(f"{URL}booking_slots/", {**params, "data": _next(6).isoformat()}).data
+        self.assertEqual((sunday["source"], sunday["intervals"]), ("doctor_and_branch", []))
+
+        # without branch hours: the doctor's schedule
+        BranchOpeningHours.objects.filter(branch=self.here).delete()
+        data = client.get(f"{URL}booking_slots/", params).data
+        self.assertEqual((data["source"], data["intervals"], data["branch"]), ("doctor", [["11:00", "15:00"]], None))
+
+    def test_a_geral_booking_without_doctor_gets_the_branch_hours(self):
+        BranchOpeningHours.objects.create(branch=self.here, weekday=0, opens_at=time(8), closes_at=time(12))
+        data = self._client().get(f"{URL}booking_slots/", {"data": self.monday.isoformat()}).data
+        self.assertEqual((data["source"], data["intervals"], data["busy"]), ("branch", [["08:00", "12:00"]], []))
 
     def test_no_booking_while_the_branch_is_closed(self):
         BranchOpeningHours.objects.create(branch=self.here, weekday=0, opens_at=time(14), closes_at=time(17))

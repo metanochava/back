@@ -231,6 +231,26 @@ ALL = [{
             },
         ],
     },
+    # 💳 what clinical acts charge and consume (clinical_billing_service)
+    {
+        "icon": "request_quote",
+        "menu": "Billing",
+        "role": "list_clinicalcharge",
+        "submenu": [
+            {
+                "icon": "rule",
+                "menu": "Billing and materials",
+                "role": "list_clinicalbillingrule",
+                "route": "list_clinicalbillingrule",
+            },
+            {
+                "icon": "receipt_long",
+                "menu": "Charges",
+                "role": "list_clinicalcharge",
+                "route": "list_clinicalcharge",
+            },
+        ],
+    },
 ]},
 
 # 👥 PACIENTES - a direct top-level link to the patient list (one click),

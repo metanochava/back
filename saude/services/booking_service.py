@@ -3,12 +3,15 @@
 The appointment is made for a Branch of the current Entity: the current one,
 or - with book_other_branch_agenda - another one of the same Entity (never
 another Entity). The doctors offered are that branch's, and the free times
-come from, in order:
+are the doctor's schedule AND the branch's opening hours:
 
-1. the doctor's own schedule for that weekday in that branch (HorarioMedico);
-2. the branch's opening hours for that weekday (django_resaas
-   BranchOpeningHours) - a branch with hours but none that day is closed;
-3. 08:00-17:00 when the branch has no opening hours at all.
+1. both set: only the times in the two (the doctor's schedule for that
+   weekday in that branch - HorarioMedico - cut to the branch's opening
+   hours - django_resaas BranchOpeningHours);
+2. only one set: that one (a branch with hours but none that day is closed);
+3. neither: 08:00-17:00.
+
+Without a doctor (a GERAL booking) the times are the branch's hours.
 
 Busy times are the doctor's appointments of that day in any branch (a doctor
 is never in two places at once), cancelled ones aside.
@@ -80,14 +83,29 @@ def branch_doctors(request, branch):
     ]
 
 
+def _intersect(first, second):
+    """The times in both lists of (start, end) intervals."""
+    result = []
+    for a_start, a_end in first:
+        for b_start, b_end in second:
+            start, end = max(a_start, b_start), min(a_end, b_end)
+            if start < end:
+                result.append((start, end))
+    return sorted(result)
+
+
 def free_time(request, branch, employee_id, day, exclude_id=None):
-    """{source, intervals: [[HH:MM, HH:MM]...], busy: [[HH:MM, HH:MM]...]};
-    exclude_id: the appointment being edited, not busy for itself."""
+    """{source, intervals, busy, doctor, branch} - intervals: the bookable
+    times [[HH:MM, HH:MM]...]; doctor / branch: each schedule of that day
+    (None when not configured); busy: the doctor's appointments that day.
+    source: doctor_and_branch | doctor | branch | default.
+    exclude_id: the appointment being edited, not busy for itself. Without
+    employee_id (a GERAL booking) only the branch's hours count."""
     from saude.models.agenda import Agenda
     from saude.models.horariomedico import HorarioMedico
     from saude.views.agenda import _effective_end
 
-    if not _is_uuid(employee_id):
+    if employee_id and not _is_uuid(employee_id):
         raise ResaasAPIException("Choose a doctor.", code="invalid_doctor", details={"medico": ["Choose a doctor."]})
     weekday = day.weekday()
     own = list(
@@ -95,25 +113,32 @@ def free_time(request, branch, employee_id, day, exclude_id=None):
         .filter(employee_id=employee_id, branch_id=branch.id, dia_semana=weekday)
         .order_by("hora_inicio")
         .values_list("hora_inicio", "hora_fim")
-    )
-    if own:
-        source, intervals = "doctor", own
-    else:
-        hours = open_intervals(branch.id, weekday)
-        if hours is None:
-            source, intervals = "default", DEFAULT_INTERVALS
-        else:
-            source, intervals = "branch", hours
+    ) if employee_id else []
+    hours = open_intervals(branch.id, weekday)
 
-    appointments = Agenda.objects.filter(medico_id=employee_id, data=day).exclude(estado="cancelada")
-    if exclude_id and _is_uuid(exclude_id):
-        appointments = appointments.exclude(id=exclude_id)
-    busy = [(a.hora_inicio, _effective_end(a.hora_inicio, a.hora_fim)) for a in appointments]
+    if own and hours is not None:
+        source, intervals = "doctor_and_branch", _intersect(own, hours)
+    elif own:
+        source, intervals = "doctor", own
+    elif hours is not None:
+        source, intervals = "branch", hours
+    else:
+        source, intervals = "default", DEFAULT_INTERVALS
+
+    busy = []
+    if employee_id:
+        appointments = Agenda.objects.filter(medico_id=employee_id, data=day).exclude(estado="cancelada")
+        if exclude_id and _is_uuid(exclude_id):
+            appointments = appointments.exclude(id=exclude_id)
+        busy = [(a.hora_inicio, _effective_end(a.hora_inicio, a.hora_fim)) for a in appointments]
     fmt = lambda t: t.strftime("%H:%M")  # noqa: E731
+    pairs = lambda rows: [[fmt(a), fmt(b)] for a, b in rows]  # noqa: E731
     return {
         "source": source,
-        "intervals": [[fmt(a), fmt(b)] for a, b in intervals],
+        "intervals": pairs(intervals),
         "busy": sorted([fmt(a), fmt(b)] for a, b in busy),
+        "doctor": pairs(own) if own else None,
+        "branch": pairs(hours) if hours is not None else None,
     }
 
 

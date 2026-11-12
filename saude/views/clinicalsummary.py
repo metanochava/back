@@ -1,3 +1,4 @@
+from saude.services import reprint
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -53,6 +54,6 @@ class ClinicalSummaryAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAP
     @action(detail=True, methods=["GET"])
     def pdf(self, request, *args, **kwargs):
         summary = self.get_object()
-        return PDF("saude/clinicalsummary.html", request,
+        return PDF("saude/clinicalsummary.html", request, print_date=reprint.print_date(request),
                    **clinical_summary_service.pdf_context(request, summary),
                    **pdf_properties("Clinical Summary", summary))

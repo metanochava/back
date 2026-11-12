@@ -12,7 +12,7 @@ class StockItem(BaseModel):
     """
 
     product = models.ForeignKey(
-        "inventory.Product",
+        "catalog.Product",
         on_delete=models.CASCADE,
         related_name="stock_items"
     )

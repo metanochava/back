@@ -32,8 +32,9 @@ movement), `apply_movement`, `issue_stock`, `transfer_stock`,
 
 ## Catalogue: services, variants, price lists
 
-Inventory owns the product catalogue (decision of the horizontal-modules plan:
-no separate catalogue app).
+The catalogue (products, services, variants, categories, price lists) moved
+to the **catalog** module on 2026-11-11 - see [catalog.md](catalog.md);
+inventory consumes it and keeps the stock. The rules below are unchanged.
 
 **Services.** `Product.product_type` is `goods` (default) or `service`. A service
 is sold and bought like a product but **never has stock**: `apply_movement`
@@ -167,6 +168,19 @@ API: `/api/inventory/stockreservations/` - `GET`, `POST` (a manual reservation:
 **Stock reservations**. Inventory Manager and Warehouse Manager manage them.
 
 Migration: `inventory.0003_stock_reservations`.
+
+## Consumption by a document
+
+`services.commit_consumption_movements(document_type, document_id, items,
+entity_id, branch_id, user, warehouse_id=None)` (2026-11-12): goods used up
+by a service performed - the reagents of an exam, the linen of a hotel room,
+the ingredients of a dish. The caller names its document; inventory never
+knows what it is. Services and templates are skipped (they hold no stock),
+another Entity's products are refused, the warehouse defaults to the first
+active one of the Branch that can serve every line, missing stock raises
+(nothing moves), and a document that already has movements returns `[]` (no
+second consumption). Health uses it for exam materials - see
+[health-billing.md](../architecture/health-billing.md).
 
 ## Tests
 

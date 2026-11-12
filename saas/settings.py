@@ -69,6 +69,7 @@ MY_APPS = [
     'django_resaas.saas',
     'hr',  # HR module of this application (was django_resaas.hr)
     'saude',
+    'catalog',    # goods, services, categories, variants, prices (horizontal)
     'inventory',
     'sales',
     'django_resaas.notifications',
@@ -77,6 +78,7 @@ MY_APPS = [
     'accounting',
     'crm',
     'workflow',
+    'ensino',
 ]
 
 
