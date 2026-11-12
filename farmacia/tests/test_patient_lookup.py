@@ -96,7 +96,8 @@ class PatientLookupTests(TestCase):
         self.assertEqual(prescription["id"], str(self.receita.id))
         self.assertTrue(prescription["is_external"])
         self.assertEqual(prescription["source_entity"], self.hospital["entity"].name)
-        self.assertEqual(prescription["items"][0]["medicine"], "Coartem")
+        # medication names are saved in capitals (saude Medicamento.save, commit 3517a7e)
+        self.assertEqual(prescription["items"][0]["medicine"], "COARTEM")
         self.assertIsNone(prescription["queue_status"])
         self.assertEqual(body["allergies"], [])          # "allergies" is not in the consent
         lookup = PatientLookup.objects.get()

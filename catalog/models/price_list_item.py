@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Q
 from django_resaas.saas.core.base.models import BaseModel
-from inventory.models.pricelist import PriceList
+from catalog.models.pricelist import PriceList
 
 
 class PriceListItem(BaseModel):
@@ -9,11 +9,13 @@ class PriceListItem(BaseModel):
     breaks: the highest min_quantity reached applies)."""
 
     price_list = models.ForeignKey(PriceList, on_delete=models.CASCADE, related_name="items", verbose_name="Price list")
-    product = models.ForeignKey("inventory.Product", on_delete=models.PROTECT, related_name="price_list_items")
+    product = models.ForeignKey("catalog.Product", on_delete=models.PROTECT, related_name="price_list_items")
     min_quantity = models.DecimalField(max_digits=16, decimal_places=3, default=1)
     price = models.DecimalField(max_digits=14, decimal_places=2)
 
     class Meta:
+        # the table it had in inventory: moved to catalog without copying data
+        db_table = "inventory_pricelistitem"
         verbose_name = "Price list item"
         verbose_name_plural = "Price list items"
         ordering = ["price_list", "product", "min_quantity"]

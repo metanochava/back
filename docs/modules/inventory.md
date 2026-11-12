@@ -32,8 +32,9 @@ movement), `apply_movement`, `issue_stock`, `transfer_stock`,
 
 ## Catalogue: services, variants, price lists
 
-Inventory owns the product catalogue (decision of the horizontal-modules plan:
-no separate catalogue app).
+The catalogue (products, services, variants, categories, price lists) moved
+to the **catalog** module on 2026-11-11 - see [catalog.md](catalog.md);
+inventory consumes it and keeps the stock. The rules below are unchanged.
 
 **Services.** `Product.product_type` is `goods` (default) or `service`. A service
 is sold and bought like a product but **never has stock**: `apply_movement`

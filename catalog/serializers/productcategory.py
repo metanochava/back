@@ -1,5 +1,5 @@
 from django_resaas.saas.core.base.serializers import BaseSerializer
-from inventory.models.productcategory import ProductCategory
+from catalog.models.productcategory import ProductCategory
 
 
 class ProductCategorySerializer(BaseSerializer):

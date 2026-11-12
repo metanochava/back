@@ -18,6 +18,8 @@ class ProductCategory(BaseModel):
     )
 
     class Meta:
+        # the table it had in inventory: moved to catalog without copying data
+        db_table = "inventory_productcategory"
         verbose_name = "Categoria de Produto"
         verbose_name_plural = "Categorias de Produto"
         ordering = ["nome"]

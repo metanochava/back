@@ -12,7 +12,7 @@ class ProductMedia(BaseModel):
     """
 
     product = models.ForeignKey(
-        "inventory.Product",
+        "catalog.Product",
         on_delete=models.CASCADE,
         related_name="midias"
     )
@@ -33,6 +33,8 @@ class ProductMedia(BaseModel):
     )
 
     class Meta:
+        # the table it had in inventory: moved to catalog without copying data
+        db_table = "inventory_productmedia"
         verbose_name = "Mídia do Produto"
         verbose_name_plural = "Mídias do Produto"
         ordering = ["ordem", "created_at"]

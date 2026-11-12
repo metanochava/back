@@ -16,7 +16,7 @@ class Product(BaseModel):
     )
 
     categoria = models.ForeignKey(
-        "inventory.ProductCategory",
+        "catalog.ProductCategory",
         on_delete=models.PROTECT,
         related_name="produtos",
         null=True,
@@ -89,6 +89,8 @@ class Product(BaseModel):
     )
 
     class Meta:
+        # the table it had in inventory: moved to catalog without copying data
+        db_table = "inventory_product"
         verbose_name = "Produto"
         verbose_name_plural = "Produtos"
         ordering = ["nome"]

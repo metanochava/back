@@ -11,7 +11,7 @@ class InventoryCountLine(BaseModel):
     )
 
     product = models.ForeignKey(
-        "inventory.Product",
+        "catalog.Product",
         on_delete=models.PROTECT,
         related_name="linhas_contagem"
     )

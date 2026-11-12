@@ -22,7 +22,7 @@ class StockReservation(BaseModel):
         (STATUS_RELEASED, "Released"),
     )
 
-    product = models.ForeignKey("inventory.Product", on_delete=models.PROTECT, related_name="reservations")
+    product = models.ForeignKey("catalog.Product", on_delete=models.PROTECT, related_name="reservations")
     warehouse = models.ForeignKey("inventory.Warehouse", on_delete=models.PROTECT, related_name="reservations")
     quantity = models.DecimalField(max_digits=16, decimal_places=3)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_ACTIVE)

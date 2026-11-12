@@ -1,6 +1,6 @@
 from django_resaas.saas.core.base.views import BaseAPIView, registerView
-from inventory.models.productmedia import ProductMedia
-from inventory.serializers.productmedia import ProductMediaSerializer
+from catalog.models.productmedia import ProductMedia
+from catalog.serializers.productmedia import ProductMediaSerializer
 
 
 @registerView("productmedias")

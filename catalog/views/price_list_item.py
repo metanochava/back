@@ -1,6 +1,6 @@
 from django_resaas.saas.core.base.views import BaseAPIView, registerView
-from inventory.models.price_list_item import PriceListItem
-from inventory.serializers.price_list_item import PriceListItemSerializer
+from catalog.models.price_list_item import PriceListItem
+from catalog.serializers.price_list_item import PriceListItemSerializer
 
 
 @registerView("pricelistitems")

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from django_resaas.saas.core.base.serializers import BaseSerializer
-from inventory.models.product import Product
+from catalog.models.product import Product
 
 
 class ProductSerializer(BaseSerializer):

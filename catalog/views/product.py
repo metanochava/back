@@ -6,9 +6,9 @@ from rest_framework.response import Response
 from django_resaas.saas.core.base.views import BaseAPIView, registerView
 from django_resaas.saas.core.decorators import resaas_action
 
-from inventory import services
-from inventory.models.product import Product
-from inventory.serializers.product import ProductSerializer
+from catalog import services
+from catalog.models.product import Product
+from catalog.serializers.product import ProductSerializer
 
 
 @registerView("products")

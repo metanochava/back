@@ -7,7 +7,7 @@ class Batch(BaseModel):
     lot number printed on the goods and its expiry date. Generic - medicines,
     food, chemicals."""
 
-    product = models.ForeignKey("inventory.Product", on_delete=models.PROTECT, related_name="batches")
+    product = models.ForeignKey("catalog.Product", on_delete=models.PROTECT, related_name="batches")
     lot_number = models.CharField(max_length=100)
     expiry_date = models.DateField(null=True, blank=True)
     manufacture_date = models.DateField(null=True, blank=True)

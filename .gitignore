@@ -58,6 +58,10 @@ Makefile
 # saude's migrations are versioned (dev and pro share one history since
 # 2026-10-08: pro was aligned to dev's 0001-0010)
 !saude/migrations/*.py
+# catalog's migrations are versioned from its first one (2026-11-11): its
+# 0001 moves the catalogue out of inventory without copying data and must be
+# the same everywhere (a generated one would drop the tables)
+!catalog/migrations/*.py
 */migrations/*.pyc
 current
 previous

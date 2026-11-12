@@ -13,6 +13,8 @@ class PriceList(BaseModel):
     active = models.BooleanField(default=True)
 
     class Meta:
+        # the table it had in inventory: moved to catalog without copying data
+        db_table = "inventory_pricelist"
         verbose_name = "Price list"
         verbose_name_plural = "Price lists"
         ordering = ["name"]
