@@ -78,6 +78,7 @@ MY_APPS = [
     'accounting',
     'crm',
     'workflow',
+    'ensino',
 ]
 
 
