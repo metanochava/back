@@ -18,8 +18,8 @@ def _assert_editable(sale):
 @registerView("saleitems")
 class SaleItemAPIView(BaseAPIView):
     """Lines of a draft sale. The sale must be the current Entity's
-    (TenantRelationsMixin); a product must be one of the Entity's inventory
-    products, and a tax one of its taxes."""
+    (TenantRelationsMixin); an item must be one of the Entity's catalogued
+    goods or services, and a tax one of its taxes."""
 
     queryset = SaleItem.objects.all()
     serializer_class = SaleItemSerializer
@@ -30,11 +30,9 @@ class SaleItemAPIView(BaseAPIView):
         if not product_id:
             return {"product_codigo": None}
 
-        inventory_services = services.inventory()
-        snapshot = (
-            inventory_services.get_product_snapshot(product_id, entity_id=self.request.entity_id)
-            if inventory_services else None
-        )
+        # one of the Entity's catalogued goods or services (catalog active);
+        # inventory is not needed to sell it
+        snapshot = services.product_snapshot(product_id, self.request.entity_id)
         if snapshot is None:
             raise DRFValidationError({"product_id": ["Does not belong to the current entity."]})
         return {"product_nome": snapshot["nome"], "product_codigo": snapshot["codigo"]}

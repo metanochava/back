@@ -16,9 +16,17 @@ class CatalogConfig(AppConfig):
     verbose_name = "Catalog"
 
     def ready(self):
-        from .signals import create_catalog_groups
+        from django.db.models.signals import post_save
+
+        from django_resaas.saas.models.entity_app import EntityApp
+
+        from .signals import activate_catalog_with_its_consumers, create_catalog_groups
 
         post_migrate.connect(create_catalog_groups, sender=self)
+        # selling, stocking or buying needs the catalogue: activating one of
+        # those modules activates the catalog for the Entity too
+        post_save.connect(activate_catalog_with_its_consumers, sender=EntityApp,
+                          dispatch_uid="catalog_with_its_consumers")
 
         import catalog.views
 

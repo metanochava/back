@@ -54,8 +54,16 @@ class CatalogWithoutInventoryTests(TestCase):
         self.assertEqual(services.get_product_snapshot(mine.id, entity_id=self.tenant["entity"].id)["nome"], "Mine")
 
     def test_the_module_must_be_active(self):
-        inactive = bootstrap_tenant("catalog-inactive", modules=("sales",))
+        # an Entity without catalog (nor any of its consumer modules)
+        inactive = bootstrap_tenant("catalog-inactive", modules=("saude",))
         self.assertEqual(inactive["client"].get(URL).status_code, 403)
+
+    def test_its_consumer_modules_bring_the_catalog(self):
+        from django_resaas.saas.models.entity_app import EntityApp
+
+        with_sales = bootstrap_tenant("catalog-consumer", modules=("sales",))
+        self.assertTrue(EntityApp.objects.filter(entity=with_sales["entity"], app__name="catalog",
+                                                 state="Active").exists())
 
     def test_price_lists_are_the_catalogs(self):
         goods = Product.objects.create(nome="Box", preco_base=Decimal("10"), **_audit(self.tenant))

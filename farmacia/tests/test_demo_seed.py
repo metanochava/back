@@ -44,7 +44,7 @@ class PharmacyDemoSeedTests(TestCase):
         self.assertEqual(demo.count(), 3)
         for entity in demo:
             self.assertEqual(set(EntityApp.objects.filter(entity=entity, state="Active")
-                                 .values_list("app__name", flat=True)), {"farmacia", "inventory", "sales"})
+                                 .values_list("app__name", flat=True)), {"farmacia", "inventory", "sales", "catalog"})   # catalog: with its consumers
             self.assertTrue(PharmacyListing.objects.get(entity=entity).published)
             self.assertEqual(PharmacyOffer.objects.filter(entity=entity).count(), len(MEDICINES))
             self.assertTrue(all(p.nome.endswith("(demo)") for p in Product.objects.filter(entity=entity)))

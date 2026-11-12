@@ -866,6 +866,50 @@ def commit_dispensation_movements(*, dispensation_id, warehouse_id, items, entit
 
 
 @transaction.atomic
+def commit_consumption_movements(*, document_type, document_id, items, entity_id, branch_id, user, warehouse_id=None):
+    """
+    Internal consumption of goods by a service performed - the reagents of an
+    exam, the linen of a hotel room, the ingredients of a dish. Generic: the
+    caller names its document (document_type, e.g. "saude.itempedidoexamemedico",
+    and its id); inventory never knows what it is.
+
+    items: [{"product_id", "quantidade"}]. Services and unknown products of
+    another Entity are refused / skipped like the other document functions.
+    warehouse_id None -> the first active warehouse of the Branch that can
+    serve every line (branch_warehouse_for). All or nothing: missing stock
+    raises ValidationError and nothing moves. Idempotent: a document that
+    already has movements returns [] (no second consumption).
+    """
+
+    if StockMovement.objects.filter(entity_id=entity_id, documento_origem_tipo=document_type,
+                                    documento_origem_id=document_id).exists():
+        return []
+
+    stocked = []
+    for item in items:
+        product = _entity_product(item["product_id"], entity_id)
+        if holds_stock(product):
+            stocked.append((product, Decimal(item["quantidade"])))
+    if not stocked:
+        return []
+
+    if warehouse_id is None:
+        warehouse_id = branch_warehouse_for({p.id: q for p, q in stocked}, entity_id=entity_id, branch_id=branch_id)
+        if warehouse_id is None:
+            raise ValidationError("No warehouse of this branch has the stock to consume.")
+    warehouse = _entity_warehouse(warehouse_id, entity_id)
+
+    movements = []
+    for product, quantity in stocked:
+        movements.extend(issue_stock(
+            product=product, warehouse=warehouse, tipo=StockMovement.TIPO_SAIDA, quantidade=quantity,
+            custo_unitario=None, documento_origem_tipo=document_type, documento_origem_id=document_id,
+            entity_id=entity_id, branch_id=branch_id, user=user,
+        ))
+    return movements
+
+
+@transaction.atomic
 def revert_dispensation_movements(*, dispensation_id, warehouse_id, items, entity_id, branch_id, user):
     """
     Cria movimentos de devolução para anular o efeito de stock de uma

@@ -78,6 +78,40 @@ and migrated: 40 products kept, ContentTypes and permissions in catalog,
 catalog active for 7 Entities. Production: inventory's state migration must
 be written by hand (see catalog.md).
 
+### Phase 4 - Sales on the catalog (2026-11-12, dev)
+
+`sales` reads items, names, codes and prices from `catalog.services` (no
+longer through inventory); `create_sale()` and sale lines need the catalog
+active, not inventory; stock still only through inventory, for goods, with a
+warehouse. Activating a consumer module activates the catalog. POS hides the
+warehouse without access to it. See [sales.md](../modules/sales.md).
+
+### Phase 5 - Health integration (2026-11-12, dev)
+
+`saude` models `ClinicalBillingRule` (consultation by specialty or any,
+exam, medicine -> its commercial presentations; catalogued item ids),
+`ExamMaterialRule`, `ClinicalCharge` and `MaterialConsumption` (one per act),
+service `saude/services/clinical_billing_service.py`, API
+`clinicalbillingrules`, `exammaterialrules`, `clinicalcharges`,
+`materialconsumptions`, migration `saude 0023`. Consultation charged at
+check-out, exam request at check-in (draft sales), exam materials consumed
+when performed (start of processing, or the result recorded). Without rules
+or modules nothing is charged / consumed; missing stock is recorded
+`failed`, never blocks. New generic services: `sales.customer_for_person`,
+`create_sale(customer_id=)`, `inventory.commit_consumption_movements`.
+Pending: procedures (free-text name, no catalogue), the rules' screens,
+cancelling the draft sale when a check-out is undone.
+
+### Phase 6 - Form Engine (2026-11-12, libraries, dev)
+
+django_resaas `saas/core/forms` (DSL, definitions, merge, resolver, registry
+of `<app>/forms.py`, submission validation), models `FormDefinition` /
+`FormDraft` (migration `0020_form_definitions`), API `formdefinitions`,
+`forms/resolve|validate|draft`; quasar_resaas `<s-dynamic-form>`,
+`DynamicField`, the component registry, `utils/formConditions.js` /
+`formDefinition.js`. Docs: django_resaas
+`docs/architecture/form-engine.md` (examples: clinic, hotel, school).
+
 Proposal kept from phase 1:
 
 Catalog as its own horizontal module (`back/catalog`), reversing the

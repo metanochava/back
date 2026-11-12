@@ -3,10 +3,17 @@ Camada de serviço do sales. Toda a lógica de negócio (totais, máquina
 de estados, integração com stock) vive aqui — as views só validam
 input e chamam estas funções.
 
-sales does not require inventory: `inventory.services` (its public
-interface, never inventory.models) is used only when the app is installed
-and the module is active for the Entity - see inventory() below. Without
-it a sale still works, with stock_tracked=False.
+sales requires neither catalog nor inventory:
+
+- the items sold (goods and services, their names, codes and prices) come
+  from `catalog.services` when the catalog module is active for the Entity
+  (catalog() / catalog_enabled()); without it a sale has free lines only;
+- stock moves through `inventory.services` only when inventory is active and
+  the sale has a warehouse (inventory() / stock_enabled()), and only for
+  goods - a service never holds stock. Without it a catalogued sale still
+  works, with stock_tracked=False.
+
+Neither module's models are ever imported here.
 """
 
 from decimal import Decimal
@@ -23,7 +30,39 @@ from sales.models import Sale, Payment
 
 
 # =========================================================
-# INVENTORY (OPTIONAL)
+# CATALOG (OPTIONAL) - what is sold
+# =========================================================
+
+def catalog():
+    """catalog.services when the app is installed, else None."""
+    if not apps.is_installed("catalog"):
+        return None
+    from catalog import services as catalog_services
+    return catalog_services
+
+
+def catalog_enabled(entity_id):
+    catalog_services = catalog()
+    return bool(catalog_services and catalog_services.catalog_module_active(entity_id))
+
+
+def product_snapshot(product_id, entity_id):
+    """The catalog's snapshot of one of the Entity's items (goods or a
+    service), or None when the catalog is not active or the item is not the
+    Entity's."""
+    if not catalog_enabled(entity_id):
+        return None
+    return catalog().get_product_snapshot(product_id, entity_id=entity_id)
+
+
+def price_list_snapshot(price_list_id, entity_id):
+    if not catalog_enabled(entity_id):
+        return None
+    return catalog().get_price_list_snapshot(price_list_id, entity_id)
+
+
+# =========================================================
+# INVENTORY (OPTIONAL) - stock of the goods sold
 # =========================================================
 
 def inventory():
@@ -40,7 +79,8 @@ def stock_enabled(entity_id):
 
 
 def stock_items(sale):
-    """The lines that move stock: only those of an inventory product."""
+    """The lines that may move stock: those of a catalogued item (inventory
+    skips a service's lines - it never holds stock)."""
     return [item for item in sale.itens.all() if item.product_id]
 
 
@@ -59,16 +99,39 @@ def get_customer_snapshot(customer_id, entity_id):
     return {"id": customer.id, "name": customer.display_name} if customer else None
 
 
+def customer_for_person(*, entity_id, branch_id, person_id, user):
+    """The Entity's individual customer for a Person (created once, then
+    reused) - for modules that bill someone they already know (a patient, a
+    guest, a student). The Person is never copied: Customer points at it."""
+    from sales.models import Customer
+
+    customer = (
+        Customer.objects.filter(entity_id=entity_id, person_id=person_id, customer_type=Customer.TYPE_INDIVIDUAL)
+        .order_by("created_at").first()
+    )
+    if customer is None:
+        customer = Customer.objects.create(
+            entity_id=entity_id, branch_id=branch_id, person_id=person_id,
+            customer_type=Customer.TYPE_INDIVIDUAL, created_by=user, updated_by=user,
+        )
+    return customer
+
+
+def sales_module_active(entity_id):
+    from django_resaas.saas.models.entity_app import EntityApp
+
+    return EntityApp.objects.filter(entity_id=entity_id, app__name="sales", state="Active").exists()
+
+
 def price_for(sale, product_id, quantity=1):
-    """{"price", "price_list"} for a product on this sale: the customer's
-    price list when it has one (inventory.services.get_price), else the
-    product's base price. None when inventory is missing or the product is not
-    the Entity's."""
-    inventory_services = inventory()
-    if inventory_services is None:
+    """{"price", "price_list"} for a catalogued item on this sale: the
+    customer's price list when it has one (catalog.services.get_price), else
+    the item's base price. None when the catalog is not active or the item is
+    not the Entity's."""
+    if not catalog_enabled(sale.entity_id):
         return None
     price_list_id = sale.customer.price_list_id if sale.customer_id else None
-    return inventory_services.get_price(product_id, sale.entity_id, price_list_id=price_list_id, quantity=quantity)
+    return catalog().get_price(product_id, sale.entity_id, price_list_id=price_list_id, quantity=quantity)
 
 
 # =========================================================
@@ -79,29 +142,32 @@ PAYMENT_METHODS = tuple(code for code, _ in Payment.FORMA_CHOICES)
 
 
 @transaction.atomic
-def create_sale(*, entity_id, branch_id, user, lines, warehouse_id=None, observacao=None):
+def create_sale(*, entity_id, branch_id, user, lines, warehouse_id=None, observacao=None, customer_id=None):
     """
-    A draft Sale of the Entity with these product lines - lines is an iterable
-    of {"product_id", "quantidade", "preco_unitario"} - and its totals. Each
-    product must be one of the Entity's inventory products: its name and code
-    are a snapshot (as SaleItemAPIView does). The caller decides the price; it
-    then confirms / pays with confirm_sale() and add_payment().
+    A draft Sale of the Entity with these lines - lines is an iterable of
+    {"product_id", "quantidade", "preco_unitario"} - and its totals. Each item
+    must be one of the Entity's catalogued goods or services: its name and
+    code are a snapshot (as SaleItemAPIView does). Inventory is not needed:
+    services, or goods without a warehouse, are sold without moving stock.
+    The caller decides the price; it then confirms / pays with confirm_sale()
+    and add_payment().
     """
     from sales.models import SaleItem
 
-    inventory_services = inventory()
-    if inventory_services is None:
-        raise ValidationError("The inventory module is required to sell products.")
+    if not catalog_enabled(entity_id):
+        raise ValidationError("The catalog module is required to sell catalogued items.")
     lines = list(lines)
     if not lines:
         raise ValidationError("A sale needs at least one line.")
 
+    if customer_id and get_customer_snapshot(customer_id, entity_id) is None:
+        raise ValidationError("Customer not found.")
     sale = Sale.objects.create(
         entity_id=entity_id, branch_id=branch_id, warehouse_id=warehouse_id, observacao=observacao,
-        created_by=user, updated_by=user,
+        customer_id=customer_id, created_by=user, updated_by=user,
     )
     for line in lines:
-        snapshot = inventory_services.get_product_snapshot(line["product_id"], entity_id=entity_id)
+        snapshot = product_snapshot(line["product_id"], entity_id)
         if snapshot is None:
             raise ValidationError("Product not found.")
         SaleItem.objects.create(

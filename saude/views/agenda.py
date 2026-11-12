@@ -14,7 +14,7 @@ from django_resaas.saas.core.base.views import BaseAPIView, registerView
 from hr.models.employee import Employee
 
 from saude.models.agenda import Agenda
-from saude.services import appointment_flow, booking_service
+from saude.services import appointment_flow, booking_service, clinical_billing_service
 from saude.serializers.agenda import AgendaSerializer
 
 DEFAULT_DURATION = timedelta(minutes=30)
@@ -255,6 +255,9 @@ class AgendaAPIView(BaseAPIView):
     @transaction.atomic
     def check_out(self, request, *args, **kwargs):
         agenda = appointment_flow.check_out(self._locked())
+        # the consultation is charged (a draft sale) when it has billing rules
+        # and sales is active - once; never blocks the check-out
+        clinical_billing_service.charge_consultation(agenda, request.user)
         return Response(self.get_serializer(agenda).data)
 
     # Undo a reception step done by mistake: the same permission as the step

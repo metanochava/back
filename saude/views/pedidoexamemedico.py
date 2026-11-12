@@ -1,4 +1,4 @@
-from saude.services import reprint
+from saude.services import clinical_billing_service, reprint
 import uuid
 
 from django_resaas.saas.core.base.views import BaseAPIView
@@ -84,6 +84,9 @@ class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
         Idempotent: repeating it keeps the first time."""
 
         pedido = exam_request_service.check_in(self.get_object(), request=request)
+        # the requested exams are charged (a draft sale) once, when they have
+        # billing rules and sales is active
+        clinical_billing_service.charge_exam_request(pedido, request.user)
         return all(request, data=self.get_serializer(pedido).data)
 
    

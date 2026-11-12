@@ -25,3 +25,4 @@ from saude.models.exam_parameter import ExamParameter
 from saude.models.exam_reference_range import ExamReferenceRange
 from saude.models.result_parameter_value import ResultParameterValue
 from saude.models.appointment_request import AppointmentRequest
+from saude.models.clinical_billing import ClinicalBillingRule, ExamMaterialRule, ClinicalCharge, MaterialConsumption
