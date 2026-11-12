@@ -112,6 +112,25 @@ of `<app>/forms.py`, submission validation), models `FormDefinition` /
 `formDefinition.js`. Docs: django_resaas
 `docs/architecture/form-engine.md` (examples: clinic, hotel, school).
 
+### Phase 7 - Frontend (2026-11-12, dev)
+
+Health billing page (Saude → Billing: rules, exam materials, charges,
+consumptions), the POS warehouse only with stock access, the "consultation
+charged - open the sale" notice after a check-out (check-out and exam
+check-in return `charge.sale_id`), the Form Engine's Forms page (django_resaas
+Engine menu: layers, versions, JSON editor with live preview, publish,
+resolved form).
+
+### Phase 8 - Integration scenarios (2026-11-12, dev)
+
+| Scenario | Tests |
+|---|---|
+| Clinic with the three modules | `saude/tests/test_integration_clinic.py` (API end to end: charges, reagent consumed once, sale paid in two parts, stock, another clinic sees nothing) |
+| Office with Catalog + Sales, no Inventory | `sales/tests/test_catalog_sales.py::OfficeWithoutInventoryTests` |
+| Hotel without Health | `sales/tests/test_catalog_sales.py::HotelWithoutHealthTests`, django_resaas `forms/tests/test_examples.py` (check-in) |
+| School with configurable forms | django_resaas `forms/tests/test_api.py` (school.enrolment: platform → entity → branch), `test_examples.py` |
+| Pharmacy with the global catalogue and local offers | `farmacia/tests/test_marketplace.py` |
+
 Proposal kept from phase 1:
 
 Catalog as its own horizontal module (`back/catalog`), reversing the
