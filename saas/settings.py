@@ -118,6 +118,10 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 if DEBUG:
     CORS_ALLOWED_ORIGIN_REGEXES.append(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
+# the HttpOnly refresh cookie (django_resaas core/services/refresh_cookie.py):
+# the frontends of the API's own site send it with their requests
+CORS_ALLOW_CREDENTIALS = True
+RESAAS_REFRESH_COOKIE_SITES = ["mytech.co.mz"]
 # the browser reads a PDF's file name (django_resaas PDF()) from this header
 CORS_EXPOSE_HEADERS = ["Content-Disposition"]
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
@@ -231,16 +235,20 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'NON_FIELD_ERRORS_KEY': 'error',
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        # JWT only (Bearer). Basic (a password on any request: no login
+        # throttle, no two-factor), Token (unused: no tokens issued) and
+        # Session (an admin cookie authenticating the API) were removed.
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     )
 }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=4),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    # each refresh returns a new refresh token and blacklists the one used; a
+    # rotated token used again ends its session family (session_service)
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 # --------------------------
