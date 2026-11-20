@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>{{ pdf_subject }}</title>
+<!-- A table's QR card (hospitality.services.qr_cards_context): one A6 page per
+     table, to stand on the table. In the Entity's brand colour (the style of
+     django_resaas pdf/qr_card.html): the logo and the place on a coloured
+     band, the table's name in a big badge, a white card with the QR code
+     (the logo at its centre) and three short steps, the website at the foot. -->
+<style>
+  @page { size: A6 portrait; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; font-family: "Helvetica Neue", Arial, sans-serif; color: #111827; }
+
+  .page { width: 105mm; height: 148mm; position: relative; overflow: hidden; background: #f4f5f7;
+          page-break-after: always; }
+  .page:last-child { page-break-after: auto; }
+
+  /* the brand band with two soft circles */
+  .band { position: absolute; top: 0; left: 0; right: 0; height: 66mm; background: {{ color }};
+          border-radius: 0 0 14mm 14mm; overflow: hidden; }
+  .band::before, .band::after { content: ""; position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.10); }
+  .band::before { width: 64mm; height: 64mm; top: -28mm; right: -22mm; }
+  .band::after { width: 42mm; height: 42mm; bottom: -20mm; left: -14mm; }
+
+  .brand { position: relative; padding-top: 6mm; text-align: center; color: #ffffff; }
+  .logo { width: 14mm; height: 14mm; margin: 0 auto 1.8mm; border-radius: 50%; background: #ffffff; padding: 1.6mm; }
+  .logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+  .logo--initial { color: {{ color }}; font-size: 17pt; font-weight: bold; line-height: 10.8mm; text-align: center; }
+  .place { font-size: 12.5pt; font-weight: bold; letter-spacing: 0.02em; padding: 0 8mm; }
+  .branch { font-size: 7pt; opacity: 0.85; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.6mm; }
+
+  /* the table's badge */
+  .badge { display: inline-block; margin-top: 3mm; padding: 1.6mm 6mm; border-radius: 20mm; background: #ffffff;
+           color: {{ color }}; font-size: 17pt; font-weight: 800; letter-spacing: 0.02em; }
+  .meta { margin-top: 1.4mm; font-size: 7pt; opacity: 0.9; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* the white card with the QR code and the steps */
+  .card { position: absolute; top: 53mm; left: 9mm; right: 9mm; background: #ffffff; border-radius: 7mm;
+          border: 0.3mm solid #e5e7eb; padding: 4mm 5mm 4mm; text-align: center; }
+  .heading { font-size: 11.5pt; font-weight: 800; color: {{ color }}; }
+  .qr { width: 50mm; height: 50mm; margin: 2.6mm auto 3mm; padding: 2mm; border-radius: 5mm;
+        border: 0.7mm solid {{ color }}; }
+  .qr img { width: 100%; height: 100%; }
+
+  .steps { text-align: left; margin: 0 auto; width: 74mm; }
+  .step { display: flex; align-items: center; margin-top: 1.4mm; font-size: 7.6pt; color: #374151; }
+  .num { flex: 0 0 4.6mm; width: 4.6mm; height: 4.6mm; margin-right: 2mm; border-radius: 50%; background: {{ color }};
+         color: #ffffff; font-size: 6.6pt; font-weight: bold; text-align: center; line-height: 4.6mm; }
+
+  .foot { position: absolute; left: 0; right: 0; bottom: 4.2mm; text-align: center; font-size: 7pt; color: #6b7280;
+          letter-spacing: 0.04em; }
+  .missing { font-size: 9pt; color: #b91c1c; padding: 22mm 2mm; }
+</style>
+</head>
+<body>
+{% for card in cards %}
+  <div class="page">
+    <div class="band"></div>
+    <div class="brand">
+      {% if logo_b64 %}
+        <div class="logo"><img src="data:image/png;base64,{{ logo_b64 }}"></div>
+      {% else %}
+        <div class="logo logo--initial">{{ initial }}</div>
+      {% endif %}
+      <div class="place">{{ entity.name }}</div>
+      {% if card.branch %}<div class="branch">{{ card.branch }}</div>{% endif %}
+      <div class="badge">{{ card.name }}</div>
+      <div class="meta">{% if card.area %}{{ card.area }} · {% endif %}{{ card.seats }} {{ labels.seats }}</div>
+    </div>
+
+    <div class="card">
+      {% if card.qr_b64 %}
+        <div class="heading">{{ labels.heading }}</div>
+        <div class="qr"><img src="data:image/png;base64,{{ card.qr_b64 }}"></div>
+        <div class="steps">
+          {% for step in labels.steps %}
+            <div class="step"><span class="num">{{ forloop.counter }}</span><span>{{ step }}</span></div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="missing">{{ labels.missing }}</div>
+      {% endif %}
+    </div>
+
+    {% if site %}<div class="foot">{{ site }}</div>{% endif %}
+  </div>
+{% empty %}
+  <div class="page"><div class="card"><div class="missing">{{ labels.missing }}</div></div></div>
+{% endfor %}
+</body>
+</html>

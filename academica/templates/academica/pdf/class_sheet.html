@@ -1,0 +1,17 @@
+{% extends "academica/pdf/_base.html" %}
+{% block orientation %}landscape{% endblock %}
+{% block title %}{{ labels.grade_sheet }} · {{ class_group.name }}{% if period %} · {{ period.name }}{% endif %}{% endblock %}
+{% block content %}
+<table>
+  <tr><th>{{ labels.number }}</th><th>{{ labels.student }}</th>
+    {% for subject in subjects %}<th class="num">{{ subject }}</th>{% endfor %}</tr>
+  {% for line in lines %}
+  <tr><td>{{ line.enrolment.student.number }}</td><td>{{ line.enrolment.student.person.full_name }}</td>
+    {% for cell in line.cells %}
+      <td class="num">{% if cell and cell.average %}<span class="{% if cell.passed %}ok{% else %}ko{% endif %}">{{ cell.average }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+    {% endfor %}</tr>
+  {% empty %}
+  <tr><td colspan="2" class="muted">{{ labels.no_grades }}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

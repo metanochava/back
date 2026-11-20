@@ -1,0 +1,21 @@
+{% extends "academica/pdf/_base.html" %}
+{% block title %}{{ labels.report_card }}{% if period %} · {{ period.name }}{% endif %}{% endblock %}
+{% block content %}
+<div class="facts">
+  <div><span>{{ labels.student }}:</span> <b>{{ enrolment.student.person.full_name }}</b></div>
+  <div><span>{{ labels.number }}:</span> {{ enrolment.student.number }}</div>
+  <div><span>{{ labels.academic_year }}:</span> {{ enrolment.academic_year.name }}</div>
+  <div><span>{{ labels.grade_level }}:</span> {{ enrolment.grade_level.name }}</div>
+  {% if enrolment.class_group %}<div><span>{{ labels.class }}:</span> {{ enrolment.class_group.name }}</div>{% endif %}
+</div>
+<table>
+  <tr><th>{{ labels.subject }}</th><th class="num">{{ labels.average }}</th><th class="num">{{ labels.result }}</th></tr>
+  {% for row in rows %}
+  <tr><td>{{ row.subject }}</td>
+      <td class="num">{% if row.average %}{{ row.average }}{% else %}<span class="muted">—</span>{% endif %}</td>
+      <td class="num">{% if row.passed is None %}<span class="muted">{{ labels.no_grades }}</span>{% elif row.passed %}<span class="ok">{{ labels.passed }}</span>{% else %}<span class="ko">{{ labels.not_passed }}</span>{% endif %}</td></tr>
+  {% empty %}
+  <tr><td colspan="3" class="muted">{{ labels.no_grades }}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

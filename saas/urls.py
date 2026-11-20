@@ -15,7 +15,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
+
+from academica.compat import ensino_alias
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -26,6 +28,8 @@ router, extra_patterns = build_saas_urls()
 
 
 urlpatterns = [
+    # the former "ensino" API, answered by "academica" for one release
+    re_path(r'^api/ensino/(?P<rest>.*)$', ensino_alias),
     path('', home, name='home'),
     path('api/', include(router.urls)),
     path('api/', include('django_resaas.urls')),

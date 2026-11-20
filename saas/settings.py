@@ -50,6 +50,26 @@ CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
 CELERY_TASK_ALWAYS_EAGER = bool(int(os.environ.get("CELERY_TASK_ALWAYS_EAGER", "0")))
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_ACKS_LATE = True
+
+# laboratorio (the former lab-manager/config/lab.conf): virtual machines of the
+# virtual labs, one Docker container per student. Every key may come from .env.
+LABORATORIO = {
+    "DEFAULT_IMAGE": os.environ.get("LAB_DEFAULT_IMAGE", "ubuntu-lab:1"),
+    "RAM": os.environ.get("LAB_RAM", "1024m"),
+    "CPUS": os.environ.get("LAB_CPUS", "1"),
+    "RESTART_POLICY": os.environ.get("LAB_RESTART_POLICY", "unless-stopped"),
+    "NETWORK_PREFIX": os.environ.get("LAB_NETWORK_PREFIX", "labmgr"),
+    "VOLUME_PREFIX": os.environ.get("LAB_VOLUME_PREFIX", "labmgr"),
+    # nothing in the image listens on 443: published only when enabled
+    "HTTPS_ENABLED": os.environ.get("LAB_HTTPS_ENABLED", "false") == "true",
+    "SSH_PASSWORD_AUTH": os.environ.get("LAB_SSH_PASSWORD_AUTH", "yes"),
+    "SSH_AUTHORIZED_KEYS": os.environ.get("LAB_SSH_AUTHORIZED_KEYS", ""),
+    "SUDO": os.environ.get("LAB_SUDO", "false"),
+    # where students connect (ssh user@PUBLIC_HOST -p <port>)
+    "PUBLIC_HOST": os.environ.get("LAB_PUBLIC_HOST", ""),
+    "BACKUP_DIR": os.environ.get("LAB_BACKUP_DIR", os.path.join(BASE_DIR, "backups", "laboratorio")),
+    "DOCKER_TIMEOUT": int(os.environ.get("LAB_DOCKER_TIMEOUT", "120")),
+}
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 LANGUAGE_CODE = 'EN-US'
 
@@ -78,7 +98,10 @@ MY_APPS = [
     'accounting',
     'crm',
     'workflow',
-    'ensino',
+    'academica',  # the former 'ensino' (docs/progress/ensino-modular.md)
+    'pedagogica',  # ReSaaS Ensino: lessons, digital board, assignments (docs/progress/ensino-modular.md)
+    'laboratorio',  # ReSaaS Ensino: rooms, workstations, lab sessions, remote access (docs/progress/ensino-modular.md)
+    'hospitality',  # bars and restaurants: tables, QR codes, customer requests
 ]
 
 
@@ -118,6 +141,10 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 if DEBUG:
     CORS_ALLOWED_ORIGIN_REGEXES.append(r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$")
 CORS_ORIGIN_WHITELIST = CORS_ALLOWED_ORIGINS
+# the HttpOnly refresh cookie (django_resaas core/services/refresh_cookie.py):
+# the frontends of the API's own site send it with their requests
+CORS_ALLOW_CREDENTIALS = True
+RESAAS_REFRESH_COOKIE_SITES = ["mytech.co.mz"]
 # the browser reads a PDF's file name (django_resaas PDF()) from this header
 CORS_EXPOSE_HEADERS = ["Content-Disposition"]
 CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
@@ -231,16 +258,20 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'NON_FIELD_ERRORS_KEY': 'error',
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        # JWT only (Bearer). Basic (a password on any request: no login
+        # throttle, no two-factor), Token (unused: no tokens issued) and
+        # Session (an admin cookie authenticating the API) were removed.
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     )
 }
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=4),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    # each refresh returns a new refresh token and blacklists the one used; a
+    # rotated token used again ends its session family (session_service)
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
 }
 
 # --------------------------

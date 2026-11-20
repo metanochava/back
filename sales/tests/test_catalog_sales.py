@@ -70,6 +70,17 @@ class OfficeWithoutInventoryTests(TestCase):
         self.assertEqual(sale.total, Decimal("3000"))
         self.assertEqual(sale.itens.get().product_nome, "Consultation")
 
+    def test_sale_snapshots_say_what_is_paid_and_owed_only_for_the_entity(self):
+        sale = services.create_sale(entity_id=self.tenant["entity"].id, branch_id=self.tenant["branch"].id,
+                                    user=self.tenant["user"],
+                                    lines=[{"product_id": self.consultation.id, "quantidade": "1", "preco_unitario": "1500"}])
+        services.confirm_sale(sale=sale, user=self.tenant["user"])
+        services.add_payment(sale=sale, valor=Decimal("500"), forma_pagamento="numerario", user=self.tenant["user"])
+        snap = services.get_sale_snapshots([sale.id, None], self.tenant["entity"].id)[sale.id]
+        self.assertEqual((snap["total"], snap["paid"], snap["balance"]), (Decimal("1500"), Decimal("500"), Decimal("1000")))
+        other = bootstrap_tenant("office-other", modules=("sales",))
+        self.assertEqual(services.get_sale_snapshots([sale.id], other["entity"].id), {})
+
     def test_the_snapshot_stays_when_the_item_changes(self):
         sale = services.create_sale(entity_id=self.tenant["entity"].id, branch_id=self.tenant["branch"].id,
                                     user=self.tenant["user"],

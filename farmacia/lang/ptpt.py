@@ -244,4 +244,7 @@ key_value = {
     "Nearby pharmacies: name or address": "Farmácias próximas: nome ou morada",
     "Decrease radius": "Diminuir o raio",
     "Increase radius": "Aumentar o raio",
+    # record pages (view_<model>, dev/front components/record)
+    'Dispensation item': 'Linha da dispensa',
+    'Medicine catalogue media': 'Imagens do medicamento',
 }

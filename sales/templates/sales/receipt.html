@@ -1,0 +1,33 @@
+{% extends "django_resaas/print/base.html" %}
+{% block content %}
+<div class="title">{{ labels.receipt }} {{ number }}</div>
+<div class="meta"><span>{{ labels.date }}</span><span>{{ sale.created_at|date:"Y-m-d H:i" }}</span></div>
+<div class="meta"><span>{{ labels.customer }}</span><span>{{ customer }}</span></div>
+{% if sale.tab_label %}<div class="meta"><span>{{ labels.tab }}</span><span>{{ sale.tab_label }}</span></div>{% endif %}
+<div class="rule"></div>
+<table>
+  <thead><tr><th>{{ labels.item }}</th><th class="num">{{ labels.qty }}</th><th class="num">{{ labels.amount }}</th></tr></thead>
+  <tbody>
+  {% for line in lines %}
+    <tr>
+      <td>{{ line.name }}{% if line.discount %}<br><small>−{{ line.discount|floatformat:2 }}</small>{% endif %}</td>
+      <td class="num">{{ line.qty|floatformat:"-3" }} × {{ line.unit|floatformat:2 }}</td>
+      <td class="num">{{ line.total|floatformat:2 }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<div class="rule"></div>
+<table>
+  <tr><td>{{ labels.subtotal }}</td><td class="num">{{ sale.subtotal|floatformat:2 }}</td></tr>
+  {% if sale.desconto_total %}<tr><td>{{ labels.discount }}</td><td class="num">−{{ sale.desconto_total|floatformat:2 }}</td></tr>{% endif %}
+  {% if sale.tax_total %}<tr><td>{{ labels.tax }}</td><td class="num">{{ sale.tax_total|floatformat:2 }}</td></tr>{% endif %}
+  <tr class="total"><td>{{ labels.total }}</td><td class="num">{{ sale.total|floatformat:2 }}</td></tr>
+</table>
+{% if payments %}
+<div class="rule"></div>
+<div><b>{{ labels.payments }}</b></div>
+<table>{% for p in payments %}<tr><td>{{ p.method }}{% if p.reference %} · {{ p.reference }}{% endif %}</td><td class="num">{{ p.value|floatformat:2 }}</td></tr>{% endfor %}</table>
+{% endif %}
+{% endblock %}
+{% block footer %}{{ labels.thanks }}<br>{{ printed_at|date:"Y-m-d H:i" }}{% endblock %}

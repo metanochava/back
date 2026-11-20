@@ -79,4 +79,12 @@ key_value = {
     'This line does not belong to the purchase order.': 'Esta linha não pertence à encomenda.',
     'A line cannot be moved to another purchase order.': 'Uma linha não pode passar para outra encomenda.',
     'This purchase order is waiting for its approval workflow.': 'Esta encomenda está à espera do seu fluxo de aprovação.',
+    # the manual forms (front: purchases/supplier)
+    "New supplier": "Novo fornecedor",
+    "Edit supplier": "Editar fornecedor",
+    "Supplier type": "Tipo de fornecedor",
+    "Suppliers": "Fornecedores",
+    "Purchase order": "Ordem de compra",
+    "Purchase orders": "Ordens de compra",
+    "Goods receipts": "Recepções de mercadoria",
 }

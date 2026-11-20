@@ -93,3 +93,29 @@ class CatalogMoveTests(TestCase):
         self.assertEqual(inventory_services.get_product_snapshot(goods.id, entity_id=tenant["entity"].id)["nome"], "Old")
         # the old route answers while the inventory module is active
         self.assertEqual(tenant["client"].get(f"/api/inventory/products/{goods.id}/").status_code, 200)
+
+
+class LockedFieldsTests(TestCase):
+    """A product tells which fields it cannot change (locked_fields): the list
+    shows them locked instead of a toggle the backend would refuse."""
+
+    def setUp(self):
+        self.tenant = bootstrap_tenant("catalog-locked", modules=("catalog",))
+        self.client_ = self.tenant["client"]
+
+    def test_a_service_cannot_track_lots_and_says_why(self):
+        service = Product.objects.create(nome="Delivery", product_type=Product.TYPE_SERVICE, **_audit(self.tenant))
+        goods = Product.objects.create(nome="Beer", **_audit(self.tenant))
+
+        self.assertIn("track_batches", self.client_.get(f"{URL}{service.id}/").data["locked_fields"])
+        self.assertEqual(self.client_.get(f"{URL}{goods.id}/").data["locked_fields"], {})
+
+        refused = self.client_.patch(f"{URL}{service.id}/", {"track_batches": True}, format="json")
+        self.assertEqual(refused.status_code, 400)
+        self.assertIn("track_batches", refused.data["error"]["details"])
+
+        changed = self.client_.patch(f"{URL}{goods.id}/", {"track_batches": True}, format="json")
+        self.assertIn(changed.status_code, (200, 202))
+        goods.refresh_from_db()
+        self.assertTrue(goods.track_batches)
+

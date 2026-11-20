@@ -19,7 +19,7 @@ Neither module's models are ever imported here.
 from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.core.exceptions import ValidationError
 
 from django.apps import apps
@@ -177,6 +177,357 @@ def create_sale(*, entity_id, branch_id, user, lines, warehouse_id=None, observa
             entity_id=entity_id, branch_id=branch_id, created_by=user, updated_by=user,
         )
     return recalculate_totals(sale)
+
+
+# =========================================================
+# POINT OF SALE: price a cart and check it out in one step
+# =========================================================
+
+def quote(*, entity_id, product_id, quantity=1, customer_id=None):
+    """{"price", "price_list"} of a catalogued item for this customer (their
+    price list, quantity breaks) before any sale exists - what checkout_sale()
+    will charge. None when the item, or the customer, is not the Entity's."""
+    if not catalog_enabled(entity_id):
+        return None
+    from sales.models import Customer
+
+    price_list_id = None
+    if customer_id:
+        try:
+            customer = Customer.objects.filter(id=customer_id, entity_id=entity_id).only("price_list_id").first()
+        except (ValueError, ValidationError):
+            customer = None
+        if customer is None:
+            return None
+        price_list_id = customer.price_list_id
+    return catalog().get_price(product_id, entity_id, price_list_id=price_list_id, quantity=quantity)
+
+
+class DiscountNotAllowed(Exception):
+    """A discount on a line without the discount_sale permission (403)."""
+
+
+def _decimal(value, field):
+    from decimal import InvalidOperation
+
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        raise ValidationError({field: "Enter a valid number."})
+
+
+def checkout_sale(*, entity_id, branch_id, user, lines, checkout_key, customer_id=None, warehouse_id=None,
+                  tax_id=None, observacao=None, can_discount=False):
+    """
+    The point of sale's cart as ONE confirmed sale, in one transaction:
+    lines = [{"product_id", "quantidade", "desconto_valor"?}].
+
+    - The price of every line is the catalog's for the customer (quote()):
+      what the client sends as a price is never read.
+    - A discount needs can_discount (permission discount_sale), is never
+      negative and never more than the line.
+    - One optional tax for the whole cart, the Entity's and active.
+    - checkout_key makes it idempotent: the same key returns the sale that
+      key already created (a retry, a double click), never a second one.
+
+    Returns (sale, created). Stock moves on confirmation (confirm_sale()).
+    """
+    from django.db import IntegrityError
+    from sales.models import SaleItem, Tax
+
+    if not checkout_key:
+        raise ValidationError({"checkout_key": "This field is required."})
+    existing = Sale.objects.filter(entity_id=entity_id, checkout_key=checkout_key).first()
+    if existing is not None:
+        return existing, False
+
+    if not catalog_enabled(entity_id):
+        raise ValidationError("The catalog module is required to sell catalogued items.")
+    lines = list(lines or [])
+    if not lines:
+        raise ValidationError("A sale needs at least one line.")
+    if customer_id and get_customer_snapshot(customer_id, entity_id) is None:
+        raise ValidationError({"customer": "Customer not found."})
+
+    tax = None
+    if tax_id:
+        tax = Tax.objects.filter(id=tax_id, entity_id=entity_id).first()
+        if tax is None or not tax.active:
+            raise ValidationError({"tax": "This tax is not active."})
+
+    try:
+        with transaction.atomic():
+            sale = Sale.objects.create(
+                entity_id=entity_id, branch_id=branch_id, warehouse_id=warehouse_id, observacao=observacao,
+                customer_id=customer_id, checkout_key=checkout_key, created_by=user, updated_by=user,
+            )
+            for line in lines:
+                product_id = line.get("product_id")
+                quantity = _decimal(line.get("quantidade"), "quantidade")
+                if quantity <= 0:
+                    raise ValidationError({"quantidade": "The quantity must be greater than zero."})
+                snapshot = product_snapshot(product_id, entity_id) if product_id else None
+                price = quote(entity_id=entity_id, product_id=product_id, quantity=quantity,
+                              customer_id=customer_id) if snapshot else None
+                if snapshot is None or price is None:
+                    raise ValidationError({"product_id": "Product not found."})
+                unit_price = Decimal(price["price"])
+                discount = _decimal(line.get("desconto_valor") or 0, "desconto_valor")
+                if discount < 0 or discount > quantity * unit_price:
+                    raise ValidationError({"desconto_valor": "The discount must be between zero and the line amount."})
+                if discount and not can_discount:
+                    raise DiscountNotAllowed()
+                SaleItem.objects.create(
+                    sale=sale, product_id=product_id, product_nome=snapshot["nome"],
+                    product_codigo=snapshot["codigo"], quantidade=quantity, preco_unitario=unit_price,
+                    desconto_valor=discount, tax=tax, tax_rate=tax.rate if tax else Decimal("0"),
+                    entity_id=entity_id, branch_id=branch_id, created_by=user, updated_by=user, state="Active",
+                )
+            recalculate_totals(sale)
+            confirm_sale(sale=sale, user=user)
+    except IntegrityError:
+        # the same key checked out at the same moment by another request
+        existing = Sale.objects.filter(entity_id=entity_id, checkout_key=checkout_key).first()
+        if existing is None:
+            raise
+        return existing, False
+    return sale, True
+
+
+# =========================================================
+# OPEN TABS (bar, restaurant): a named draft sale that orders are added to
+# =========================================================
+
+class TabNotOpen(Exception):
+    """The tab was closed or voided meanwhile (409)."""
+
+
+def _priced_line(entity_id, product_id, quantity, customer_id):
+    """(snapshot, unit price) of one of the Entity's items for the customer -
+    the catalog's price, never the client's."""
+    snapshot = product_snapshot(product_id, entity_id) if product_id else None
+    price = quote(entity_id=entity_id, product_id=product_id, quantity=quantity,
+                  customer_id=customer_id) if snapshot else None
+    if snapshot is None or price is None:
+        raise ValidationError({"product_id": "Product not found."})
+    return snapshot, Decimal(price["price"])
+
+
+def _lock_open_tab(sale):
+    """The tab, locked for this transaction; TabNotOpen when it is no longer
+    an open (draft, named) tab."""
+    locked = Sale.objects.select_for_update().get(pk=sale.pk)
+    if locked.estado != Sale.ESTADO_RASCUNHO or not locked.tab_label:
+        raise TabNotOpen()
+    return locked
+
+
+def open_tabs(*, entity_id, branch_id):
+    """The branch's open tabs, oldest first, with their total and line count."""
+    from django.db.models import Count
+
+    return (
+        Sale.objects.filter(entity_id=entity_id, branch_id=branch_id, estado=Sale.ESTADO_RASCUNHO,
+                            tab_label__isnull=False)
+        .select_related("customer", "customer__person")
+        .annotate(lines=Count("itens", filter=Q(itens__deleted_at__isnull=True)))
+        .order_by("created_at")
+    )
+
+
+def open_tab(*, entity_id, branch_id, user, label, customer_id=None, warehouse_id=None):
+    """A new open tab: a draft sale named `label` (unique among the branch's
+    open tabs)."""
+    from django.db import IntegrityError
+
+    label = (label or "").strip()
+    if not label:
+        raise ValidationError({"tab_label": "Enter the tab's name or table."})
+    if len(label) > 60:
+        raise ValidationError({"tab_label": "Ensure this field has no more than 60 characters."})
+    if customer_id and get_customer_snapshot(customer_id, entity_id) is None:
+        raise ValidationError({"customer": "Customer not found."})
+    try:
+        with transaction.atomic():
+            return Sale.objects.create(
+                entity_id=entity_id, branch_id=branch_id, tab_label=label, customer_id=customer_id,
+                warehouse_id=warehouse_id, created_by=user, updated_by=user,
+            )
+    except IntegrityError:
+        raise ValidationError({"tab_label": "There is already an open tab with this name."})
+
+
+def tab_states(sale_ids, entity_id):
+    """{sale_id: {"open", "estado", "total", "line_count"}} of the Entity's
+    sales among `sale_ids` (for other modules, e.g. the tables of a bar).
+    Another Entity's ids are left out."""
+    from django.db.models import Count
+
+    ids = [sale_id for sale_id in sale_ids if sale_id]
+    if not ids:
+        return {}
+    rows = (
+        Sale.objects.filter(id__in=ids, entity_id=entity_id)
+        .annotate(line_count=Count("itens", filter=Q(itens__deleted_at__isnull=True)))
+        .values("id", "estado", "total", "tab_label", "line_count")
+    )
+    return {
+        row["id"]: {
+            "open": row["estado"] == Sale.ESTADO_RASCUNHO and bool(row["tab_label"]),
+            "estado": row["estado"], "total": row["total"], "line_count": row["line_count"],
+        }
+        for row in rows
+    }
+
+
+def get_open_tab(sale_id, entity_id):
+    """The Entity's open tab with this id (to order on it), or None."""
+    try:
+        return Sale.objects.filter(id=sale_id, entity_id=entity_id, estado=Sale.ESTADO_RASCUNHO,
+                                   tab_label__isnull=False).first()
+    except (ValueError, ValidationError):
+        return None
+
+
+def find_open_tab(*, entity_id, branch_id, label):
+    """The branch's open tab with this name, or None."""
+    return Sale.objects.filter(entity_id=entity_id, branch_id=branch_id, estado=Sale.ESTADO_RASCUNHO,
+                               tab_label=(label or "").strip()).first()
+
+
+@transaction.atomic
+def order_on_tab(*, sale, product_id, delta, user):
+    """Add (delta > 0) or take back (delta < 0) units of an item on an open
+    tab. The item's line is re-priced for its new quantity (price list
+    breaks); a line reaching zero is removed. Concurrent orders on the same
+    tab are serialised (the tab is locked), so no order is lost."""
+    from sales.models import SaleItem
+
+    tab = _lock_open_tab(sale)
+    delta = _decimal(delta, "delta")
+    if delta == 0:
+        raise ValidationError({"delta": "The quantity must not be zero."})
+
+    line = tab.itens.filter(product_id=product_id).order_by("created_at").first() if product_id else None
+    quantity = (line.quantidade if line else Decimal("0")) + delta
+    if line is None and delta < 0:
+        raise ValidationError({"product_id": "This item is not on the tab."})
+
+    product_nome = line.product_nome if line else None
+    if quantity <= 0:
+        line.delete(user=user)
+    else:
+        snapshot, unit_price = _priced_line(tab.entity_id, product_id, quantity, tab.customer_id)
+        product_nome = snapshot["nome"]
+        if line is None:
+            SaleItem.objects.create(
+                sale=tab, product_id=product_id, product_nome=snapshot["nome"], product_codigo=snapshot["codigo"],
+                quantidade=quantity, preco_unitario=unit_price, entity_id=tab.entity_id, branch_id=tab.branch_id,
+                created_by=user, updated_by=user, state="Active",
+            )
+        else:
+            line.quantidade = quantity
+            line.preco_unitario = unit_price
+            line.desconto_valor = min(line.desconto_valor, quantity * unit_price)
+            line.updated_by = user
+            line.save(update_fields=["quantidade", "preco_unitario", "desconto_valor", "updated_by", "updated_at"])
+    # business event (e.g. a kitchen / bar display prepares it) - sales never
+    # knows who listens; delta < 0 is a unit taken back
+    EventDispatcher.emit("sales.tab.ordered", instance=tab, actor=user, context={
+        "sale_id": str(tab.id), "tab_label": tab.tab_label, "product_id": str(product_id),
+        "product_nome": product_nome, "delta": str(delta),
+    })
+    return recalculate_totals(tab)
+
+
+@transaction.atomic
+def discount_on_tab(*, sale, item_id, desconto_valor, user):
+    """A line's discount on an open tab (the caller checks discount_sale)."""
+    tab = _lock_open_tab(sale)
+    line = tab.itens.filter(id=item_id).first()
+    if line is None:
+        raise ValidationError({"item": "This item is not on the tab."})
+    discount = _decimal(desconto_valor or 0, "desconto_valor")
+    if discount < 0 or discount > line.quantidade * line.preco_unitario:
+        raise ValidationError({"desconto_valor": "The discount must be between zero and the line amount."})
+    line.desconto_valor = discount
+    line.updated_by = user
+    line.save(update_fields=["desconto_valor", "updated_by", "updated_at"])
+    return recalculate_totals(tab)
+
+
+@transaction.atomic
+def split_tab(*, sale, items, user, label=None):
+    """Move some of an open tab's units to a NEW open tab (to be paid apart:
+    "each pays what they drank"). items = [{"item", "quantidade"}]. A whole
+    line moves with its discount; part of a line moves at the same unit
+    price. Returns the new tab."""
+    from sales.models import SaleItem
+
+    tab = _lock_open_tab(sale)
+    items = list(items or [])
+    if not items:
+        raise ValidationError({"items": "Choose what to move."})
+
+    base = (label or "").strip() or tab.tab_label
+    name, n = base, 2
+    while Sale.objects.filter(branch_id=tab.branch_id, estado=Sale.ESTADO_RASCUNHO, tab_label=name).exists():
+        name = f"{base[:54]} ({n})"
+        n += 1
+    new_tab = open_tab(entity_id=tab.entity_id, branch_id=tab.branch_id, user=user, label=name,
+                       customer_id=tab.customer_id, warehouse_id=tab.warehouse_id)
+
+    for entry in items:
+        line = tab.itens.filter(id=entry.get("item")).first()
+        if line is None:
+            raise ValidationError({"items": "This item is not on the tab."})
+        quantity = _decimal(entry.get("quantidade"), "quantidade")
+        if quantity <= 0 or quantity > line.quantidade:
+            raise ValidationError({"quantidade": "The quantity must be between zero and the line's quantity."})
+        if quantity == line.quantidade:
+            line.sale = new_tab
+            line.updated_by = user
+            line.save(update_fields=["sale", "updated_by", "updated_at"])
+            continue
+        line.quantidade -= quantity
+        line.desconto_valor = min(line.desconto_valor, line.quantidade * line.preco_unitario)
+        line.updated_by = user
+        line.save(update_fields=["quantidade", "desconto_valor", "updated_by", "updated_at"])
+        SaleItem.objects.create(
+            sale=new_tab, product_id=line.product_id, product_nome=line.product_nome,
+            product_codigo=line.product_codigo, quantidade=quantity, preco_unitario=line.preco_unitario,
+            entity_id=tab.entity_id, branch_id=tab.branch_id, created_by=user, updated_by=user, state="Active",
+        )
+    recalculate_totals(tab)
+    return recalculate_totals(new_tab)
+
+
+@transaction.atomic
+def close_tab(*, sale, user, tax_id=None, warehouse_id=None):
+    """Close an open tab: optional tax for all its lines, optional warehouse,
+    then confirm it (stock moves now). Closing a tab that is already closed
+    returns it (a double click), never a second confirmation. Returns
+    (sale, closed_now)."""
+    from sales.models import Tax
+
+    locked = Sale.objects.select_for_update().get(pk=sale.pk)
+    if locked.estado in (Sale.ESTADO_CONFIRMADA, Sale.ESTADO_PAGA) and locked.tab_label:
+        return locked, False
+    tab = _lock_open_tab(locked)
+    if not tab.itens.exists():
+        raise ValidationError("A sale needs at least one line.")
+
+    tax = None
+    if tax_id:
+        tax = Tax.objects.filter(id=tax_id, entity_id=tab.entity_id).first()
+        if tax is None or not tax.active:
+            raise ValidationError({"tax": "This tax is not active."})
+    tab.itens.update(tax=tax, tax_rate=tax.rate if tax else Decimal("0"))
+    if warehouse_id:
+        tab.warehouse_id = warehouse_id
+        tab.save(update_fields=["warehouse_id", "updated_at"])
+    recalculate_totals(tab)
+    return confirm_sale(sale=tab, user=user), True
 
 
 # =========================================================
@@ -411,3 +762,22 @@ def add_payment(*, sale, valor, forma_pagamento, user, referencia=None):
         sale.save(update_fields=["estado", "updated_by", "updated_at"])
 
     return payment
+
+
+def get_sale_snapshots(sale_ids, entity_id):
+    """{sale_id: {"id", "estado", "data", "total", "paid", "balance"}} of the
+    Entity's sales among `sale_ids` - read-only, for modules that show what a
+    person owes for the sales they made (tuition, clinical charges) without
+    reading sales models. Another Entity's ids are simply missing."""
+    ids = [sale_id for sale_id in sale_ids if sale_id]
+    if not ids:
+        return {}
+    rows = (Sale.objects.filter(id__in=ids, entity_id=entity_id)
+            .annotate(paid=Sum("pagamentos__valor", filter=Q(pagamentos__deleted_at__isnull=True))).only("id", "estado", "data", "total"))
+    snapshots = {}
+    for sale in rows:
+        paid = sale.paid or Decimal("0")
+        balance = Decimal("0") if sale.estado == Sale.ESTADO_ANULADA else max(sale.total - paid, Decimal("0"))
+        snapshots[sale.id] = {"id": sale.id, "estado": sale.estado, "data": sale.data, "total": sale.total,
+                              "paid": paid, "balance": balance}
+    return snapshots

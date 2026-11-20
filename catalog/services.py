@@ -136,4 +136,53 @@ def get_product_snapshot(product_id, entity_id=None):
         "track_batches": product.track_batches,
         "product_type": product.product_type,
         "ativo": product.ativo,
+        "categoria_id": product.categoria_id,
     }
+
+
+def public_menu(entity_id, image_url=None):
+    """The Entity's active catalogue as a public page shows it (a bar's or a
+    restaurant's menu): [{"category", "items": [{"id", "nome", "preco_base",
+    "unidade", "product_type", "imagem"}]}], categories by name, items by
+    name; items without a category last. `image_url(file)` turns an image
+    into a URL (the caller knows the request); no cost, stock or internal
+    field leaves here."""
+    products = (
+        Product.objects.filter(entity_id=entity_id, ativo=True, variant_of__isnull=True)
+        .select_related("categoria")
+        .order_by("categoria__nome", "nome")
+    )
+    groups = {}
+    for product in products:
+        category = product.categoria if product.categoria and product.categoria.ativo else None
+        key = category.nome if category else None
+        groups.setdefault(key, []).append({
+            "id": str(product.id),
+            "nome": product.nome,
+            "preco_base": product.preco_base,
+            "unidade": product.unidade,
+            "product_type": product.product_type,
+            "imagem": image_url(product.imagem) if (image_url and product.imagem) else None,
+        })
+    named = sorted((k for k in groups if k is not None))
+    return [{"category": k, "items": groups[k]} for k in named] + (
+        [{"category": None, "items": groups[None]}] if None in groups else []
+    )
+
+
+def get_product_media(product_ids, entity_id):
+    """{product_id: {"nome", "imagem", "media": [{"file", "legenda"}]}} of the
+    Entity's active products among `product_ids` - their name, main image and
+    gallery (files, for the caller to turn into URLs), e.g. for a public site
+    that shows what a service includes. Another Entity's ids are left out."""
+    from catalog.models import ProductMedia
+
+    ids = [product_id for product_id in product_ids if product_id]
+    if not ids:
+        return {}
+    products = {p.id: p for p in Product.objects.filter(id__in=ids, entity_id=entity_id, ativo=True)}
+    result = {pid: {"nome": p.nome, "imagem": p.imagem or None, "media": []} for pid, p in products.items()}
+    for media in ProductMedia.objects.filter(product_id__in=products, entity_id=entity_id).order_by("ordem", "created_at"):
+        if media.file:
+            result[media.product_id]["media"].append({"file": media.file, "legenda": media.legenda or ""})
+    return result

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# ==========================================================
+# LAB MANAGER - AAEE
+# Informações académicas do estudante
+# ==========================================================
+
+set -u
+
+# Compatibilidade com nomes de variáveis antigos.
+INSTITUTION="${LAB_INSTITUTION_NAME:-AAEE}"
+STUDENT="${LAB_STUDENT_NAME:-${LAB_USER:-student}}"
+STUDENT_NUMBER="${LAB_STUDENT_NUMBER:-Não definido}"
+COURSE="${LAB_STUDENT_COURSE:-${LAB_COURSE:-Não definido}}"
+SUBJECT="${LAB_SUBJECT:-Não definido}"
+CLASS="${LAB_STUDENT_CLASS:-${LAB_CLASS:-Não definida}}"
+TEACHER="${LAB_TEACHER:-Não definido}"
+
+echo ""
+echo "INFORMAÇÕES ACADÉMICAS"
+echo "--------------------------------------------------------"
+
+printf '%-13s %s\n' "Instituição:" "$INSTITUTION"
+printf '%-13s %s\n' "Estudante:" "$STUDENT"
+printf '%-13s %s\n' "Número:" "$STUDENT_NUMBER"
+printf '%-13s %s\n' "Curso:" "$COURSE"
+printf '%-13s %s\n' "Disciplina:" "$SUBJECT"
+printf '%-13s %s\n' "Turma:" "$CLASS"
+printf '%-13s %s\n' "Docente:" "$TEACHER"
+
+echo ""
+echo "========================================================"
+echo " Ambiente gerido pelo Lab Manager"
+echo " Academia de Altos Estudos e Estratégicos"
+echo "========================================================"
+echo ""

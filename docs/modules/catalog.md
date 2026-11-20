@@ -32,11 +32,12 @@ modules).
 | Function | Returns |
 |---|---|
 | `catalog_module_active(entity_id)` | the module is active for the Entity |
-| `get_product_snapshot(product_id, entity_id)` | `{id, codigo, nome, preco_base, track_batches, product_type, ativo}` of one of the Entity's products, or `None` |
+| `get_product_snapshot(product_id, entity_id)` | `{id, codigo, nome, preco_base, track_batches, product_type, ativo, categoria_id}` of one of the Entity's products, or `None` |
 | `get_price(product_id, entity_id, price_list_id, quantity, date)` | `{price, price_list}`: the list's price for the highest `min_quantity` ≤ quantity when the list is active and valid, else `preco_base` |
 | `get_prices(product_ids, entity_id, price_list_id, date)` | the same for several products, in a fixed number of queries |
 | `get_price_list_snapshot(price_list_id, entity_id)` | `{id, name}` or `None` |
 | `is_stockable(product)` | goods without variants (a service or a template never holds stock) |
+| `public_menu(entity_id, image_url)` | the Entity's active items for a public page (a bar's menu): `[{category, items: [{id, nome, preco_base, unidade, product_type, imagem}]}]`, categories by name, items without category last; no cost or stock; `image_url(file)` makes the image's URL |
 
 `inventory.services` keeps `get_product_snapshot`, `get_price`, `get_prices`,
 `get_price_list_snapshot` and `holds_stock` as compatibility wrappers.
