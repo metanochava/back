@@ -1,14 +1,32 @@
 from rest_framework import serializers
 
 from django_resaas.saas.core.base.serializers import BaseSerializer
+from django_resaas.saas.core.utils.translate import Translate
 from catalog.models.product import Product
 
 
 class ProductSerializer(BaseSerializer):
 
+    # {field: reason} of the fields this product cannot change (the rules of
+    # validate*): a list shows them locked instead of a toggle that is refused
+    locked_fields = serializers.SerializerMethodField()
+
     class Meta:
         model = Product
         fields = "__all__"
+
+    def get_locked_fields(self, product):
+        request = self.context.get("request")
+        t = (lambda text: Translate.tdc(request, text)) if request else (lambda text: text)
+        locked = {}
+        has_movements = product.movimentos.exists()
+        if product.product_type == Product.TYPE_SERVICE:
+            locked["track_batches"] = t("A service has no stock.")
+        elif has_movements:
+            locked["track_batches"] = t("Lot tracking can only change before the product has stock movements.")
+        if has_movements:
+            locked["product_type"] = t("The type can only change before the product has stock movements.")
+        return locked
 
     def _has_movements(self):
         return self.instance is not None and self.instance.movimentos.exists()

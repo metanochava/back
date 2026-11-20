@@ -78,4 +78,7 @@ key_value = {
     'This account does not accept postings.': 'Esta conta não aceita lançamentos.',
     'This journal cannot be used.': 'Este diário não pode ser usado.',
     'This period overlaps another fiscal period.': 'Este período sobrepõe-se a outro.',
+    # record pages (view_<model>, dev/front components/record)
+    'Posting rules (debit account)': 'Regras de lançamento (conta a débito)',
+    'Posting rules (credit account)': 'Regras de lançamento (conta a crédito)',
 }

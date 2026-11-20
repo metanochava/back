@@ -87,10 +87,45 @@ class Sale(BaseModel):
         blank=True
     )
 
+    # an open tab (bar, restaurant): a draft sale with a name - a table number
+    # or the customer's name - that orders are added to until it is closed
+    # (sales.services open_tab / order_on_tab / close_tab)
+    tab_label = models.CharField(
+        max_length=60,
+        null=True,
+        blank=True,
+    )
+
+    # the point of sale's key for one cart (sales.services.checkout_sale): a
+    # retry or a double click with the same key returns the same sale
+    checkout_key = models.UUIDField(
+        null=True,
+        blank=True,
+        editable=False,
+    )
+
     class Meta:
         verbose_name = "Venda"
         verbose_name_plural = "Vendas"
         ordering = ["-data", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["entity", "checkout_key"],
+                condition=models.Q(checkout_key__isnull=False),
+                name="unique_sale_checkout_key_per_entity",
+            ),
+            # one OPEN tab per name in a branch (closed ones keep their name)
+            models.UniqueConstraint(
+                fields=["branch", "tab_label"],
+                condition=models.Q(estado="rascunho", tab_label__isnull=False),
+                name="unique_open_tab_label_per_branch",
+            ),
+        ]
+        permissions = (
+            # a line's discount at the point of sale; the price itself is
+            # always the catalog's (the customer's price list)
+            ("discount_sale", "Can give a discount on a sale"),
+        )
 
     class RESAAS:
 
@@ -100,6 +135,7 @@ class Sale(BaseModel):
             "customer__company_name",
             "customer__person__full_name",
             "observacao",
+            "tab_label",
         ]
 
         crud = True

@@ -46,6 +46,12 @@ PURCHASES_PROFILES = [
     {"name": "Auditor", "permissions": [*SUPPLIER_READ, *ORDER_READ, *RECEIPT_READ]},
 ]
 
+# the Entity's "Admin" (django_resaas saas/profiles.py; group_creator() is
+# additive by name) runs every purchase: the union of the profiles above
+PURCHASES_PROFILES += [
+    {"name": "Admin", "permissions": sorted({p for profile in PURCHASES_PROFILES for p in profile["permissions"]})},
+]
+
 ACTION_PERMISSIONS = [
     "submit_purchaseorder",
     "return_to_draft_purchaseorder",

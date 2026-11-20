@@ -1,0 +1,26 @@
+{% extends "academica/pdf/_base.html" %}
+{% block title %}{{ labels.transcript }}{% endblock %}
+{% block content %}
+<div class="facts">
+  <div><span>{{ labels.student }}:</span> <b>{{ student.person.full_name }}</b></div>
+  <div><span>{{ labels.number }}:</span> {{ student.number }}</div>
+  <div><span>{{ labels.status }}:</span> {{ student.get_status_display }}</div>
+</div>
+{% if prior %}
+<h2>{{ labels.prior_schooling }}</h2>
+<table>
+  <tr><th>{{ labels.academic_year }}</th><th>{{ labels.institution }}</th><th>{{ labels.grade_level }}</th><th>{{ labels.result }}</th></tr>
+  {% for p in prior %}<tr><td>{{ p.academic_year }}</td><td>{{ p.institution }}</td><td>{{ p.grade_level }}</td><td>{{ p.result }}</td></tr>{% endfor %}
+</table>
+{% endif %}
+{% for year in years %}
+<h2>{{ year.enrolment.academic_year.name }} · {{ year.enrolment.programme.name }} · {{ year.enrolment.grade_level.name }}</h2>
+<table>
+  <tr><th>{{ labels.subject }}</th><th class="num">{{ labels.average }}</th><th class="num">{{ labels.result }}</th></tr>
+  {% for row in year.rows %}
+  <tr><td>{{ row.subject }}</td><td class="num">{{ row.average|default:"—" }}</td>
+      <td class="num">{% if row.passed is None %}<span class="muted">—</span>{% elif row.passed %}<span class="ok">{{ labels.passed }}</span>{% else %}<span class="ko">{{ labels.not_passed }}</span>{% endif %}</td></tr>
+  {% empty %}<tr><td colspan="3" class="muted">{{ labels.no_grades }}</td></tr>{% endfor %}
+</table>
+{% endfor %}
+{% endblock %}

@@ -35,6 +35,12 @@ ACCOUNTING_PROFILES = [
     {"name": "Auditor", "permissions": [*READ]},
 ]
 
+# the Entity's "Admin" (django_resaas saas/profiles.py; group_creator() is
+# additive by name) keeps the books: the union of the profiles above
+ACCOUNTING_PROFILES += [
+    {"name": "Admin", "permissions": sorted({p for profile in ACCOUNTING_PROFILES for p in profile["permissions"]})},
+]
+
 ACTION_PERMISSIONS = {
     "journalentry": ["post_entry_journalentry", "reverse_journalentry"],
     "fiscalperiod": ["close_fiscalperiod", "reopen_fiscalperiod"],

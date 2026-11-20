@@ -56,6 +56,43 @@ Health Administrator keeps the rules and reads charges and consumptions;
 Receptionist reads the charges (and confirms / receives sales with its sales
 permissions).
 
+## Prices on the public site
+
+The clinic's site (`front/src/sites/amal`) shows the same prices the clinic
+charges, read from these rules. The endpoints are PUBLIC and read-only, and
+the Entity comes from the request Origin. They live in
+`saude/views/public_site.py` and `saude/services/public_site_service.py`:
+
+| Endpoint | Answers |
+|---|---|
+| `GET saude/publicsite/exams/` | every active exam (type, class, sample, result time) with its price, or `null` ("Price on request") |
+| `GET saude/publicsite/exams/<id>/` | one exam: preparation, what the price includes (only with more than one item) and the items' images |
+| `GET saude/publicsite/consultations/` | the price per specialty, and of the general consultation (key `general`) |
+| `GET saude/publicsite/consultations/<key>/` | one consultation: price, what it includes, images and the specialty's doctors (all of them for the general one) |
+
+**How a price is computed**
+
+- It is the sum of quantity × the item's current catalog price, over the
+  active rules (`catalog.get_prices`).
+- The images come from `catalog.get_product_media`.
+- An inactive item does not count.
+- Without the catalog, there are no prices.
+
+**What never reaches the site:** rules, item ids, costs or patient data.
+Another clinic's exam, an inactive exam or an unknown key answers 404.
+
+**On the site**
+
+- the Exams section (search, filter by type);
+- the Consultation prices section (`#precos`).
+
+A card opens its details in a modal (`OfferDetailDialog.vue`, an
+`s-modal-card` in a `q-dialog`). From a consultation's modal, "Book
+appointment" opens the booking form with the specialty already chosen.
+
+Tests: `saude/tests/test_public_site_prices.py` and
+`front/src/sites/amal/pages/OfferPages.spec.js`.
+
 ## Not done yet
 
 - Procedures (`Procedimento` has a free-text name, no catalogue): not charged.

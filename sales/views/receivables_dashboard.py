@@ -1,6 +1,6 @@
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
-from django.db.models import F, Q, Sum, Value, DecimalField, IntegerField, ExpressionWrapper, OuterRef, Subquery
+from django.db.models import F, Q, Sum, Value, DecimalField, ExpressionWrapper, OuterRef, Subquery
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework.response import Response
@@ -50,19 +50,18 @@ class ReceivablesDashboardAPIView(TenantDashboardAPIView):
                 )
             )
             .filter(saldo__gt=0)
-            .annotate(
-                dias_vencido=ExpressionWrapper(
-                    Value(as_of_date) - F("data"),
-                    output_field=IntegerField()
-                )
-            )
         )
+
+        # age in days = as_of - data, compared through the sale date itself (a
+        # date minus a date parameter is an interval in PostgreSQL, not days)
+        days_30 = as_of_date - timedelta(days=30)
+        days_60 = as_of_date - timedelta(days=60)
 
         agg = qs.aggregate(
             total_em_divida=Coalesce(Sum("saldo"), Value(Decimal("0")), output_field=DecimalField(max_digits=16, decimal_places=2)),
-            total_0_30=Coalesce(Sum("saldo", filter=Q(dias_vencido__lte=30)), Value(Decimal("0")), output_field=DecimalField(max_digits=16, decimal_places=2)),
-            total_31_60=Coalesce(Sum("saldo", filter=Q(dias_vencido__gt=30, dias_vencido__lte=60)), Value(Decimal("0")), output_field=DecimalField(max_digits=16, decimal_places=2)),
-            total_60_mais=Coalesce(Sum("saldo", filter=Q(dias_vencido__gt=60)), Value(Decimal("0")), output_field=DecimalField(max_digits=16, decimal_places=2)),
+            total_0_30=Coalesce(Sum("saldo", filter=Q(data__gte=days_30)), Value(Decimal("0")), output_field=DecimalField(max_digits=16, decimal_places=2)),
+            total_31_60=Coalesce(Sum("saldo", filter=Q(data__lt=days_30, data__gte=days_60)), Value(Decimal("0")), output_field=DecimalField(max_digits=16, decimal_places=2)),
+            total_60_mais=Coalesce(Sum("saldo", filter=Q(data__lt=days_60)), Value(Decimal("0")), output_field=DecimalField(max_digits=16, decimal_places=2)),
         )
 
         return Response({

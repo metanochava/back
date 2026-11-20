@@ -1,0 +1,14 @@
+
+#!/usr/bin/env bash
+
+# ==========================================================
+# LAB MANAGER - AAEE
+# Cabeçalho institucional do terminal
+# ==========================================================
+
+printf '\n'
+printf '%s\n' '========================================================'
+printf '%s\n' '             AAEE - LABORATÓRIO ACADÉMICO'
+printf '%s\n' '       Academia de Altos Estudos e Estratégicos'
+printf '%s\n' '========================================================'
+printf '\n'

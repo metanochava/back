@@ -35,8 +35,13 @@ def create_sales_groups(sender, **kwargs):
     # ------------------------------------------------------
     # 🔹 IMPORT LOCAL
     # ------------------------------------------------------
+    from django.contrib.auth.management import create_permissions
     from django_resaas.saas.core.utils.group_creator import group_creator
     from sales.profiles import SALES_PROFILES
+
+    # the model permissions (e.g. Sale's discount_sale) before the profiles
+    # name them - django.contrib.auth's own post_migrate may run after this one
+    create_permissions(kwargs["app_config"], verbosity=0, using=kwargs.get("using", "default"))
 
     # ------------------------------------------------------
     # 🔹 CRIAÇÃO DE GRUPOS

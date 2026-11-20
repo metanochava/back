@@ -1,0 +1,488 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{LAB_NAME}} | AAEE</title>
+
+    <meta name="description"
+          content="Ambiente académico de laboratórios virtuais da Academia de Altos Estudos e Estratégicos.">
+
+    <meta name="theme-color" content="#10243A">
+
+    <style>
+        :root {
+            --primary: #10243A;
+            --primary-light: #183B5B;
+            --accent: #D5A83B;
+            --background: #F3F6FA;
+            --surface: #FFFFFF;
+            --text: #172B40;
+            --muted: #718096;
+            --success: #16A36A;
+            --border: #E2E8F0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 22px 7%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand img {
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+            background: white;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .brand h1 {
+            font-size: 20px;
+            letter-spacing: 1px;
+        }
+
+        .brand p {
+            color: #B9C9D9;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            font-size: 13px;
+            color: #D7E6F4;
+        }
+
+        .status-dot {
+            width: 9px;
+            height: 9px;
+            background: #36D399;
+            border-radius: 50%;
+        }
+
+        /* HERO */
+
+        .hero {
+            background: linear-gradient(
+                120deg,
+                var(--primary),
+                var(--primary-light)
+            );
+            color: white;
+            padding: 65px 7%;
+        }
+
+        .hero-content {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .hero-label {
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 18px;
+        }
+
+        .hero h2 {
+            font-size: clamp(30px, 5vw, 48px);
+            line-height: 1.15;
+            margin-bottom: 18px;
+        }
+
+        .hero p {
+            max-width: 650px;
+            color: #D1DFEC;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 9px 16px;
+            border: 1px solid #52718E;
+            border-radius: 30px;
+            font-size: 12px;
+        }
+
+        /* MAIN */
+
+        .container {
+            max-width: 1100px;
+            margin: -25px auto 50px;
+            padding: 0 22px;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 18px;
+            margin: 35px 0 17px;
+        }
+
+        /* CARDS */
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 23px;
+            box-shadow: 0 5px 18px rgba(20, 40, 60, 0.04);
+        }
+
+        .card h3 {
+            font-size: 14px;
+            color: var(--muted);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .card .value {
+            font-size: 19px;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+
+        .card .description {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+        /* SYSTEM */
+
+        .system-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .system-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 22px;
+        }
+
+        .system-card span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .system-card strong {
+            font-size: 20px;
+            overflow-wrap: anywhere;
+        }
+
+        /* NOTICE */
+
+        .notice {
+            background: #FFF9E9;
+            border: 1px solid #F1DFAF;
+            border-left: 4px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+            line-height: 1.7;
+        }
+
+        .notice h3 {
+            font-size: 14px;
+            margin-bottom: 7px;
+        }
+
+        .notice p {
+            color: #65572F;
+            font-size: 13px;
+        }
+
+        /* ACADEMIC RESOURCES */
+
+        .resources {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 25px;
+            margin-top: 25px;
+        }
+
+        .resources p {
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        /* FOOTER */
+
+        footer {
+            background: var(--primary);
+            color: #B9C9D9;
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        footer strong {
+            color: white;
+        }
+
+        @media (max-width: 650px) {
+            .grid,
+            .system-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero {
+                padding: 45px 7%;
+            }
+
+            .header {
+                padding: 18px 5%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+
+    <header class="header">
+
+        <div class="brand">
+
+            <img
+                src="/assets/logo.png"
+                alt="Logótipo AAEE"
+                onerror="this.style.display='none';"
+            >
+
+            <div>
+                <h1>AAEE</h1>
+                <p>{{LAB_INSTITUTION_NAME}}</p>
+            </div>
+
+        </div>
+
+        <div class="system-status">
+            <span class="status-dot"></span>
+            Ambiente de laboratório
+        </div>
+
+    </header>
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+        <div class="hero-content">
+
+            <div class="hero-label">
+                AMBIENTE ACADÉMICO VIRTUAL
+            </div>
+
+            <h2>Bem-vindo ao teu Laboratório Virtual</h2>
+
+            <p>
+                Este é o teu ambiente individual de aprendizagem,
+                experimentação e investigação tecnológica.
+
+                Utiliza os recursos disponibilizados pelo docente
+                para desenvolver as tuas actividades académicas.
+            </p>
+
+            <div class="hero-badge">
+                Powered by Lab Manager
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- MAIN -->
+
+    <main class="container">
+
+        <h2 class="section-title">
+            Identificação académica
+        </h2>
+
+        <section class="grid">
+
+            <article class="card">
+                <h3>Estudante</h3>
+                <div class="value">{{LAB_STUDENT_NAME}}</div>
+                <div class="description">
+                    Utilizador do ambiente
+                </div>
+            </article>
+
+            <article class="card">
+                <h3>Número académico</h3>
+                <div class="value">{{LAB_STUDENT_NUMBER}}</div>
+                <div class="description">
+                    Identificação académica
+                </div>
+            </article>
+
+            <article class="card">
+                <h3>Curso</h3>
+                <div class="value">{{LAB_STUDENT_COURSE}}</div>
+            </article>
+
+            <article class="card">
+                <h3>Disciplina</h3>
+                <div class="value">{{LAB_SUBJECT}}</div>
+            </article>
+
+            <article class="card">
+                <h3>Turma</h3>
+                <div class="value">{{LAB_STUDENT_CLASS}}</div>
+            </article>
+
+            <article class="card">
+                <h3>Docente responsável</h3>
+                <div class="value">{{LAB_TEACHER}}</div>
+            </article>
+
+        </section>
+
+        <h2 class="section-title">
+            Informações da máquina virtual
+        </h2>
+
+        <section class="grid">
+
+            <article class="card">
+                <h3>Nome da máquina</h3>
+                <div class="value">{{LAB_MACHINE_NAME}}</div>
+            </article>
+
+            <article class="card">
+                <h3>Utilizador SSH</h3>
+                <div class="value">{{LAB_USER}}</div>
+            </article>
+
+        </section>
+
+        <h2 class="section-title">
+            Recursos do sistema
+        </h2>
+
+        <section class="system-grid">
+
+            <article class="system-card">
+                <span>Sistema operativo</span>
+                <strong>Ubuntu 24.04 LTS</strong>
+            </article>
+
+            <article class="system-card">
+                <span>Processadores</span>
+                <strong id="cpu">A verificar</strong>
+            </article>
+
+            <article class="system-card">
+                <span>Memória RAM</span>
+                <strong id="ram">A verificar</strong>
+            </article>
+
+        </section>
+
+        <h2 class="section-title">
+            Recursos académicos
+        </h2>
+
+        <section class="resources">
+
+            <h3>Materiais de aprendizagem</h3>
+
+            <p>
+                Os materiais, exercícios, documentos e orientações
+                disponibilizados pelo docente serão apresentados
+                nesta área.
+            </p>
+
+            <p>
+                Guarda regularmente o teu trabalho e consulta
+                as instruções da disciplina.
+            </p>
+
+        </section>
+
+        <section class="notice">
+
+            <h3>Orientações académicas</h3>
+
+            <p>
+                Este ambiente é disponibilizado exclusivamente
+                para actividades académicas e de investigação.
+
+                Respeita as orientações do docente, não comprometas
+                a segurança dos sistemas e guarda regularmente
+                o teu trabalho.
+            </p>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+
+    <footer>
+
+        <strong>{{LAB_INSTITUTION}}</strong><br>
+
+        {{LAB_INSTITUTION_NAME}}<br>
+
+        {{LAB_NAME}}<br>
+
+        <span>
+            Gerido por Lab Manager
+        </span>
+
+    </footer>
+
+</body>
+</html>

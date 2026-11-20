@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# ==========================================================
+# LAB MANAGER - AAEE
+# Informações do sistema e recursos
+# ==========================================================
+
+set -u
+
+print_info() {
+    printf '%-10s %s\n' "$1" "$2"
+}
+
+echo ""
+echo "INFORMAÇÕES DO SISTEMA"
+echo "--------------------------------------------------------"
+
+HOSTNAME_VALUE="$(hostname 2>/dev/null || echo 'Não disponível')"
+
+OS_VALUE="Não disponível"
+if [[ -r /etc/os-release ]]; then
+    OS_VALUE="$(
+        . /etc/os-release
+        printf '%s' "${PRETTY_NAME:-Não disponível}"
+    )"
+fi
+
+KERNEL_VALUE="$(uname -r 2>/dev/null || echo 'Não disponível')"
+UPTIME_VALUE="$(uptime -p 2>/dev/null || echo 'Não disponível')"
+
+print_info "Hostname:" "$HOSTNAME_VALUE"
+print_info "Sistema:" "$OS_VALUE"
+print_info "Kernel:" "$KERNEL_VALUE"
+print_info "Uptime:" "$UPTIME_VALUE"
+
+echo ""
+echo "RECURSOS"
+echo "--------------------------------------------------------"
+
+CPU_VALUE="$(nproc 2>/dev/null || echo 'Não disponível')"
+
+RAM_VALUE="Não disponível"
+if command -v free >/dev/null 2>&1; then
+    RAM_VALUE="$(free -h 2>/dev/null | awk '/^Mem:/ {print $2; found=1} END {if (!found) print "Não disponível"}')"
+fi
+
+DISK_VALUE="Não disponível"
+if command -v df >/dev/null 2>&1; then
+    DISK_VALUE="$(df -h / 2>/dev/null | awk 'NR==2 {print $4 " livres de " $2}')"
+fi
+
+print_info "CPU:" "${CPU_VALUE} vCPU"
+print_info "RAM:" "$RAM_VALUE"
+print_info "Disco:" "$DISK_VALUE"
+
+echo ""

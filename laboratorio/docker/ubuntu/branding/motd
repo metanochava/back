@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# ==========================================================
+# LAB MANAGER - AAEE
+# Mensagem de boas-vindas após autenticação SSH
+# ==========================================================
+
+set -u
+
+INSTITUTION="${LAB_INSTITUTION_NAME:-AAEE}"
+STUDENT="${LAB_STUDENT_NAME:-${LAB_USER:-student}}"
+SUBJECT="${LAB_SUBJECT:-Não definido}"
+CLASS="${LAB_STUDENT_CLASS:-${LAB_CLASS:-Não definida}}"
+TEACHER="${LAB_TEACHER:-Não definido}"
+COURSE="${LAB_STUDENT_COURSE:-${LAB_COURSE:-Não definido}}"
+MACHINE="${LAB_MACHINE_NAME:-$(hostname 2>/dev/null || echo 'Não definida')}"
+
+echo ""
+echo "========================================================"
+echo "       AAEE - LABORATÓRIO ACADÉMICO"
+echo "========================================================"
+echo ""
+echo " Bem-vindo ao ambiente académico!"
+echo ""
+printf ' Instituição: %s\n' "$INSTITUTION"
+printf ' Estudante:   %s\n' "$STUDENT"
+printf ' Curso:       %s\n' "$COURSE"
+printf ' Disciplina:  %s\n' "$SUBJECT"
+printf ' Turma:       %s\n' "$CLASS"
+printf ' Docente:     %s\n' "$TEACHER"
+printf ' Máquina:     %s\n' "$MACHINE"
+echo ""
+echo " Powered by Lab Manager"
+echo "========================================================"
+echo ""

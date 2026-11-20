@@ -45,4 +45,7 @@ key_value = {
     'You already decided this step.': 'Já decidiu esta etapa.',
     'You are not an approver of this step.': 'Não é aprovador desta etapa.',
     'You cannot decide an approval you started.': 'Não pode decidir uma aprovação que iniciou.',
+    # record pages (view_<model>, dev/front components/record)
+    'Workflow definition': 'Definição do fluxo',
+    'Workflow instances': 'Pedidos de aprovação',
 }

@@ -26,22 +26,25 @@ class CustomerSerializer(BaseSerializer):
             getattr(self.instance, "company_name", None)
         )
 
+        # each rule names its field, so a form shows it at the field
         if customer_type == Customer.TYPE_INDIVIDUAL:
-            if not person or company_name:
-                raise serializers.ValidationError(
-                    "Cliente individual requer 'person' e não pode ter 'company_name'."
-                )
-
+            errors = {}
+            if not person:
+                errors["person"] = ["An individual customer needs a person."]
+            if company_name:
+                errors["company_name"] = ["An individual customer has no company name."]
+            if errors:
+                raise serializers.ValidationError(errors)
         elif customer_type == Customer.TYPE_COMPANY:
-            if not company_name or person:
-                raise serializers.ValidationError(
-                    "Cliente empresa requer 'company_name' e não pode ter 'person'."
-                )
-
+            errors = {}
+            if not company_name:
+                errors["company_name"] = ["A company customer needs its name."]
+            if person:
+                errors["person"] = ["A company customer has no person."]
+            if errors:
+                raise serializers.ValidationError(errors)
         else:
-            raise serializers.ValidationError(
-                "customer_type deve ser 'individual' ou 'company'."
-            )
+            raise serializers.ValidationError({"customer_type": ["Choose individual or company."]})
 
         # price_list_id must be one of the Entity's price lists (catalog)
         price_list_id = attrs.get("price_list_id")

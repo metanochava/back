@@ -537,4 +537,18 @@ key_value = {
     "Choose from 1 to 5 stars.": "Escolha de 1 a 5 estrelas.",
     "This has already been rated.": "Isto já foi avaliado.",
     "Choose approve or reject.": "Escolha aprovar ou rejeitar.",
+    # record pages (view_<model>, dev/front components/record)
+    'Leave request': 'Pedido de ausência',
+    'Leave balance entries': 'Movimentos do saldo de ausências',
+    'Employee onboarding': 'Integração do funcionário',
+    'Employee onboarding tasks': 'Tarefas da integração',
+    'Employee onboarding task': 'Tarefa da integração',
+    'Review competency rating': 'Avaliação de competência',
+    'Employee training': 'Formação do funcionário',
+    'Certification': 'Certificação',
+    'Promotion': 'Promoção',
+    'Disciplinary action': 'Medida disciplinar',
+    'Employee offboarding': 'Desvinculação do funcionário',
+    'Employee offboarding tasks': 'Tarefas da desvinculação',
+    'Employee offboarding task': 'Tarefa da desvinculação',
 }

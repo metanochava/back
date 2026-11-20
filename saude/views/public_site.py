@@ -10,13 +10,17 @@ from saude.views.public_booking import PublicBookingViewSet
 
 @registerView("publicsite")
 class PublicSiteViewSet(viewsets.ViewSet):
-    """Public figures of the clinic's site.
+    """What the clinic's public site reads.
 
     PUBLIC (explicit): read by visitors who have no session. The Entity comes
-    from the request Origin (like publicbooking/), throttled per client
-    address; only aggregate counts are returned.
+    from the request Origin (like publicbooking/), never from the client;
+    throttled per client address; read-only (GET never writes).
 
-        GET saude/publicsite/stats/
+        GET saude/publicsite/stats/                    aggregate counts
+        GET saude/publicsite/exams/                    active exams + price
+        GET saude/publicsite/exams/<id>/               one exam (404 if not this clinic's)
+        GET saude/publicsite/consultations/            price per specialty
+        GET saude/publicsite/consultations/<key>/      one (specialty id or "general") + its doctors
     """
 
     permission_classes = (permissions.AllowAny,)
@@ -26,3 +30,19 @@ class PublicSiteViewSet(viewsets.ViewSet):
     def stats(self, request):
         entity = PublicBookingViewSet._entity(request)
         return Response(public_site_service.stats(entity))
+
+    @action(detail=False, methods=["get"])
+    def exams(self, request):
+        return Response(public_site_service.exams(PublicBookingViewSet._entity(request)))
+
+    @action(detail=False, methods=["get"], url_path=r"exams/(?P<exam_id>[^/.]+)")
+    def exam(self, request, exam_id=None):
+        return Response(public_site_service.exam(PublicBookingViewSet._entity(request), exam_id, request))
+
+    @action(detail=False, methods=["get"])
+    def consultations(self, request):
+        return Response(public_site_service.consultations(PublicBookingViewSet._entity(request)))
+
+    @action(detail=False, methods=["get"], url_path=r"consultations/(?P<key>[^/.]+)")
+    def consultation(self, request, key=None):
+        return Response(public_site_service.consultation(PublicBookingViewSet._entity(request), key, request))
