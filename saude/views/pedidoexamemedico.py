@@ -13,7 +13,7 @@ from saude.serializers.resultadoexamemedico import ResultadoExameMedicoSerialize
 from saude.serializers.itempedidoexamemedico import ItemPedidoExameMedicoSerializer
 from rest_framework.decorators import action
 from django_resaas.saas.models.entity import Entity
-from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64, PDF, all
+from django_resaas.saas.core.utils import make_barcode_b64, png_bytes_to_b64, PDF, all
 
 from django.db.models import Prefetch
 import barcode
@@ -115,7 +115,7 @@ class PedidoExameMedicoAPIView(DocumentEditWindowMixin, BaseAPIView):
             request, print_date=reprint.print_date(request),
             entity=entity,
             logo_b64=logo_b64,
-            qr_b64=make_qr_b64(str(pedido.id)),
+            verify_object=pedido,  # the QR code: the verification link (core/utils PDF())
             barcode_b64=make_barcode_b64(str(pedido.id)),
             signer_name=with_category(pedido, author_name(pedido)),
             signer_role=signer_role(request, pedido, fallback=Translate.tdc(request, "Requesting doctor")),

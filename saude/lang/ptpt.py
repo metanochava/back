@@ -2354,4 +2354,13 @@ key_value = {
     'day': 'dia',
     'hour': 'hora',
     'hours': 'horas',
+    # vital signs: save and print, the printed slip (saude/documents.py)
+    "Save the vital signs": "Gravar os dados vitais",
+    "Save and print": "Gravar e imprimir",
+    "Save the vital signs and print them (half an A6 sheet)": "Gravar os dados vitais e imprimi-los (meia folha A6)",
+    "Vital signs": "Dados vitais",
+    "Blood pressure": "Tensão arterial",
+    "NID": "NID",
+    "Recorded by": "Registado por",
+    "Measurement": "Medição",
 }

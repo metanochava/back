@@ -7,7 +7,6 @@ from django_resaas.saas.core.base.views import BaseAPIView, registerView
 from saude.services.document_edit_policy import DocumentEditWindowMixin
 from django_resaas.saas.models.entity import Entity
 from django_resaas.saas.core.utils import (
-    make_qr_b64,
     make_barcode_b64,
     png_bytes_to_b64,
     PDF
@@ -85,7 +84,6 @@ class ConsultaAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPIView):
         except FileNotFoundError:
             pass
 
-        qr_b64 = make_qr_b64(str(consulta.id))
         barcode_b64 = make_barcode_b64(str(consulta.id))
 
         return PDF(
@@ -93,7 +91,7 @@ class ConsultaAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPIView):
             request, print_date=reprint.print_date(request),
             entity=entity,
             logo_b64=logo_b64,
-            qr_b64=qr_b64,
+            verify_object=consulta,  # the QR code: the verification link (core/utils PDF())
             barcode_b64=barcode_b64,
             consulta=consulta,
             # same content and order as the consultation form (ConsultaSEPage)
