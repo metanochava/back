@@ -150,7 +150,7 @@ def pdf_context(request, summary):
     from django_resaas.saas.core.utils.translate import Translate
     from saude.services.document_signer import signer_role, with_category
 
-    from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64
+    from django_resaas.saas.core.utils import make_barcode_b64, png_bytes_to_b64
 
     entity = summary.entity
     logo_b64 = None
@@ -169,7 +169,7 @@ def pdf_context(request, summary):
     return {
         "entity": entity,
         "logo_b64": logo_b64,
-        "qr_b64": make_qr_b64(f"{summary.id}"),
+        "verify_object": summary,  # the QR code: the verification link (core/utils PDF())
         "barcode_b64": make_barcode_b64(f"{summary.id}"),
         "summary": summary,
         # only the sections that were written, in the document's order

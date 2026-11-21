@@ -53,13 +53,14 @@ class DiningTableAPIView(BaseAPIView):
     def pdf(self, request, pk=None, *args, **kwargs):
         table = self.get_object()
         context = services.qr_cards_context(request, [table])
-        return PDF("hospitality/pdf/table_cards.html", request, pdf_person=table.name, **context)
+        # each card's QR code is the table's order link: no verification QR
+        return PDF("hospitality/pdf/table_cards.html", request, pdf_person=table.name, no_verify_qr=True, **context)
 
     @resaas_action(detail=False, methods=["get"], url_path="pdf_list")
     def pdf_list(self, request, *args, **kwargs):
         tables = self.filter_queryset(self.get_queryset()).filter(active=True)
         context = services.qr_cards_context(request, tables.order_by("area__order", "order", "name"))
-        return PDF("hospitality/pdf/table_cards.html", request, **context)
+        return PDF("hospitality/pdf/table_cards.html", request, no_verify_qr=True, **context)
 
     @resaas_action(methods=["get"], detail=False, label="QR cards", icon="print",
                    tooltip="Print the tables' QR cards", position="l", order=10)
@@ -74,4 +75,4 @@ class DiningTableAPIView(BaseAPIView):
             except (ValueError, DjangoValidationError):
                 raise DRFValidationError({"ids": ["Enter valid ids."]})
         context = services.qr_cards_context(request, tables.order_by("area__order", "order", "name"))
-        return PDF("hospitality/pdf/table_cards.html", request, **context)
+        return PDF("hospitality/pdf/table_cards.html", request, no_verify_qr=True, **context)

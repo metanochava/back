@@ -23,7 +23,6 @@ from django_resaas.saas.core.utils import (
     PDF,
     all,
     make_barcode_b64,
-    make_qr_b64,
     png_bytes_to_b64,
 )
 
@@ -691,9 +690,7 @@ class ResultadoExameMedicoAPIView(BaseAPIView):
 
             **pdf_properties("Exam Result", resultado),
 
-            qr_b64=make_qr_b64(
-                str(resultado.id)
-            ),
+            verify_object=resultado,  # the QR code: the verification link (core/utils PDF())
 
             barcode_b64=make_barcode_b64(
                 str(resultado.id)

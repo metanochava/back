@@ -11,7 +11,7 @@ from saude.models.itemreceita import ItemReceita
 from saude.serializers.receitamedica import ReceitaMedicaSerializer
 from rest_framework.decorators import action
 from django_resaas.saas.models.entity import Entity
-from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64, PDF, all
+from django_resaas.saas.core.utils import make_barcode_b64, png_bytes_to_b64, PDF, all
 
 import barcode
 import qrcode
@@ -83,12 +83,11 @@ class ReceitaMedicaAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPIV
             logo_b64 = None
 
         # the codes identify THIS prescription (they used to carry the Entity id)
-        qr_b64 = make_qr_b64(f"receita:{receita.id}")
         barcode_b64 = make_barcode_b64(str(receita.id).split("-")[0].upper())
 
         return PDF(
             "saude/receitamedica.html", request, print_date=reprint.print_date(request),
-            entity=entity, logo_b64=logo_b64, qr_b64=qr_b64, barcode_b64=barcode_b64,
+            entity=entity, logo_b64=logo_b64, verify_object=receita, barcode_b64=barcode_b64,
             signer_name=with_category(receita, author_name(receita)),
             signer_role=signer_role(request, receita, fallback=Translate.tdc(request, "Doctor")),
             **prescription_service.pdf_context(request, receita),

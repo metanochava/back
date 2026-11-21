@@ -10,7 +10,7 @@ from saude.models.atestadomedico import AtestadoMedico
 from saude.serializers.atestadomedico import AtestadoMedicoSerializer
 from rest_framework.decorators import action
 from django_resaas.saas.models.entity import Entity
-from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64, PDF, all
+from django_resaas.saas.core.utils import make_barcode_b64, png_bytes_to_b64, PDF, all
 
 import barcode
 import qrcode
@@ -77,13 +77,12 @@ class AtestadoMedicoAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPI
         except FileNotFoundError:
             logo_b64 = None
 
-        qr_b64 = make_qr_b64(f"{atestado.id}")
         barcode_b64 = make_barcode_b64(f"{atestado.id}")
         
         return PDF("saude/atestadomedico.html", request, print_date=reprint.print_date(request), 
             entity=entity,
             logo_b64=logo_b64,
-            qr_b64=qr_b64,
+            verify_object=atestado,  # the QR code: the verification link (core/utils PDF())
             barcode_b64=barcode_b64,
             atestado=atestado,
             signer_name=with_category(atestado, author_name(atestado)),

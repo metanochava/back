@@ -9,7 +9,7 @@ from django_resaas.saas.core.decorators.action import resaas_action
 from saude.services import vital_signs_service
 from saude.services.document_edit_policy import DocumentEditWindowMixin
 from django_resaas.saas.models.entity import Entity
-from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64, PDF
+from django_resaas.saas.core.utils import make_barcode_b64, png_bytes_to_b64, PDF
 
 import barcode
 import qrcode
@@ -103,8 +103,7 @@ class DadoVitalAPIView(DocumentEditWindowMixin, BaseAPIView):
 
 
 
-        qr_b64 = make_qr_b64(f"{doc['type']}|{doc['number']}|TOTAL:{totals['grand_total']}")
         barcode_b64 = make_barcode_b64(doc["number"])
         
 
-        return PDF("saude/dadovital.html", request,  entity= entity, customer= customer, doc= doc, lines= lines, totals= totals, logo_b64= logo_b64, qr_b64= qr_b64, barcode_b64= barcode_b64,)
+        return PDF("saude/dadovital.html", request,  entity= entity, customer= customer, doc= doc, lines= lines, totals= totals, logo_b64= logo_b64, barcode_b64= barcode_b64,)

@@ -10,7 +10,7 @@ from saude.models.relatoriomedico import RelatorioMedico
 from saude.serializers.relatoriomedico import RelatorioMedicoSerializer
 from rest_framework.decorators import action
 from django_resaas.saas.models.entity import Entity
-from django_resaas.saas.core.utils import make_qr_b64, make_barcode_b64, png_bytes_to_b64, PDF, all
+from django_resaas.saas.core.utils import make_barcode_b64, png_bytes_to_b64, PDF, all
 
 import barcode
 import qrcode
@@ -77,13 +77,12 @@ class RelatorioMedicoAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAP
         except FileNotFoundError:
             logo_b64 = None
 
-        qr_b64 = make_qr_b64(f"{relatorio.id}")
         barcode_b64 = make_barcode_b64(f"{relatorio.id}")
         
         return PDF("saude/relatoriomedico.html", request, print_date=reprint.print_date(request), 
             entity=entity,
             logo_b64=logo_b64,
-            qr_b64=qr_b64,
+            verify_object=relatorio,  # the QR code: the verification link (core/utils PDF())
             barcode_b64=barcode_b64,
             relatorio=relatorio,
             signer_name=with_category(relatorio, author_name(relatorio)),

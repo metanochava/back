@@ -23,7 +23,6 @@ from django_resaas.saas.core.utils import (
     all,
     fail,
     make_barcode_b64,
-    make_qr_b64,
     png_bytes_to_b64,
 )
 from django_resaas.saas.models.entity import Entity
@@ -194,7 +193,7 @@ class PacienteAPIView(BaseAPIView):
             **pdf_properties("Patient card", paciente),
             logo_b64=self.file_to_b64(getattr(paciente.entity, "logo", None)),
             profile_b64=profile_b64,
-            qr_b64=make_qr_b64(str(paciente.id)),
+            verify_object=paciente,  # the QR code: the verification link (core/utils PDF())
             barcode_b64=make_barcode_b64(str(paciente.nid or paciente.id)),
         )
 
