@@ -16,7 +16,11 @@ from rest_framework import status
 from django_resaas.saas.core.exceptions import ConflictError, ResaasAPIException
 
 
-def edit_window():
+def edit_window(document=None):
+    # a model may declare its own window (EDIT_WINDOW, e.g. DadoVital); the rest use the setting
+    own = getattr(type(document), "EDIT_WINDOW", None)
+    if own is not None:
+        return own
     return timedelta(hours=getattr(settings, "SAUDE_DOCUMENT_EDIT_WINDOW_HOURS", 24))
 
 
@@ -27,9 +31,10 @@ def check_editable(request, document, now=None):
             code="not_document_author",
             status_code=status.HTTP_403_FORBIDDEN,
         )
-    if (now or timezone.now()) - document.created_at > edit_window():
+    window = edit_window(document)
+    if (now or timezone.now()) - document.created_at > window:
         raise ConflictError(
-            "This document can no longer be edited: it can only be changed within 24 hours of its creation.",
+            f"This document can no longer be edited: it can only be changed within {int(window.total_seconds() // 3600)} hours of its creation.",
             code="edit_window_expired",
         )
 

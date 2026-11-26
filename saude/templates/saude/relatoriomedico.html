@@ -224,7 +224,7 @@
 
 <body>
 
-{% include "saude/_header.html" with header_title="Relatório Médico" indent=True %}
+{% include "django_resaas/header_footer/_header.html" with org_name=entity.name|clinic_name header_title="Relatório Médico" indent=True %}
 
 <div class="content">
 
@@ -255,7 +255,7 @@
 
 {% include "saude/_signature.html" with sign_date=relatorio.created_at|long_date sign_name=signer_name sign_role=signer_role %}
 
-{% include "saude/_footer.html" with footer_label="Relatório Médico" indent=True note_size=10 font_size=10 %}
+{% include "django_resaas/header_footer/_footer.html" with footer_label="Relatório Médico" indent=True %}
 
 </body>
 </html>

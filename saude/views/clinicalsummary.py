@@ -25,10 +25,11 @@ class ClinicalSummaryAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAP
 
     def create(self, request, *args, **kwargs):
         # the summary belongs to a consultation of TODAY of this patient
-        # (consultation_service.resolve_for_document): never one created
-        # here, never a patient of another Entity
+        # (consultation_service.resolve_for_document): started from today's
+        # appointment when there is no consultation yet (POST only - the
+        # draft GET stays read only), never a patient of another Entity
         _patient, _professional, consulta = consultation_service.resolve_for_document(
-            request, request.data.get("paciente"), request.data.get("consulta")
+            request, request.data.get("paciente"), request.data.get("consulta"), create_missing=True
         )
 
         serializer = self.get_serializer(data=request.data)

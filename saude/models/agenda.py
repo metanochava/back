@@ -77,6 +77,14 @@ class Agenda(BaseModel):
         default="marcada"
     )
 
+    # "agendada": booked by a person. "automatica": created by the system when a
+    # clinical document was requested with no appointment today (closed at once).
+    origem = models.CharField(
+        max_length=20,
+        choices=[("agendada", "Booked"), ("automatica", "Automatic")],
+        default="agendada",
+    )
+
     # Patient-flow timestamps, set by the SERVER on the state transition
     # (saude/services/appointment_flow.py) - never sent by the client.
     # They give waiting time (checked_in_at -> service_started_at) and

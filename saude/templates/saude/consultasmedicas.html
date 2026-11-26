@@ -199,7 +199,7 @@
 
 <body>
 
-{% include "saude/_header.html" with header_title="Consulta Médica" %}
+{% include "django_resaas/header_footer/_header.html" with org_name=entity.name|clinic_name header_title="Consulta Médica" %}
 
 <div class="content">
 
@@ -229,7 +229,7 @@
 
 </div>
 
-{% include "saude/_footer.html" with footer_label="Consulta Médica" note_size=10 font_size=10 %}
+{% include "django_resaas/header_footer/_footer.html" with footer_label="Consulta Médica" %}
 
 </body>
 </html>

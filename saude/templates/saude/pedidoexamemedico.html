@@ -267,7 +267,7 @@
 
 <body>
 
-{% include "saude/_header.html" with header_title=labels.title %}
+{% include "django_resaas/header_footer/_header.html" with org_name=entity.name|clinic_name header_title=labels.title %}
 
 <div class="content">
 
@@ -335,7 +335,7 @@
 
 {% include "saude/_signature.html" with sign_date=pedido.data|long_date sign_name=signer_name sign_role=signer_role %}
 
-{% include "saude/_footer.html" with footer_label=labels.footer note_size=8 font_size=8 %}
+{% include "django_resaas/header_footer/_footer.html" with footer_label=labels.footer %}
 
 </body>
 </html>

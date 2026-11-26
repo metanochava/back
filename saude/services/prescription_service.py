@@ -2,8 +2,9 @@
 
 - resolve_consultation(): a prescription belongs to a consultation of TODAY
   of this patient: the one of today's appointment with this doctor first,
-  else this doctor's latest consultation of the patient today. Nothing is
-  created implicitly: without one, 409 consultation_required ("start the
+  else this doctor's latest consultation of the patient today. Without one,
+  the consultation is started from the patient's single open appointment
+  today (create_missing); otherwise 409 consultation_required ("start the
   consultation first"). A consultation sent by the client must be of this
   patient, Branch and day.
 - prescription_defaults(): what to prefill when a medication is chosen -
@@ -18,12 +19,12 @@ from saude.models.itemreceita import ItemReceita
 from saude.services.exam_request_service import require_professional
 
 
-def resolve_consultation(request, paciente_id, consulta_id=None):
+def resolve_consultation(request, paciente_id, consulta_id=None, create_missing=False):
     """(patient, professional, consultation) for a new prescription - the
     rule shared by every clinical document of a visit
     (consultation_service.resolve_for_document)."""
     from saude.services.consultation_service import resolve_for_document
-    return resolve_for_document(request, paciente_id, consulta_id)
+    return resolve_for_document(request, paciente_id, consulta_id, create_missing=create_missing)
 
 
 def link_to_todays_appointment(consulta):

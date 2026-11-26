@@ -100,8 +100,8 @@ DOCUMENTS = [
         # half an A6 sheet by default (the owner's slip); the others on request
         "formats": ["a7", "a6", "a5", "a4", "thermal_80", "thermal_58"],
         "default_format": "a7",
-        # the owner's slip: half an A6, lying down
-        "landscape": True,
+        # the owner's slip: half an A6, standing up (portrait)
+        "landscape": False,
         "queryset": _vital_signs,
         "context": _vital_signs_context,
         "title": _vital_signs_title,

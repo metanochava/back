@@ -6,12 +6,15 @@ ConsultaAPIView.perform_create sets the professional again server-side.
 """
 import uuid
 
+from django.db import transaction
 from django.utils import timezone
 from rest_framework import status
 
+from django_resaas.saas.core.events.lifecycle import emit_lifecycle
 from django_resaas.saas.core.exceptions import ConflictError, ResaasAPIException
 from saude.models.agenda import Agenda
 from saude.models.consulta import Consulta
+from saude.models.paciente import Paciente
 from saude.services.exam_request_service import require_professional, resolve_patient
 from saude.services.vital_signs_service import _person
 
@@ -157,13 +160,17 @@ def pdf_context(request, consulta):
 # Clinical documents of a visit (prescription, certificate, referral, report)
 # ------------------------------------------------------------------
 
-def resolve_for_document(request, paciente_id, consulta_id=None):
+def resolve_for_document(request, paciente_id, consulta_id=None, create_missing=False):
     """(patient, professional, consultation) for a clinical document of a visit
-    (prescription, certificate, referral, report): a consultation of TODAY of
-    this patient - the one of today's appointment with this doctor first, else
-    this doctor's latest one today. Never created here: without one,
-    409 consultation_required. A consultation sent by the client must be of
-    this patient, Branch and day (400 invalid_consultation)."""
+    (prescription, certificate, referral, report, clinical summary): a
+    consultation of TODAY of this patient - the one of today's appointment with
+    this doctor first, else this doctor's latest one today. Without one, and
+    only when create_missing is True (document POSTs, never GET drafts), the
+    consultation is started from the patient's single open appointment today
+    with this doctor (start_from_appointment); with no open appointment at all
+    it is created with a closed automatic appointment (start_without_appointment). Several open
+    appointments are ambiguous: 409 consultation_required. A consultation sent by the client must be of this
+    patient, Branch and day (400 invalid_consultation)."""
     patient = resolve_patient(request, paciente_id)
     professional = require_professional(request)
     today = timezone.localdate()
@@ -188,12 +195,98 @@ def resolve_for_document(request, paciente_id, consulta_id=None):
         return patient, professional, consulta
 
     consulta = todays_consultation(request, patient, professional)
+    if consulta is None and create_missing:
+        consulta = start_from_appointment(request, patient, professional)
+    if consulta is None and create_missing and not _open_appointments_today(request, patient, professional):
+        consulta = start_without_appointment(request, patient, professional)
     if consulta is None:
         raise ConflictError(
             "There is no consultation today for this patient: start the consultation first.",
             code="consultation_required",
         )
     return patient, professional, consulta
+
+
+def start_from_appointment(request, patient, professional):
+    """Create today's consultation for the patient's single open appointment
+    with this doctor (Agenda not cancelled, not no-show, without a
+    consultation yet) and link it to that appointment. The appointment's
+    state is not changed: check-in stays the operation that moves it.
+
+    The appointment row is locked (select_for_update), so concurrent document
+    requests create one consultation: the loser re-reads the winner's one.
+    Several open appointments today are ambiguous -> None (no guess).
+    Returns None when there is nothing to start from."""
+    with transaction.atomic():
+        open_appointments = list(
+            Agenda.objects.select_for_update().filter(
+                paciente=patient, medico=professional, data=timezone.localdate(),
+                entity_id=request.entity_id, branch_id=request.branch_id, consulta__isnull=True,
+            ).exclude(estado__in=("cancelada", "faltou"))[:2]
+        )
+        if len(open_appointments) != 1:
+            return todays_consultation(request, patient, professional)
+
+        consulta = _new_consulta(request, patient, professional)
+
+        appointment = open_appointments[0]
+        appointment.consulta = consulta
+        appointment.save(update_fields=["consulta", "updated_at"])
+    return consulta
+
+
+def start_without_appointment(request, patient, professional):
+    """Create today's consultation with no appointment behind it, for a
+    document requested without one. The patient row is locked, so concurrent
+    document requests create one consultation: the loser re-reads the winner's
+    one (todays_consultation). Only called when there is no open appointment
+    today (see resolve_for_document), so nothing is guessed."""
+    with transaction.atomic():
+        Paciente.objects.select_for_update().filter(pk=patient.pk).first()
+        existing = todays_consultation(request, patient, professional)
+        if existing is not None:
+            return existing
+        consulta = _new_consulta(request, patient, professional)
+        # closed at once, marked automatic: nobody booked it, the system opened it
+        now = timezone.localtime()
+        Agenda.objects.create(
+            paciente=patient,
+            medico=professional,
+            entity_id=request.entity_id,
+            branch_id=request.branch_id,
+            data=now.date(),
+            hora_inicio=now.time(),
+            estado="concluida",
+            origem="automatica",
+            consulta=consulta,
+            created_by=request.user,
+            updated_by=request.user,
+        )
+        return consulta
+
+
+def _new_consulta(request, patient, professional):
+    consulta = Consulta(
+        paciente=patient,
+        employee=professional,
+        entity_id=request.entity_id,
+        branch_id=request.branch_id,
+        created_by=request.user,
+        updated_by=request.user,
+        state="Active",
+    )
+    consulta.save()
+    emit_lifecycle(request, consulta, "created")
+    return consulta
+
+
+def _open_appointments_today(request, patient, professional):
+    """Open appointments (not cancelled, no-show, nor already with a
+    consultation) of this patient with this doctor today, in this Branch."""
+    return Agenda.objects.filter(
+        paciente=patient, medico=professional, data=timezone.localdate(),
+        entity_id=request.entity_id, branch_id=request.branch_id, consulta__isnull=True,
+    ).exclude(estado__in=("cancelada", "faltou")).exists()
 
 
 def todays_consultation(request, patient, professional):
