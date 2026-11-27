@@ -85,6 +85,10 @@ class Agenda(BaseModel):
         default="agendada",
     )
 
+    # Urgent consultation: billed with the urgent consultation rules
+    # (ClinicalBillingRule KIND_CONSULTATION_URGENT), never the normal ones.
+    urgente = models.BooleanField(default=False, verbose_name="Urgent")
+
     # Patient-flow timestamps, set by the SERVER on the state transition
     # (saude/services/appointment_flow.py) - never sent by the client.
     # They give waiting time (checked_in_at -> service_started_at) and

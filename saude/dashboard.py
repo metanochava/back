@@ -328,7 +328,7 @@ _CHECK_OUT = {
     "name": "check_out",
     "type": "request",
     "request": {"method": "POST", "endpoint": "saude/agendas/{id}/check_out/"},
-    "when": {"field": "estado", "in": ["em_espera", "em_atendimento"]},
+    "when": {"field": "estado", "in": ["em_espera", "em_atendimento", "concluida"]},
     "icon": "logout",
     "color": "primary",
     "tooltip": "Check out (patient leaves)",
@@ -363,6 +363,18 @@ _UNDO_CHECK_OUT = {
     "confirm": "Revert this patient's check-out? The appointment goes back to waiting or in progress.",
     "success": "Check-out reverted.",
     "permissions": ["check_out_agenda"],
+}
+
+# A completed appointment whose consultation was charged: opens its sale
+# directly (row "sale_id", from the queue provider). Not charged: no action.
+_BILLING_STATUS = {
+    "name": "billing_status",
+    "type": "route",
+    "route": {"name": "view_sale", "params": {"id": "{sale_id}"}},
+    "when": {"field": "billing", "in": ["charged"]},
+    "icon": "receipt_long",
+    "tooltip": "Open the charged sale",
+    "permissions": ["view_sale"],
 }
 
 _RECORD_VITALS = {
@@ -451,7 +463,8 @@ DASHBOARDS = [
                   "timer", ["view_agenda"], 40, "From check-in to the start of the consultation, today."),
             _queue("reception_queue", "Reception Queue", "saude.reception.queue", ["view_agenda"], 50,
                    "Today's appointments in scheduled order: check the patient in on arrival and out on leaving.",
-                   row_actions=[_CHECK_IN, _CHECK_OUT, _UNDO_CHECK_IN, _UNDO_CHECK_OUT], cols=_QUEUE_BESIDE_CALENDAR_COLS,
+                   row_actions=[_CHECK_IN, _CHECK_OUT, _UNDO_CHECK_IN, _UNDO_CHECK_OUT, _BILLING_STATUS],
+                   cols=_QUEUE_BESIDE_CALENDAR_COLS,
                    actions=[{
                        "name": "add_patient",
                        "type": "route",

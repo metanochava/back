@@ -134,14 +134,15 @@ class AgendaAPIView(BaseAPIView):
             except DjangoValidationError as exc:
                 raise DRFValidationError(exc.messages)
 
-        # within the branch's opening hours, when it has some (a walk-in is
-        # here now: not checked)
+        # outside the branch's opening hours the appointment is urgent (decided
+        # here, never by the client alone): it is booked, not refused
         branch = self._target_branch or booking_service.resolve_branch(self.request, None)
-        if not immediate and validated.get("data") and validated.get("hora_inicio"):
-            booking_service.assert_open(
-                branch, validated["data"], validated["hora_inicio"],
+        if validated.get("data") and validated.get("hora_inicio"):
+            outside = booking_service.is_outside_opening_hours(
+                branch.id, validated["data"], validated["hora_inicio"],
                 _effective_end(validated["hora_inicio"], validated.get("hora_fim")),
             )
+            validated["urgente"] = bool(validated.get("urgente")) or outside
 
         super().perform_create(serializer)
 

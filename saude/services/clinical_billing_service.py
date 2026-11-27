@@ -67,13 +67,16 @@ def _rules(entity_id, **lookup):
 
 
 def consultation_rules(agenda):
-    """The specialty's rules, else the rules of any consultation."""
+    """The specialty's rules, else the rules of any consultation. An urgent
+    appointment (Agenda.urgente) uses the urgent rules only: no fallback to
+    the normal ones, so it is never billed at the normal price."""
+    kind = (ClinicalBillingRule.KIND_CONSULTATION_URGENT if agenda.urgente
+            else ClinicalBillingRule.KIND_CONSULTATION)
     if agenda.especialidade_id:
-        rules = _rules(agenda.entity_id, kind=ClinicalBillingRule.KIND_CONSULTATION,
-                       specialty_id=agenda.especialidade_id)
+        rules = _rules(agenda.entity_id, kind=kind, specialty_id=agenda.especialidade_id)
         if rules:
             return rules
-    return _rules(agenda.entity_id, kind=ClinicalBillingRule.KIND_CONSULTATION, specialty__isnull=True)
+    return _rules(agenda.entity_id, kind=kind, specialty__isnull=True)
 
 
 def exam_rules(entity_id, exame_id):

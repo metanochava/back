@@ -63,8 +63,11 @@ def stamp_transition(agenda, previous_estado, now=None):
 # states it makes sense from; anything else is 409 and nothing changes.
 # ------------------------------------------------------------------
 CHECK_IN_FROM = ("marcada", "confirmada")
-# the doctor may not have pressed "start": a waiting patient can leave too
-CHECK_OUT_FROM = (WAITING, IN_PROGRESS)
+# the doctor may not have pressed "start": a waiting patient can leave too.
+# Completed too: the reception may check out a patient already completed (e.g.
+# by saving the consultation); completed_at keeps its first value and the
+# charge is made once, so this is idempotent.
+CHECK_OUT_FROM = (WAITING, IN_PROGRESS, COMPLETED)
 
 
 def _move(agenda, target, allowed_from, message, code, now=None):

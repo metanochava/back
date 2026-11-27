@@ -201,10 +201,27 @@ class ReceptionQueueProvider(FlowProvider):
             .order_by("hora_inicio")
         )
         agendas, pagination = self.paginate(qs)
+        rows = self.queue_rows(agendas, timezone.now())
+
+        # the billing of each row: its consultation's sale, one query for the page
+        from saude.models.clinical_billing import ClinicalCharge
+        from saude.services import clinical_billing_service
+
+        sales = {
+            str(source_id): str(sale_id)
+            for source_id, sale_id in ClinicalCharge.objects.filter(
+                source_type=clinical_billing_service.SOURCE_AGENDA,
+                source_id__in=[a.id for a in agendas],
+            ).values_list("source_id", "sale_id")
+        }
+        for row in rows:
+            # machine values (not columns): the billing action opens the sale
+            row["sale_id"] = sales.get(row["id"])
+            row["billing"] = "charged" if row["sale_id"] else "not_charged"
 
         return {
             "columns": QUEUE_COLUMNS,
-            "rows": self.queue_rows(agendas, timezone.now()),
+            "rows": rows,
             "pagination": pagination,
         }
 
