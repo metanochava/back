@@ -679,10 +679,12 @@ name of **who created the document** - the same author as the edit rule above
 
 ### Health PDF header, signature block and medical certificate
 
-- **Header** (`templates/saude/_header.html`, one file for every saude PDF
-  except the patient card): logo, title and clinic in the middle, QR code.
-  A template includes it with
-  `{% include "saude/_header.html" with header_title=labels.title %}`;
+- **Header** (the single standard `django_resaas/header_footer/_header.html`
+  in the lib, shared by every module; saude uses it for every PDF except the
+  patient card): logo, title and clinic in the middle, QR code.
+  A template loads `{% load clinic %}` and includes it with
+  `{% include "django_resaas/header_footer/_header.html" with org_name=entity.name|clinic_name header_title=labels.title %}`
+  (`org_name` defaults to `entity.name` in other modules);
   `indent=True` puts three spaces before the clinic name (certificate,
   referral). The sizes stay in each template's CSS (`.header`, `.logo`,
   `.title`, `.subtitle`, `.qr`) because the pages differ (the A5
@@ -690,16 +692,15 @@ name of **who created the document** - the same author as the edit rule above
   `{{ entity.name|clinic_name }}` (`saude/templatetags/clinic.py`) gives
   "Clínica Amal". A name that already starts with "Clínica"/"Clinica" stays
   as it is.
-- **Footer** (`templates/saude/_footer.html`, the same 9 PDFs): the barcode,
+- **Footer** (the single standard `django_resaas/header_footer/_footer.html`
+  in the lib, used by the same 9 saude PDFs): the barcode,
   the Entity's name on the left, the document name on the right and the
   Entity's footer text (`Entity.rodape`) under them.
-  `{% include "saude/_footer.html" with footer_label=labels.title %}`;
-  `indent=True` puts two spaces before the Entity's name; `font_size` (px)
-  sets the line with the Entity's name and the document name, and
-  `note_size` (px, default 10) the Entity's footer text. Every template writes
-  both sizes in its include line, so they are changed there. `Entity.rodape` is printed as
-  HTML (`|safe`) in every PDF. The position and the sizes stay in each
-  template's CSS (`.footer`, `.footer-table`, `.barcode-header`).
+  `{% include "django_resaas/header_footer/_footer.html" with footer_label=labels.title %}`;
+  `indent=True` puts two spaces before the Entity's name. There is no size
+  parameter: the font sizes come only from each template's CSS (`.footer`,
+  `.footer-table`, `.footer-center`, `.barcode-header`). `Entity.rodape` is
+  printed as HTML (`|safe`) in every PDF.
 - **Identity document required:** a patient is saved (`add_paciente` →
   `pacientes/register/`, the generic `POST pacientes/`, and `change_paciente` →
   `PUT/PATCH pacientes/{id}/`) only when its Person has, in this Entity, a

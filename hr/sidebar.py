@@ -10,12 +10,32 @@ ALL = [{
     },
     {
         "menu": "Employee",
-        "icon": "person",  # 🔥 segurança
+        "icon": "people",  # 🔥 segurança
         "role": "list_employee",
-        "route": "list_employee",
-        "add_role": "add_employee",
-        "add_route": "add_employee",
+        # "route": "list_employee",
+        # "add_role": "add_employee",
+        # "add_route": "add_employee",
         # "crud": {"module": "hr", "model": "Employee"},
+
+        "submenu": [
+            {
+                "menu": "Employee",
+                "icon": "person",  # 🔥 segurança
+                "role": "list_employee",
+                "route": "list_employee",
+                "add_role": "add_employee",
+                "add_route": "add_employee",
+            },
+            {
+                "menu": "Department",
+                "icon": "corporate_fare",
+                "role": "list_department",
+                "route": "list_department",
+                "add_role": "add_department",
+                "add_route": "add_department",
+                # "crud": {"module": "hr", "model": "Department"},
+            },
+        ]
     },
 
     # 🏢 ORGANIZAÇÃO (grupo: gerador de menu suporta "submenu" aninhado,
