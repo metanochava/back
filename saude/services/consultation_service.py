@@ -15,6 +15,7 @@ from django_resaas.saas.core.exceptions import ConflictError, ResaasAPIException
 from saude.models.agenda import Agenda
 from saude.models.consulta import Consulta
 from saude.models.paciente import Paciente
+from saude.services import appointment_flow, clinical_billing_service
 from saude.services.exam_request_service import require_professional, resolve_patient
 from saude.services.vital_signs_service import _person
 
@@ -278,6 +279,25 @@ def _new_consulta(request, patient, professional):
     consulta.save()
     emit_lifecycle(request, consulta, "created")
     return consulta
+
+
+def check_out_linked_appointment(request, consulta):
+    """Saving a consultation marks its appointment completed (concluida). Open
+    states (scheduled, confirmed, waiting, in progress) move to completed;
+    cancelled, no-show and already completed appointments are left as they are.
+    Billing is charged only when the patient had checked in (waiting or in
+    progress), once. Returns the appointment when it was completed, else None."""
+    with transaction.atomic():
+        agenda = Agenda.objects.select_for_update().filter(consulta=consulta).first()
+        if agenda is None or agenda.estado not in appointment_flow.OPEN_STATES:
+            return None
+        previous = agenda.estado
+        agenda.estado = appointment_flow.COMPLETED
+        fields = ["estado", "updated_at"] + appointment_flow.stamp_transition(agenda, previous)
+        agenda.save(update_fields=fields)
+        if previous in appointment_flow.CHECK_OUT_FROM:
+            clinical_billing_service.charge_consultation(agenda, request.user)
+        return agenda
 
 
 def _open_appointments_today(request, patient, professional):

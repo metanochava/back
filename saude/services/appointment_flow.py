@@ -20,6 +20,8 @@ from django.utils import timezone
 WAITING = "em_espera"
 IN_PROGRESS = "em_atendimento"
 COMPLETED = "concluida"
+# open appointments: saving the consultation completes them (consultation_service)
+OPEN_STATES = ("marcada", "confirmada", WAITING, IN_PROGRESS)
 CLOSED_WITHOUT_SERVICE = {"cancelada", "faltou"}
 
 # state -> the timestamp field the transition into it sets
