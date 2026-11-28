@@ -2372,5 +2372,6 @@ key_value = {
     "Blood pressure": "Tensão arterial",
     "NID": "NID",
     "Recorded by": "Registado por",
+    "Internment": "Internamento",
     "Measurement": "Medição",
 }

@@ -1,33 +1,68 @@
 {% extends "django_resaas/print/base.html" %}
+{% load clinic %}
 {% block style %}
+  /* the standard header of the saude PDFs (the same as the prescription and the exam request):
+     the base's plain header is replaced by it */
+  .sheet .head { display: none; }
+  .header { border-bottom: 1px solid #ddd; margin-bottom: 0.5mm; padding-bottom: 0.5mm; }
+  .header-table { width: 100%; border-collapse: collapse; }
+  .header-table td { vertical-align: middle; }
+  .logo { width: 60px; }
+  .logo img { width: 40px; height: 40px; object-fit: contain; }
+  .title { text-align: center; }
+  .title h1 { margin: 0; color: #0f766e; font-size: 11px; letter-spacing: .03em; }
+  .title .subtitle { color: #777; font-size: 7px; margin-top: 2px; }
+  /* the standard footer of the saude PDFs (as in the prescription), in the page flow */
+  .footer { border-top: 1px solid #ddd; font-size: 8px; line-height: 1.1; color: #777; padding-top: 0; margin-top: 0; }
+  .footer-table { width: 100%; border-collapse: collapse; }
+  .footer-table td { width: 50%; vertical-align: middle; }
+  .footer-left { text-align: left; }
+  .footer-center { text-align: center; }
+  .footer-right { text-align: right; }
+  /* half an A6 by height: 105 x 74 mm (A6 is 105 x 148), narrow margins so it fits */
+  @page { size: 105mm 74mm; margin: 2mm; }
+  /* smaller text on the A6 sheet (the A7 slip is already 7 pt) */
+  {% if paper.short_side > 74 %}
+  body.sheet { font-size: 7pt; }
+  {% endif %}
+  .qr { width: 55px; text-align: right; }
+  .qr img { width: 50px; height: 50px; object-fit: contain; }
   .flag { font-weight: bold; }
+  /* the value's colour follows how severe the result is */
+  .lvl-attention { color: #b45309; }
+  .lvl-warning { color: #c2410c; }
+  .lvl-critical { color: #b91c1c; }
   .notes { white-space: pre-wrap; }
   .disclaimer { font-size: 0.85em; opacity: .75; }
-  /* small sheet (A7 = half an A6, A6): one page */
-  {% if compact %}
-  .sheet .head { margin-bottom: 0.5mm; padding-bottom: 0.5mm; gap: 2mm; }
-  .head img { max-height: 6mm; }
-  .head .who { font-size: 1.05em; }
-  /* the verification QR code in the header's empty corner (the page is full) */
-  .qr-corner { position: absolute; top: 0; right: 0; width: 13mm; height: 13mm; }
+  /* the full layout on an A6 sheet: tighter rows so every value fits on the one page */
+  {% if not compact %}
+  td { padding: 0.3mm 0; }
+  .rule { margin: 1.2mm 0; }
+  {% endif %}
   /* the record's date and time are in the header: no printed-at footer */
   .foot { display: none; }
+  /* small sheet (A7 = half an A6): one page */
+  {% if compact %}
   .meta { line-height: 1.15; }
   {% endif %}
   .compact .title { margin: 0.5mm 0; }
-  .compact .rule { margin: 0.8mm 0; }
-  .compact .grid td { width: {% if per_line == 3 %}33%{% else %}50%{% endif %}; padding: 0.1mm 0.8mm; border-bottom: 0.2pt solid #ccc; line-height: 1.1; }
-  .compact .grid .label { display: block; color: #444; font-size: 0.78em; line-height: 1.05; }
+  .compact .rule { margin: 0.2mm 0; }
+  .compact .grid td { width: {% if per_line == 3 %}33%{% else %}50%{% endif %}; padding: 0 0.8mm; border-bottom: 0.2pt solid #ccc; line-height: 1.05; }
+  .compact .grid .label { display: inline; color: #444; font-size: 0.85em; line-height: 1.05; }
   .compact .grid .value { font-weight: bold; }
   .compact .grid .flag { font-size: 0.8em; }
   .compact .notes { line-height: 1.1; }
+  .calc-grid { font-size: 1em; }
+  .calc { display: inline-block; width: {% if per_line == 3 %}33%{% else %}50%{% endif %}; vertical-align: top; padding: 0 0.8mm; border-bottom: 0.2pt solid #ccc; line-height: 1.05; }
+  .calc .label { color: #444; font-size: 0.85em; }
+  .calc .value { font-weight: bold; }
 {% endblock %}
 {% block content %}
+{% include "django_resaas/header_footer/_header.html" with org_name=entity.name|clinic_name header_title=labels.title %}
 <div class="{% if compact %}compact{% endif %}">
-<div class="title">{{ labels.title }}{% if compact %} · {{ tipo }}{% endif %}</div>
 {% if compact %}
 <div class="meta"><span><b>{{ patient }}</b> · {{ labels.nid }} {{ nid }}{% if age is not None %} · {{ age }} {{ labels.years }}{% endif %}</span></div>
-<div class="meta"><span>{{ record.created_at|date:"Y-m-d H:i" }}{% if professional %} · {{ labels.recorded_by }}: {{ professional }}{% endif %}</span></div>
+<div class="meta"><span>{{ tipo }} · {{ record.created_at|date:"Y-m-d H:i" }}{% if professional %} · {{ labels.recorded_by }}: {{ professional }}{% endif %}</span></div>
 {% else %}
 <div class="meta"><span>{{ labels.patient }}</span><span>{{ patient }}</span></div>
 <div class="meta"><span>{{ labels.nid }}{% if age is not None %} · {{ labels.age }}{% endif %}</span><span>{{ nid }}{% if age is not None %} · {{ age }} {{ labels.years }}{% endif %}</span></div>
@@ -39,17 +74,22 @@
 {% if compact %}
 <table class="grid">
   {% for pair in pairs %}
-  <tr>{% for c in pair %}<td><span class="label">{{ c.label }}</span><span class="value">{{ c.value }} {{ c.unit }}</span>{% if c.status %} <span class="flag">· {{ c.status }}</span>{% endif %}</td>{% endfor %}{% if pair|length < per_line %}<td colspan="{{ per_line|add:0 }}"></td>{% endif %}</tr>
+  <tr>{% for c in pair %}<td><span class="label">{{ c.label }}</span><span class="value lvl-{{ c.level }}">{{ c.value }} {{ c.unit }}</span></td>{% endfor %}{% if pair|length < per_line %}<td colspan="{{ per_line|add:0 }}"></td>{% endif %}</tr>
   {% endfor %}
   {% if consciousness %}<tr><td colspan="{{ per_line }}"><span class="label">{{ labels.consciousness }}</span><span class="value">{{ consciousness }}</span></td></tr>{% endif %}
 </table>
+{% if calcs %}
+<div class="rule"></div>
+<div class="calc-title"><b>{{ labels.calculations }}</b></div>
+<div class="calc-grid">{% for c in calcs %}<span class="calc"><span class="label">{{ c.label }}</span><span class="value lvl-{{ c.level }}">{{ c.value }} {{ c.unit }}</span></span>{% endfor %}</div>
+{% endif %}
 {% else %}
 <table>
   <thead><tr><th>{{ labels.measurement }}</th><th class="num">{{ labels.value }}</th></tr></thead>
   <tbody>
   {% for row in rows %}
     <tr>
-      <td>{{ row.label }}{% if row.status %}<br><small class="flag">{{ row.status }}</small>{% endif %}</td>
+      <td>{{ row.label }}</td>
       <td class="num">{{ row.value }} {{ row.unit }}</td>
     </tr>
   {% endfor %}
@@ -59,19 +99,22 @@
 {% if calcs %}
 <div class="rule"></div>
 <div><b>{{ labels.calculations }}</b></div>
-<table>{% for c in calcs %}<tr><td>{{ c.label }}{% if c.status %}<br><small class="flag">{{ c.status }}</small>{% endif %}</td><td class="num">{{ c.value }} {{ c.unit }}</td></tr>{% endfor %}</table>
+<table>{% for c in calcs %}<tr><td>{{ c.label }}</td><td class="num lvl-{{ c.level }}">{{ c.value }} {{ c.unit }}</td></tr>{% endfor %}</table>
 {% endif %}
-{% endif %}
-{% if record.observacao %}
-<div class="rule"></div>
-<div><b>{{ labels.notes }}</b></div>
-<div class="notes">{{ record.observacao }}</div>
 {% endif %}
 {% if not compact %}
 <div class="rule"></div>
 <div class="disclaimer">{{ labels.disclaimer }}</div>
 {% endif %}
 </div>
+<div class="footer">
+  <table class="footer-table">
+    <tr>
+      <td class="footer-left">{{ entity.name|clinic_name }}</td>
+      <td class="footer-right">{{ labels.title }}</td>
+    </tr>
+  </table>
+</div>
 {% endblock %}
-{% block footer %}{% if not compact %}{{ block.super }}{% endif %}{% endblock %}
-{% block codes %}{% if compact %}{% if qr_b64 %}<img class="qr-corner" src="data:image/png;base64,{{ qr_b64 }}" alt="">{% endif %}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block footer %}{% endblock %}
+{% block codes %}{% endblock %}
