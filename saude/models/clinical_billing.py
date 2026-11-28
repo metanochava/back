@@ -20,10 +20,14 @@ from saude.models.clinical_document_state import active_state_field
 
 class ClinicalBillingRule(BaseModel):
     KIND_CONSULTATION = "consultation"
+    # an urgent consultation (Agenda.urgente) has its own rules: never falls
+    # back to the normal consultation's
+    KIND_CONSULTATION_URGENT = "consultation_urgent"
     KIND_EXAM = "exam"
     KIND_MEDICATION = "medication"
     KIND_CHOICES = (
         (KIND_CONSULTATION, "Consultation"),
+        (KIND_CONSULTATION_URGENT, "Urgent consultation"),
         (KIND_EXAM, "Exam"),
         (KIND_MEDICATION, "Medication"),
     )

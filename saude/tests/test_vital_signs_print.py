@@ -55,7 +55,7 @@ class VitalSignsPrintTests(TestCase):
         self.assertEqual(response.status_code, 200, getattr(response, "content", b"")[:300])
         self.assertEqual(response["Content-Type"], "application/pdf")
 
-    def test_every_value_fits_on_one_a7_landscape_page(self):
+    def test_every_value_fits_on_one_a7_portrait_page(self):
         from weasyprint import HTML
 
         document = printing.get("saude.vital_signs")
@@ -64,8 +64,8 @@ class VitalSignsPrintTests(TestCase):
         context = _context(request, document, self.record, "a7")
         context["request"], context["page_css"] = request, page_css(context["paper"])
         self.assertTrue(context["compact"])
-        # half an A6 lying down: 105 x 74 mm
-        self.assertEqual((context["paper"]["width"], context["paper"]["height"]), (105, 74))
+        # half an A6 standing up: 74 x 105 mm
+        self.assertEqual((context["paper"]["width"], context["paper"]["height"]), (74, 105))
         pages = HTML(string=render_to_string(document["template"], context)).render().pages
         self.assertEqual(len(pages), 1)
 

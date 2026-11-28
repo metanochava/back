@@ -35,7 +35,7 @@ class EmployeeSalaryComponent(BaseModel):
     amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
 
     is_active = models.BooleanField(default=True)
-
+ 
     class Meta:
         unique_together = ('employee_salary', 'component')
         ordering = ['component__name']

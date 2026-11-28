@@ -148,11 +148,12 @@ def intake_context(request, agenda_id, paciente_id=None):
         agenda = todays_appointment(request, patient)
     employee = require_employee(request)
 
-    previous = (
+    recent = list(
         DadoVital.objects.filter(paciente_id=patient.id, entity_id=request.entity_id)
-        .order_by("-created_at")
-        .first()
+        .order_by("-created_at")[:10]
     )
+    previous = recent[0] if recent else None
+    can_edit = "change_dadovital" in held_codenames(request)
 
     return {
         "agenda": {
@@ -184,12 +185,24 @@ def intake_context(request, agenda_id, paciente_id=None):
                 # the dialog offers "Edit last record" only when the backend
                 # would accept it: the author, within the edit window, with
                 # change_dadovital (DocumentEditWindowMixin enforces it again)
-                "editable": "change_dadovital" in held_codenames(request)
-                and is_editable(request, previous),
+                "editable": can_edit and is_editable(request, previous),
                 **_values(previous),
             }
             if previous else None
         ),
+        # the patient's latest records (newest first), each editable by its author
+        # within the window; the dialog lists them so an earlier record can be corrected
+        "history": [
+            {
+                "id": str(record.id),
+                "created_at": record.created_at,
+                "tipo": record.tipo,
+                "observacao": record.observacao,
+                "editable": can_edit and is_editable(request, record),
+                **_values(record),
+            }
+            for record in recent
+        ],
         "limits": {
             field: {"min": float(low), "max": float(high), "unit": unit}
             for field, (low, high, unit) in LIMITS.items()

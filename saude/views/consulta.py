@@ -40,6 +40,12 @@ class ConsultaAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPIView):
         super().perform_create(serializer)
         # the consultation of today's appointment with this doctor
         prescription_service.link_to_todays_appointment(serializer.instance)
+        consultation_service.check_out_linked_appointment(self.request, serializer.instance)
+
+    # saving the consultation checks out its appointment (check_out_linked_appointment)
+    def perform_update(self, serializer):
+        super().perform_update(serializer)
+        consultation_service.check_out_linked_appointment(self.request, serializer.instance)
 
     # What the consultation form shows: the professional signing it and the
     # patient (tenant scoped). Read only; needs add_consulta.

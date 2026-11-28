@@ -24,6 +24,24 @@ Four repositories, two reusable frameworks and one application built on them.
   `./core/*`).
 - Horizontal modules (`inventory`, `sales`, `purchases`, `accounting`, `crm`, `workflow`) do not
   import vertical ones (`saude`, `farmacia`); verticals integrate through services and events.
+
+### Module layers (measured 2026-11-27)
+
+Declared dependencies between `back` apps. Enforced by `saude/tests/test_module_boundaries.py`,
+which fails when an app imports something not listed here.
+
+| Layer | App | Imports |
+|---|---|---|
+| Base | `catalog`, `workflow`, `hr`, `accounting` | none |
+| Operational | `inventory` | `catalog` |
+| Operational | `sales` | `catalog`, `inventory` |
+| Operational | `purchases` | `inventory`, `workflow` |
+| Corporate | `crm` | `sales` |
+| Vertical (business) | `saude` | `catalog`, `inventory`, `sales`, `hr` |
+
+Cross-cutting, in `django_resaas` (not `back` apps): `notifications`, documents
+(`saas/data/document*`, `file`), reports (`printing`, `pdf`). Payments live inside `sales`.
+Adding an import outside this table is a layering change: review it first.
 - Test-time only: `quasar_resaas/i18n.spec.js` reads the translation dictionaries of a sibling
   `django_resaas` checkout (skipped when it is absent); the error-contract fixture in
   `quasar_resaas/tests/fixtures/` holds real `django_resaas` responses.

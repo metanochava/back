@@ -193,6 +193,16 @@ FRONT_OFFICE_PROFILES = [
             "book_other_branch_agenda",
             # the charges made by check-outs and exam check-ins (paid in sales)
             "list_clinicalcharge", "view_clinicalcharge",
+            # open the sale of a charged consultation (read only: the sale is
+            # issued and paid in sales)
+            "view_sale",
+            # the sale shows its products (read only catalogue)
+            "list_product",
+            # and its lines, their price for the customer and the taxes (read only)
+            "list_saleitem", "view_saleitem", "preco_sale", "list_tax", "view_tax",
+            # the reception works the consultation's bill: add its lines, confirm
+            # it, and see its payments (not pay: add_payment stays with billing)
+            "add_saleitem", "confirmar_sale", "list_payment", "view_payment",
             # exam catalogue of the exam request (saude/catalogoexames/)
             "list_tipoexamemedico",
             # and its quick list of exams (read only)

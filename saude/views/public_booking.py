@@ -38,7 +38,7 @@ class PublicBookingViewSet(ResaasResponseMixin, viewsets.ViewSet):
 
     @staticmethod
     def _entity(request):
-        entity = entity_for_origin(request.headers.get("Origin"))
+        entity = entity_for_origin(request)
         if entity is None:
             raise ResaasAPIException(
                 "This site is not linked to any organisation.",

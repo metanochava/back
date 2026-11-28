@@ -30,10 +30,11 @@ class AtestadoMedicoAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPI
     def create(self, request, *args, **kwargs):
 
         # the document belongs to a consultation of TODAY of this patient
-        # (consultation_service.resolve_for_document): never one created here,
-        # never a patient of another Entity
+        # (consultation_service.resolve_for_document): started from today's
+        # appointment when there is no consultation yet, never a patient of
+        # another Entity
         _patient, _professional, consulta = consultation_service.resolve_for_document(
-            request, request.data.get("paciente"), request.data.get("consulta")
+            request, request.data.get("paciente"), request.data.get("consulta"), create_missing=True
         )
 
         data = request.data.copy()

@@ -142,14 +142,16 @@ def free_time(request, branch, employee_id, day, exclude_id=None):
     }
 
 
-def assert_open(branch, day, start, end):
-    """A booked time inside the branch's opening hours, when it has some."""
-    hours = open_intervals(branch.id, day.weekday())
+def is_outside_opening_hours(branch_id, day, start, end=None):
+    """True when the booked time falls outside the branch's opening hours (or
+    the branch is closed that day). A branch with no opening hours configured
+    gives False: nothing is guessed. An appointment outside the hours is urgent
+    (Agenda.urgente), it is not refused."""
+    end = end or start
+    hours = open_intervals(branch_id, day.weekday())
     if hours is None:
-        return
-    if not any(opens <= start and end <= closes for opens, closes in hours):
-        raise ResaasAPIException("The branch is closed at this time.", code="branch_closed",
-                                 details={"hora_inicio": ["The branch is closed at this time."]})
+        return False
+    return not any(opens <= start and end <= closes for opens, closes in hours)
 
 
 def parse_day(value):

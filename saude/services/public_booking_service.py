@@ -40,6 +40,7 @@ from saude.models.horariomedico import HorarioMedico
 from saude.models.paciente import Paciente
 from django_resaas.saas.models.branch import Branch
 from django_resaas.saas.models.branch_opening_hours import BranchOpeningHours, open_intervals
+from saude.services import booking_service
 
 REQUEST_RECEIVED = "saude.appointment_request.received"
 
@@ -399,6 +400,10 @@ def confirm(appointment_request, paciente_id, user, now=None):
             hora_fim=appointment_request.hora_fim,
             motivo=appointment_request.reason,
             estado="marcada",
+            # outside the branch's opening hours: urgent (booking_service)
+            urgente=booking_service.is_outside_opening_hours(
+                appointment_request.branch_id, appointment_request.data, appointment_request.hora_inicio,
+                appointment_request.hora_fim),
             created_by=user,
             updated_by=user,
             state="Active",

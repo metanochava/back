@@ -661,6 +661,12 @@ def confirm_sale(*, sale, user):
     if not itens:
         raise ValidationError("Não é possível confirmar uma venda sem linhas.")
 
+    # validation hook: a listener registered with propagate=True on
+    # "sales.sale.confirming" may refuse the confirmation (raising aborts this
+    # transaction). Nothing has moved yet: no stock, no state change.
+    EventDispatcher.emit("sales.sale.confirming", instance=sale, actor=user,
+                         context={"amount": str(sale.total)})
+
     if sale.warehouse_id and stock_enabled(sale.entity_id):
         inventory().commit_sale_movements(
             sale_id=sale.id,

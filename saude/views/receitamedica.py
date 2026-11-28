@@ -33,12 +33,13 @@ class ReceitaMedicaAPIView(PatientFilterMixin, DocumentEditWindowMixin, BaseAPIV
     
 
     # POST receitamedicas/ {paciente, consulta?}: the prescription belongs to a
-    # consultation of TODAY of this patient (prescription_service): never a
-    # consultation created here, never a patient of another Entity.
+    # consultation of TODAY of this patient (prescription_service), started from
+    # the patient's appointment today when there is none yet; never a patient
+    # of another Entity.
     def create(self, request, *args, **kwargs):
 
         _patient, _professional, consulta = prescription_service.resolve_consultation(
-            request, request.data.get("paciente"), request.data.get("consulta")
+            request, request.data.get("paciente"), request.data.get("consulta"), create_missing=True
         )
 
         data = request.data.copy()
