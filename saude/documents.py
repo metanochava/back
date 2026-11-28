@@ -32,7 +32,8 @@ def _vital_signs_context(request, record, paper):
             if sys is None and dia is None:
                 continue
             rows.append({"label": t("Blood pressure"), "value": f"{sys if sys is not None else '-'}/{dia if dia is not None else '-'}",
-                         "unit": "mmHg", "status": _status(t, vs.status_of("ta_sistolica", values))})
+                         "unit": "mmHg", "status": _status(t, vs.status_of("ta_sistolica", values)),
+                         "level": vs.status_of("ta_sistolica", values)["level"]})
             continue
         value = values.get(field)
         if value is None:
@@ -44,20 +45,23 @@ def _vital_signs_context(request, record, paper):
             extra = f" ({t(dict(record._meta.get_field('glicemia_momento').choices).get(record.glicemia_momento, record.glicemia_momento))})"
         unit = "/10" if field == "dor" else vs.UNITS.get(field, "")
         rows.append({"label": t(label) + extra, "value": shown(value), "unit": unit,
-                     "status": _status(t, vs.status_of(field, values))})
+                     "status": _status(t, vs.status_of(field, values)), "level": vs.status_of(field, values)["level"]})
+    # the internment flag is recorded with the vital signs too
+    rows.append({"label": t("Internment"), "value": t("Yes") if record.is_internment else t("No"),
+                 "unit": "", "status": None, "level": "none"})
 
-    calcs = [{"label": t(c["label"]), "value": c["value"], "unit": c["unit"], "status": _status(t, c["status"])}
+    calcs = [{"label": t(c["label"]), "value": c["value"], "unit": c["unit"], "status": _status(t, c["status"]),
+              "level": (c["status"] or {}).get("level", "none")}
              for c in vs.calculations(values) if c["value"] is not None]
     patient = record.paciente.person
     # a small sheet (A7 = half an A6, A6; `paper` is its oriented PAPER_FORMATS row):
     # everything on one page - the
     # measurements and calculations two per line
     paper = paper or {}
-    # small sheets and any sheet lying down: the grid (one page)
+    # small sheets (A7, A6: short side <= 105 mm) and any sheet lying down: the compact grid (one page)
     compact = not paper.get("thermal") and (paper.get("landscape") or paper.get("short_side", paper.get("width", 999)) <= 105)
     # turned sideways (landscape) there is room for three per line
     per_line = 3 if paper.get("landscape") else 2
-    cells = rows + [{"label": c["label"], "value": c["value"], "unit": c["unit"], "status": c["status"]} for c in calcs]
     choice = lambda name: dict(record._meta.get_field(name).choices).get(getattr(record, name), getattr(record, name))  # noqa: E731
     return {
         "record": record,
@@ -71,7 +75,7 @@ def _vital_signs_context(request, record, paper):
         "calcs": calcs,
         "compact": compact,
         "per_line": per_line,
-        "pairs": [cells[i:i + per_line] for i in range(0, len(cells), per_line)],
+        "pairs": [rows[i:i + per_line] for i in range(0, len(rows), per_line)],
         "labels": {key: t(text) for key, text in {
             "title": "Vital signs", "patient": "Patient", "nid": "NID", "age": "Age", "years": "years",
             "date": "Date", "type": "Type", "recorded_by": "Recorded by", "measurement": "Measurement",
@@ -97,9 +101,9 @@ DOCUMENTS = [
         "label": "Vital signs",
         "permission": "view_dadovital",
         "template": "saude/print/vital_signs.html",
-        # half an A6 sheet by default (the owner's slip); the others on request
-        "formats": ["a7", "a6", "a5", "a4", "thermal_80", "thermal_58"],
-        "default_format": "a7",
+        # A6 by default (the owner's sheet); half A6 (A7) and the others on request
+        "formats": ["a6", "a5", "a4", "thermal_80", "thermal_58"],
+        "default_format": "a6",
         # the owner's slip: half an A6, standing up (portrait)
         "landscape": False,
         "queryset": _vital_signs,

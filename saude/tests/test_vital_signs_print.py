@@ -45,13 +45,13 @@ class VitalSignsPrintTests(TestCase):
         self.assertEqual(response.status_code, 201, response.content)
         self.record = DadoVital.objects.get(id=response.json()["id"])
 
-    def test_the_document_is_offered_on_half_an_a6_by_default(self):
+    def test_the_document_is_offered_on_an_a6_sheet_by_default(self):
         documents = self.client.get("/api/printing/documents/").json()["documents"]
         vitals = next(d for d in documents if d["code"] == "saude.vital_signs")
-        self.assertEqual(vitals["default_format"], "a7")
+        self.assertEqual(vitals["default_format"], "a6")
 
     def test_the_pdf_of_a_record(self):
-        response = self.client.get(f"/api/printing/saude.vital_signs/{self.record.id}/pdf/", {"paper": "a7"})
+        response = self.client.get(f"/api/printing/saude.vital_signs/{self.record.id}/pdf/", {"paper": "a6"})
         self.assertEqual(response.status_code, 200, getattr(response, "content", b"")[:300])
         self.assertEqual(response["Content-Type"], "application/pdf")
 
@@ -66,6 +66,19 @@ class VitalSignsPrintTests(TestCase):
         self.assertTrue(context["compact"])
         # half an A6 standing up: 74 x 105 mm
         self.assertEqual((context["paper"]["width"], context["paper"]["height"]), (74, 105))
+        pages = HTML(string=render_to_string(document["template"], context)).render().pages
+        self.assertEqual(len(pages), 1)
+
+    def test_a6_uses_the_compact_layout_like_a7_and_fits_one_page(self):
+        from weasyprint import HTML
+
+        document = printing.get("saude.vital_signs")
+        request = self.client.get("/api/printing/documents/").wsgi_request
+        request.entity_id, request.branch_id = self.tenant["entity"].id, self.tenant["branch"].id
+        context = _context(request, document, self.record, "a6")
+        context["request"], context["page_css"] = request, page_css(context["paper"])
+        self.assertTrue(context["compact"])
+        self.assertEqual((context["paper"]["width"], context["paper"]["height"]), (105, 148))
         pages = HTML(string=render_to_string(document["template"], context)).render().pages
         self.assertEqual(len(pages), 1)
 
